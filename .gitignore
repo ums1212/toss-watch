@@ -1,0 +1,19 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.kotlin/
+
+# Claude Code 로컬 설정 (개인 권한 설정 — 커밋 금지)
+.claude/settings.local.json
+
+# 서명 키 / 자격증명 (예방적 차단)
+*.keystore
+*.jks
+google-services.json
