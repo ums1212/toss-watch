@@ -1,8 +1,8 @@
 package dev.comon.toss_watch.feature.dashboard.presentation
 
 import dev.comon.toss_watch.core.model.NetworkResult
-import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchTargetTickersUseCase
-import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchUserAssetsUseCase
+import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchAccountsUseCase
+import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchPortfolioUseCase
 import dev.comon.toss_watch.feature.dashboard.util.FakeDashboardRepository
 import dev.comon.toss_watch.feature.dashboard.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.dashboard.util.TestDispatcherProvider
@@ -32,8 +32,8 @@ class DashboardViewModelTest {
 
     private fun createViewModel(): DashboardViewModel =
         DashboardViewModel(
-            fetchUserAssetsUseCase = FetchUserAssetsUseCase(fakeRepository),
-            fetchTargetTickersUseCase = FetchTargetTickersUseCase(fakeRepository),
+            fetchAccountsUseCase = FetchAccountsUseCase(fakeRepository),
+            fetchPortfolioUseCase = FetchPortfolioUseCase(fakeRepository),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -48,15 +48,19 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `초기 로드 성공 시 자산 요약과 관찰 종목이 상태에 반영된다`() =
+    fun `초기 로드 성공 시 계좌목록과 첫 번째 계좌의 포트폴리오가 상태에 반영된다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             val viewModel = createViewModel()
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
-            assertEquals(FakeDashboardRepository.DEFAULT_ASSETS, state.totalAssets)
-            assertEquals(FakeDashboardRepository.DEFAULT_TICKERS, state.activeTickers)
+            assertEquals(FakeDashboardRepository.DEFAULT_ACCOUNTS, state.accounts)
+            assertEquals(
+                FakeDashboardRepository.DEFAULT_ACCOUNTS.first().accountSeq,
+                state.selectedAccountSeq,
+            )
+            assertEquals(FakeDashboardRepository.DEFAULT_PORTFOLIO, state.portfolio)
             assertNull(state.errorMessage)
         }
 
@@ -77,26 +81,51 @@ class DashboardViewModelTest {
         }
 
     @Test
-    fun `ApiError 주입 시 크래시 없이 errorMessage로 환원되고 로딩이 종료된다`() =
+    fun `OnAccountSelected는 계좌목록을 다시 조회하지 않고 선택한 계좌의 포트폴리오만 재조회한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.assetsResult =
-                NetworkResult.ApiError(code = 500, message = "자산 집계 서버 오류")
+            val otherAccountSeq = FakeDashboardRepository.DEFAULT_ACCOUNTS[1].accountSeq
+            val otherPortfolio = FakeDashboardRepository.DEFAULT_PORTFOLIO.copy(
+                summary = FakeDashboardRepository.DEFAULT_PORTFOLIO.summary.copy(
+                    totalEvaluationKrw = 999_000.0,
+                ),
+            )
+            fakeRepository.portfolioResultByAccountSeq =
+                mapOf(otherAccountSeq to NetworkResult.Success(otherPortfolio))
+
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(DashboardUiIntent.OnAccountSelected(otherAccountSeq))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(otherAccountSeq, state.selectedAccountSeq)
+            assertEquals(otherPortfolio, state.portfolio)
+            assertEquals(1, fakeRepository.accountsInvocationCount)
+            assertEquals(2, fakeRepository.portfolioInvocationCount)
+        }
+
+    @Test
+    fun `계좌목록 조회 실패 시에도 기본계좌 포트폴리오는 조회되고 에러가 표시된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.accountsResult =
+                NetworkResult.ApiError(code = 500, message = "계좌 조회 서버 오류")
             val viewModel = createViewModel()
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
-            assertFalse(state.isRefreshing)
-            assertEquals("자산 집계 서버 오류", state.errorMessage)
-            // 실패한 자산 요약은 비어 있어도 성공한 종목 목록은 유지된다.
-            assertNull(state.totalAssets)
-            assertEquals(FakeDashboardRepository.DEFAULT_TICKERS, state.activeTickers)
+            assertEquals("계좌 조회 서버 오류", state.errorMessage)
+            assertTrue(state.accounts.isEmpty())
+            assertNull(state.selectedAccountSeq)
+            // 계좌목록이 없어도 서버가 기본계좌로 폴백하는 포트폴리오 조회는 성공한다.
+            assertEquals(FakeDashboardRepository.DEFAULT_PORTFOLIO, state.portfolio)
         }
 
     @Test
     fun `메시지 없는 ApiError는 기본 에러 문구를 사용한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.tickersResult = NetworkResult.ApiError(code = 502, message = null)
+            fakeRepository.portfolioResult = NetworkResult.ApiError(code = 502, message = null)
             val viewModel = createViewModel()
             advanceUntilIdle()
 
@@ -109,18 +138,19 @@ class DashboardViewModelTest {
     @Test
     fun `NetworkError 시 네트워크 안내 문구가 표시된다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.assetsResult = NetworkResult.NetworkError(IOException("timeout"))
-            fakeRepository.tickersResult = NetworkResult.NetworkError(IOException("timeout"))
+            fakeRepository.accountsResult = NetworkResult.NetworkError(IOException("timeout"))
+            fakeRepository.portfolioResult = NetworkResult.NetworkError(IOException("timeout"))
             val viewModel = createViewModel()
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
             assertEquals(DashboardViewModel.DEFAULT_NETWORK_ERROR, state.errorMessage)
+            assertNull(state.portfolio)
         }
 
     @Test
-    fun `OnRefreshTriggered는 isRefreshing 상태로 재조회한다`() =
+    fun `OnRefreshTriggered는 isRefreshing 상태로 계좌목록과 포트폴리오를 재조회한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             val viewModel = createViewModel()
             advanceUntilIdle()
@@ -132,12 +162,15 @@ class DashboardViewModelTest {
             assertTrue(viewModel.uiState.value.isRefreshing)
             assertFalse(viewModel.uiState.value.isLoading)
 
+            // 계좌목록 → 포트폴리오는 순차 호출이므로 두 단계를 각각 풀어준다.
+            fakeRepository.release()
+            runCurrent()
             fakeRepository.release()
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.isRefreshing)
-            assertEquals(2, fakeRepository.assetsInvocationCount)
-            assertEquals(2, fakeRepository.tickersInvocationCount)
+            assertEquals(2, fakeRepository.accountsInvocationCount)
+            assertEquals(2, fakeRepository.portfolioInvocationCount)
         }
 
     @Test
@@ -150,8 +183,10 @@ class DashboardViewModelTest {
             viewModel.handleIntent(DashboardUiIntent.OnRefreshTriggered)
             runCurrent()
 
-            assertEquals(1, fakeRepository.assetsInvocationCount)
+            assertEquals(1, fakeRepository.accountsInvocationCount)
 
+            fakeRepository.release()
+            runCurrent()
             fakeRepository.release()
             advanceUntilIdle()
         }
@@ -159,7 +194,8 @@ class DashboardViewModelTest {
     @Test
     fun `에러 다이얼로그 확인 시 errorMessage가 초기화된다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.assetsResult = NetworkResult.ApiError(code = 500, message = "오류")
+            fakeRepository.accountsResult =
+                NetworkResult.ApiError(code = 500, message = "오류")
             val viewModel = createViewModel()
             advanceUntilIdle()
 

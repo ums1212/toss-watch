@@ -21,12 +21,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
@@ -74,7 +74,7 @@ fun LoginScreen(
         onGoogleLoginClick = {
             scope.launch {
                 val result =
-                    credentialClient.requestIdToken(BuildConfig.GOOGLE_SERVER_CLIENT_ID)
+                    credentialClient.requestIdToken(BuildConfig.GOOGLE_AUTH_CLIENT_ID)
                 when (result) {
                     is GoogleCredentialResult.Success ->
                         viewModel.handleIntent(AuthUiIntent.OnGoogleLoginClicked(result.idToken))

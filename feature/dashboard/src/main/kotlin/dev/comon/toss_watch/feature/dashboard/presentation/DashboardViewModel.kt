@@ -5,17 +5,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
 import dev.comon.toss_watch.core.model.NetworkResult
-import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchTargetTickersUseCase
-import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchUserAssetsUseCase
+import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchAccountsUseCase
+import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchPortfolioUseCase
 import javax.inject.Inject
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val fetchUserAssetsUseCase: FetchUserAssetsUseCase,
-    private val fetchTargetTickersUseCase: FetchTargetTickersUseCase,
+    private val fetchAccountsUseCase: FetchAccountsUseCase,
+    private val fetchPortfolioUseCase: FetchPortfolioUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<DashboardUiState, DashboardUiIntent, DashboardUiSideEffect>(
     DashboardUiState(),
@@ -29,6 +27,8 @@ class DashboardViewModel @Inject constructor(
         when (intent) {
             DashboardUiIntent.OnRefreshTriggered -> load(isRefresh = true)
 
+            is DashboardUiIntent.OnAccountSelected -> selectAccount(intent.accountSeq)
+
             DashboardUiIntent.OnSettingClicked ->
                 sendSideEffect(DashboardUiSideEffect.NavigateToSetting)
 
@@ -38,6 +38,11 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 대시보드 진입/새로고침 흐름 — 계좌목록을 먼저 조회한 뒤,
+     * 이전에 선택된 계좌가 목록에 남아 있으면 그 계좌를, 아니면 첫 번째 계좌를 골라
+     * 해당 계좌의 포트폴리오를 조회한다.
+     */
     private fun load(isRefresh: Boolean) {
         val current = uiState.value
         if (current.isLoading || current.isRefreshing) return
@@ -51,21 +56,62 @@ class DashboardViewModel @Inject constructor(
                 )
             }
 
-            // 자산 요약과 종목 시세는 독립 엔드포인트 — 병렬 조회로 체감 로딩을 줄인다.
-            val (assetsResult, tickersResult) = coroutineScope {
-                val assets = async { fetchUserAssetsUseCase() }
-                val tickers = async { fetchTargetTickersUseCase() }
-                assets.await() to tickers.await()
+            val previousSelected = uiState.value.selectedAccountSeq
+            val accountsResult = fetchAccountsUseCase()
+            val fetchedAccounts = (accountsResult as? NetworkResult.Success)?.data
+
+            val targetAccountSeq = when {
+                fetchedAccounts == null -> previousSelected
+                fetchedAccounts.any { it.accountSeq == previousSelected } -> previousSelected
+                else -> fetchedAccounts.firstOrNull()?.accountSeq
             }
+
+            val portfolioResult = fetchPortfolioUseCase(targetAccountSeq)
+            val portfolioSuccess = portfolioResult as? NetworkResult.Success
 
             updateState {
                 copy(
                     isLoading = false,
                     isRefreshing = false,
-                    totalAssets = (assetsResult as? NetworkResult.Success)?.data ?: totalAssets,
-                    activeTickers = (tickersResult as? NetworkResult.Success)?.data
-                        ?: activeTickers,
-                    errorMessage = firstErrorMessage(assetsResult, tickersResult),
+                    accounts = fetchedAccounts ?: accounts,
+                    // 포트폴리오 조회에 실패하면 화면엔 이전 계좌 데이터가 그대로 남으므로,
+                    // selectedAccountSeq도 이전 값을 유지해 "선택 계좌 = 표시된 데이터" 정합성을 지킨다.
+                    selectedAccountSeq = if (portfolioSuccess != null) {
+                        targetAccountSeq ?: selectedAccountSeq
+                    } else {
+                        selectedAccountSeq
+                    },
+                    portfolio = portfolioSuccess?.data ?: portfolio,
+                    errorMessage = firstErrorMessage(accountsResult, portfolioResult),
+                )
+            }
+        }
+    }
+
+    /** 계좌목록 팝업에서 다른 계좌 선택 — 계좌목록은 그대로 두고 포트폴리오만 재조회한다. */
+    private fun selectAccount(accountSeq: Long) {
+        val current = uiState.value
+        if (current.selectedAccountSeq == accountSeq || current.isLoading || current.isRefreshing) {
+            return
+        }
+        val previousAccountSeq = current.selectedAccountSeq
+
+        viewModelScope.launch(dispatcherProvider.io) {
+            updateState {
+                copy(selectedAccountSeq = accountSeq, isLoading = true, errorMessage = null)
+            }
+
+            val portfolioResult = fetchPortfolioUseCase(accountSeq)
+            val portfolioSuccess = portfolioResult as? NetworkResult.Success
+
+            updateState {
+                copy(
+                    isLoading = false,
+                    // 실패 시 화면에 남는 포트폴리오는 이전 계좌 데이터이므로,
+                    // selectedAccountSeq도 이전 계좌로 되돌려 데이터 불일치를 방지한다.
+                    selectedAccountSeq = if (portfolioSuccess != null) accountSeq else previousAccountSeq,
+                    portfolio = portfolioSuccess?.data ?: portfolio,
+                    errorMessage = firstErrorMessage(portfolioResult),
                 )
             }
         }

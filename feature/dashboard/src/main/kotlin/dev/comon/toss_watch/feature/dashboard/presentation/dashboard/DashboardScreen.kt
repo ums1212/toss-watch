@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -22,29 +23,36 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
-import dev.comon.toss_watch.feature.dashboard.domain.model.TargetTicker
-import dev.comon.toss_watch.feature.dashboard.domain.model.UserAssets
+import dev.comon.toss_watch.feature.dashboard.domain.model.Account
+import dev.comon.toss_watch.feature.dashboard.domain.model.Currency
+import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
+import dev.comon.toss_watch.feature.dashboard.domain.model.Portfolio
+import dev.comon.toss_watch.feature.dashboard.domain.model.PortfolioSummary
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiIntent
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiSideEffect
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiState
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardViewModel
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.AssetSummaryCard
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.TickerListItem
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.AccountSelectDialog
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.HoldingListItem
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioSummaryCard
 
 /**
- * 자산/관찰 종목 대시보드.
+ * 자산/보유 종목 대시보드.
  *
  * @param onNavigateToSetting [DashboardUiSideEffect.NavigateToSetting] 수신 시 호출 —
  *   :app의 Navigation 3 라우터가 SettingRoute push로 연결한다.
@@ -80,12 +88,22 @@ private fun DashboardContent(
     onIntent: (DashboardUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var isAccountDialogVisible by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { Text(text = "내 자산") },
                 actions = {
+                    IconButton(
+                        onClick = { isAccountDialogVisible = true },
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.List,
+                            contentDescription = "계좌 목록",
+                        )
+                    }
                     IconButton(
                         onClick = { onIntent(DashboardUiIntent.OnSettingClicked) },
                     ) {
@@ -113,26 +131,27 @@ private fun DashboardContent(
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    item(key = "asset_summary") {
-                        AssetSummaryCard(
-                            userAssets = uiState.totalAssets,
+                    item(key = "portfolio_summary") {
+                        PortfolioSummaryCard(
+                            portfolio = uiState.portfolio,
                             modifier = Modifier.padding(bottom = 16.dp),
                         )
                     }
 
-                    item(key = "ticker_header") {
+                    item(key = "holding_header") {
                         Text(
-                            text = "관찰 중인 종목",
+                            text = "보유 종목",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 8.dp),
                         )
                     }
 
-                    if (uiState.activeTickers.isEmpty() && !uiState.isLoading) {
-                        item(key = "ticker_empty") {
+                    val securities = uiState.portfolio?.securities.orEmpty()
+                    if (securities.isEmpty() && !uiState.isLoading) {
+                        item(key = "holding_empty") {
                             Text(
-                                text = "아직 관찰 중인 종목이 없어요.\n설정에서 알림 종목을 추가해 보세요.",
+                                text = "보유 중인 종목이 없어요.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
@@ -143,10 +162,10 @@ private fun DashboardContent(
                         }
                     } else {
                         items(
-                            items = uiState.activeTickers,
-                            key = { it.code },
-                        ) { ticker ->
-                            TickerListItem(ticker = ticker)
+                            items = securities,
+                            key = { it.stockCode },
+                        ) { holding ->
+                            HoldingListItem(holding = holding)
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                             )
@@ -166,6 +185,18 @@ private fun DashboardContent(
                     title = "불러오기에 실패했어요",
                 )
             }
+
+            if (isAccountDialogVisible) {
+                AccountSelectDialog(
+                    accounts = uiState.accounts,
+                    selectedAccountSeq = uiState.selectedAccountSeq,
+                    onSelect = { accountSeq ->
+                        onIntent(DashboardUiIntent.OnAccountSelected(accountSeq))
+                        isAccountDialogVisible = false
+                    },
+                    onDismiss = { isAccountDialogVisible = false },
+                )
+            }
         }
     }
 }
@@ -176,10 +207,34 @@ private fun DashboardContentPreview() {
     TossWatchTheme {
         DashboardContent(
             uiState = DashboardUiState(
-                totalAssets = UserAssets(12_345_678L, 345_678L, 2.88),
-                activeTickers = listOf(
-                    TargetTicker("005930", "삼성전자", 78_400L, 1.42),
-                    TargetTicker("035420", "NAVER", 187_500L, -0.83),
+                accounts = listOf(
+                    Account(accountNo = "100012345678", accountSeq = 987654, accountType = "BROKERAGE"),
+                ),
+                selectedAccountSeq = 987654,
+                portfolio = Portfolio(
+                    summary = PortfolioSummary(
+                        totalInvestmentKrw = 650_000.0,
+                        totalInvestmentUsd = 0.0,
+                        totalEvaluationKrw = 725_000.0,
+                        totalEvaluationUsd = 0.0,
+                        totalProfitLossKrw = 75_000.0,
+                        totalProfitLossUsd = 0.0,
+                        totalReturnRate = 11.54,
+                    ),
+                    securities = listOf(
+                        HoldingStock(
+                            stockCode = "005930",
+                            stockName = "삼성전자",
+                            currency = Currency.KRW,
+                            quantity = 10.0,
+                            averageBuyPrice = 65_000.0,
+                            totalBuyAmount = 650_000.0,
+                            currentPrice = 72_500.0,
+                            totalEvaluationAmount = 725_000.0,
+                            profitLoss = 75_000.0,
+                            returnRate = 11.54,
+                        ),
+                    ),
                 ),
             ),
             onIntent = {},

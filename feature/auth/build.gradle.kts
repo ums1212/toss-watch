@@ -1,3 +1,6 @@
+import java.util.Properties
+import kotlin.apply
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
@@ -5,6 +8,14 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+// API base URL은 저장소에 노출하지 않도록 local.properties에서 읽는다 (VCS 제외 파일).
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use(::load)
+}
+val googleAuthClientId: String = localProperties.getProperty("tossWatch.googleAuthClientId")
+    ?: error("local.properties에 tossWatch.googleAuthClientId을 설정해야 합니다.")
 
 android {
     namespace = "dev.comon.toss_watch.feature.auth"
@@ -16,13 +27,7 @@ android {
         minSdk = 26
 
         // 구글 로그인용 웹 클라이언트 ID (GCP 콘솔의 OAuth 2.0 "웹 애플리케이션" 타입).
-        // 실제 값은 gradle.properties(로컬) 또는 CI 환경 프로퍼티로 주입한다.
-        buildConfigField(
-            "String",
-            "GOOGLE_SERVER_CLIENT_ID",
-            "\"${providers.gradleProperty("tossWatch.googleServerClientId")
-                .getOrElse("REPLACE_ME.apps.googleusercontent.com")}\"",
-        )
+        buildConfigField("String", "GOOGLE_AUTH_CLIENT_ID", "\"$googleAuthClientId\"")
     }
 
     compileOptions {

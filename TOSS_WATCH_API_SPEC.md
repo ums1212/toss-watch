@@ -42,8 +42,9 @@ POST /api/v1/auth/google/          [인증 불필요]
 
 - `access_token` 유효기간: **1시간** / `refresh_token`: **14일**
 - `has_toss_key`가 `false`면 클라이언트는 토스 키 등록 화면으로 유도할 것.
-
-**Errors**: `400` id_token 누락 / `401` 구글 토큰 검증 실패·이메일 미검증
+**Errors**
+- `400 Bad Request` `id_token` 누락 (`{"error": "body에 'id_token'이 필요합니다."}`)
+- `401 Unauthorized` 구글 토큰 검증 실패 (`{"error": "구글 id_token 검증 실패: <상세 사유>"}`) 또는 이메일 미검증/이메일 정보 없음 (`{"error": "검증된 이메일 정보가 없는 토큰입니다."}`)
 
 ### 1-2. Access Token 갱신
 
@@ -55,7 +56,9 @@ POST /api/v1/auth/refresh/         [인증 불필요]
 
 **Response 200**: `{"access": "<새 access_token>"}`
 
-**Errors**: `401` refresh 토큰 만료/위조 → 구글 로그인부터 다시 수행
+**Errors**
+- `400 Bad Request` `refresh` 토큰 누락 (`{"refresh": ["This field is required."]}`)
+- `401 Unauthorized` `refresh` 토큰 만료/위조 (`{"detail": "Token is invalid or expired", "code": "token_not_valid"}`) → 구글 로그인부터 다시 수행
 
 ---
 
@@ -78,8 +81,9 @@ Fernet(AES-128-CBC + HMAC) 양방향 암호화되어 DB에 저장된다.
 | `client_secret` | string | ✅ | 토스 발급 시크릿 (`tssk_live_...`) |
 
 **Response 200**: `{"message": "토스 API 키가 등록되었습니다.", "toss_client_id": "tsck_live_..."}`
-
-**Errors**: `400` 필드 누락 / `401` JWT 없음·만료
+**Errors**
+- `400 Bad Request` 필드 누락 (`{"error": "body에 'client_id'와 'client_secret'이 모두 필요합니다."}`)
+- `401 Unauthorized` JWT 인증 정보 누락/만료/위조 (`{"detail": "Authentication credentials were not provided."}` 혹은 `{"detail": "Token is invalid or expired", "code": "token_not_valid"}`)
 
 ### 2-2. 토스 키 등록 상태 조회
 
@@ -92,43 +96,126 @@ GET /api/v1/users/toss-key/        [JWT 필수]
 
 ---
 
-## 3. 시세 조회 (Ticker)
+## 3. 계좌/포트폴리오 조회 (Accounts & Portfolio)
+
+### 3-1. 계좌목록 조회
 
 ```
-GET /api/v1/toss/ticker/?code=005930    [JWT 필수, 유저당 분당 60회 제한]
+GET /api/v1/toss/accounts/     [JWT 필수, 유저당 분당 20회 제한]
 ```
 
-유저가 등록한 본인 토스 키로 시세를 조회해 워치용 경량 JSON으로 반환한다.
-국내(코스피/코스닥) 종목코드와 미국 티커(`AAPL` 등) 모두 지원.
+유저가 등록한 본인 토스 API 키로 토스증권에 개설된 사용자의 계좌 목록을 조회해 반환한다.
 
-**Query Params**: `code` (필수) — 종목 코드/티커
+**Response 200**
+
+```json
+[
+  {
+    "accountNo": "100012345678",
+    "accountSeq": 987654,
+    "accountType": "BROKERAGE"
+  }
+]
+```
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `accountNo` | string | 계좌번호 |
+| `accountSeq` | number | 계좌 식별 키 (주문, 보유 종목 등 기타 토스 API 호출 시 식별자로 사용) |
+| `accountType` | string | 계좌 유형 (`BROKERAGE` 등) |
+
+**Errors**
+- `400 Bad Request` 토스 키 미등록 (`{"error": "등록된 토스 API 키가 없습니다...", "code": "toss_key_not_registered"}`)
+- `401 Unauthorized` JWT 인증 오류
+- `429 Too Many Requests` 분당 20회 초과 (`{"detail": "Request was throttled. Expected available in X seconds."}`)
+- `502 Bad Gateway` 토스 API 연동 오류 (`{"error": "...", "toss_status": <토스측 HTTP 코드>}`)
+- `500 Internal Server Error` 복호화 실패 등 서버 내부 오류 (`{"error": "<상세 에러 메시지>"}`)
+
+### 3-2. 포트폴리오 조회 (Portfolio)
+
+```
+GET /api/v1/toss/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
+```
+
+유저가 등록한 본인 토스 키로 보유 종목 잔고를 조회해 안드로이드 대시보드용 DTO로 반환한다.
+
+**Query Parameters**
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| `accountSeq` | number |  | 특정 계좌의 식별 키. 지정하지 않을 경우, `GET /api/v1/toss/accounts/`로 조회된 계좌 목록 중 첫 번째 계좌를 기본값으로 사용한다. |
+
+토스 Open API `GET /api/v1/holdings` 응답(계좌당 KRW/USD 종목이 섞일 수 있어
+합계는 통화별로 분리됨)을 그대로 가공해 반환한다.
 
 **Response 200**
 
 ```json
 {
-  "symbol": "005930",
-  "name": "삼성전자",
-  "price": 294500.0,
-  "change_rate": 4.25,
-  "currency": "KRW",
-  "timestamp": "2026-07-10T13:58:10.000+09:00"
+  "summary": {
+    "total_investment_krw": 650000,
+    "total_investment_usd": 2600000,
+    "total_evaluation_krw": 725000,
+    "total_evaluation_usd": 3400000,
+    "total_profit_loss_krw": 75000,
+    "total_profit_loss_usd": 800000,
+    "total_return_rate": "26.92"
+  },
+  "securities": [
+    {
+      "stock_code": "005930",
+      "stock_name": "삼성전자",
+      "currency": "KRW",
+      "quantity": 10,
+      "average_buy_price": 65000,
+      "total_buy_amount": 650000,
+      "current_price": 72500,
+      "total_evaluation_amount": 725000,
+      "profit_loss": 75000,
+      "return_rate": "11.54"
+    },
+    {
+      "stock_code": "SOXL",
+      "stock_name": "Direxion Semiconductor 3X",
+      "currency": "USD",
+      "quantity": 50,
+      "average_buy_price": 52000,
+      "total_buy_amount": 2600000,
+      "current_price": 68000,
+      "total_evaluation_amount": 3400000,
+      "profit_loss": 800000,
+      "return_rate": "30.77"
+    }
+  ]
 }
 ```
 
 | 필드 | 타입 | 설명 |
 |---|---|---|
-| `name` | string | 종목명 |
-| `price` | number | 현재가 |
-| `change_rate` | number\|null | 전일 종가 대비율(%), 소수 2자리. 전일 데이터 없으면 null |
-| `currency` | string | `KRW` / `USD` |
-| `timestamp` | string | 시세 기준시각 (ISO 8601, +09:00) |
+| `summary.total_investment_krw` | number | 총 매수 금액 중 KRW 종목 합계 |
+| `summary.total_investment_usd` | number | 총 매수 금액 중 USD 종목 합계 |
+| `summary.total_evaluation_krw` | number | 총 평가 금액 중 KRW 종목 합계 |
+| `summary.total_evaluation_usd` | number | 총 평가 금액 중 USD 종목 합계 |
+| `summary.total_profit_loss_krw` | number | 총 평가 손익 중 KRW 종목 합계 |
+| `summary.total_profit_loss_usd` | number | 총 평가 손익 중 USD 종목 합계 |
+| `summary.total_return_rate` | string | 계좌 전체 수익률(%), 소수 2자리 문자열 (토스가 통화 환산해 계산한 단일값) |
+| `securities[].stock_code` | string | 종목 코드/티커 |
+| `securities[].stock_name` | string | 종목명 (토스 API가 직접 제공) |
+| `securities[].currency` | string | 해당 종목 통화 (`KRW` / `USD`) — 아래 금액 필드들은 전부 이 통화 기준 |
+| `securities[].quantity` | number | 보유 수량 |
+| `securities[].average_buy_price` | number | 평균 매수 단가 |
+| `securities[].total_buy_amount` | number | 매수 금액 |
+| `securities[].current_price` | number | 현재가 |
+| `securities[].total_evaluation_amount` | number | 평가 금액 |
+| `securities[].profit_loss` | number | 평가 손익 |
+| `securities[].return_rate` | string | 종목별 수익률(%), 소수 2자리 문자열 |
 
 **Errors**
-- `400` `code` 누락 / 토스 키 미등록 (`{"code": "toss_key_not_registered"}`)
-- `401` JWT 없음·만료
-- `429` 분당 60회 초과 (Throttled)
-- `502` 토스 API 오류 (`{"error": "...", "toss_status": <토스측 HTTP 코드>}`)
+- `400 Bad Request` 토스 키 미등록 (`{"error": "등록된 토스 API 키가 없습니다...", "code": "toss_key_not_registered"}`) 또는 파라미터 타입 오류 (`{"error": "accountSeq 파라미터는 숫자 형식이어야 합니다."}`)
+- `401 Unauthorized` JWT 인증 오류
+- `429 Too Many Requests` 분당 20회 초과 (`{"detail": "Request was throttled. Expected available in X seconds."}`)
+- `502 Bad Gateway` 토스 API 연동 오류 (`{"error": "...", "toss_status": <토스측 HTTP 코드>}`)
+- `500 Internal Server Error` 복호화 실패 등 서버 내부 오류 (`{"error": "<상세 에러 메시지>"}`)
 
 ---
 
@@ -160,7 +247,7 @@ GET /api/v1/notifications/
 ```
 
 - `disabled_reason`: 서버가 자동 비활성화한 경우 그 사유
-  (예: FCM 토큰 무효, 토스 키 미등록). 유저가 다시 `is_active: true`로 켜면 초기화됨.
+  (예: FCM 토큰 무효, 토스 키 미등록). 유저가 다시 `is_active: true`로 켜면(`PUT` or `PATCH`) `disabled_reason`은 빈 문자열(`""`)로 자동 초기화된다.
 
 ### 4-2. 알림 등록
 
@@ -172,12 +259,18 @@ POST /api/v1/notifications/
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
-| `stock_code` | string | ✅ | 종목 코드 (예: `005930`, `AAPL`) |
-| `alarm_time` | string | ✅ | `HH:MM` — 매일 이 시각(Asia/Seoul)에 발송. 초 단위는 무시됨 |
-| `watch_fcm_token` | string | ✅ | 워치 기기의 FCM 등록 토큰 |
+| `stock_code` | string | ✅ | 종목 코드 (예: `005930`, `AAPL`). 비워둘 수 없음 |
+| `alarm_time` | string | ✅ | `HH:MM` — 매일 이 시각(Asia/Seoul)에 발송. 초 단위는 무시(0으로 정규화)됨 |
+| `watch_fcm_token` | string | ✅ | 워치 기기의 FCM 등록 토큰. 비워둘 수 없음 |
 | `is_active` | boolean | — | 기본 `true` |
 
 **Response 201** — 생성된 알림 객체 (4-1과 동일 구조)
+
+**Errors**
+- `400 Bad Request` 유효성 검사 실패
+  - `stock_code` 누락/빈 값: `{"stock_code": ["종목 코드는 비워둘 수 없습니다."]}`
+  - `watch_fcm_token` 누락/빈 값: `{"watch_fcm_token": ["워치 FCM 토큰은 비워둘 수 없습니다."]}`
+  - `alarm_time` 형식 오류
 
 ### 4-3. 알림 단건 조회 / 수정 / 삭제
 

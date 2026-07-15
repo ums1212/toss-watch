@@ -1,17 +1,24 @@
 package dev.comon.toss_watch.feature.dashboard.data.remote
 
-import dev.comon.toss_watch.feature.dashboard.data.remote.dto.TargetTickerResponse
-import dev.comon.toss_watch.feature.dashboard.data.remote.dto.UserAssetsResponse
+import dev.comon.toss_watch.feature.dashboard.data.remote.dto.AccountResponse
+import dev.comon.toss_watch.feature.dashboard.data.remote.dto.PortfolioResponse
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface DashboardApi {
 
-    /** 계좌 자산 요약 (Django가 증권사 연동 결과를 집계해 반환). */
-    @GET("v1/dashboard/assets/")
-    suspend fun getUserAssets(): Response<UserAssetsResponse>
+    /** 유저가 등록한 토스 API 키로 토스증권에 개설된 계좌 목록을 조회한다. */
+    @GET("v1/toss/accounts/")
+    suspend fun getAccounts(): Response<List<AccountResponse>>
 
-    /** 알림 대상 관찰 종목 + 실시간 시세 스냅샷. */
-    @GET("v1/dashboard/tickers/")
-    suspend fun getTargetTickers(): Response<List<TargetTickerResponse>>
+    /**
+     * 계좌 포트폴리오(보유 종목 잔고) 조회.
+     *
+     * @param accountSeq 특정 계좌의 식별 키. `null`이면 서버가 계좌 목록 중 첫 번째 계좌를 기본값으로 사용한다.
+     */
+    @GET("v1/toss/portfolio/")
+    suspend fun getPortfolio(
+        @Query("accountSeq") accountSeq: Long? = null,
+    ): Response<PortfolioResponse>
 }
