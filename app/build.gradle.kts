@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":feature:auth"))
     implementation(project(":feature:dashboard"))
     implementation(project(":feature:setting"))
+    implementation(project(":feature:tosskey"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)

@@ -47,6 +47,9 @@ class SettingViewModel @Inject constructor(
             SettingUiIntent.OnBackClicked ->
                 sendSideEffect(SettingUiSideEffect.NavigateBack)
 
+            SettingUiIntent.OnTossKeyClicked ->
+                sendSideEffect(SettingUiSideEffect.NavigateToTossKey)
+
             SettingUiIntent.OnErrorDismissed -> updateState {
                 copy(errorMessage = null)
             }

@@ -27,6 +27,8 @@ class AuthRepositoryImpl @Inject constructor(
                     accessToken = response.accessToken,
                     refreshToken = response.refreshToken,
                 )
+                // 콜드 스타트 시에도 토스 키 온보딩 분기를 판단할 수 있도록 영속 저장.
+                tokenStore.setTossKeyRegistered(response.hasTossKey)
             }
             .map { it.toUserSession() }
 }

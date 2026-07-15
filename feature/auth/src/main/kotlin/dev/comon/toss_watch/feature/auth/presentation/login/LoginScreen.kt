@@ -45,10 +45,13 @@ import kotlinx.coroutines.launch
  *
  * @param onNavigateToDashboard [AuthUiSideEffect.NavigateToDashboard] 수신 시 호출.
  *   Phase 4-3에서 :app의 Navigation 3 최상위 라우터가 이 콜백을 연결한다.
+ * @param onNavigateToTossKeyInput [AuthUiSideEffect.NavigateToTossKeyInput] 수신 시 호출.
+ *   토스 API 키가 아직 등록되지 않은 신규/기존 유저를 온보딩 화면으로 유도한다.
  */
 @Composable
 fun LoginScreen(
     onNavigateToDashboard: () -> Unit,
+    onNavigateToTossKeyInput: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -62,6 +65,7 @@ fun LoginScreen(
             viewModel.sideEffect.collect { effect ->
                 when (effect) {
                     AuthUiSideEffect.NavigateToDashboard -> onNavigateToDashboard()
+                    AuthUiSideEffect.NavigateToTossKeyInput -> onNavigateToTossKeyInput()
                     is AuthUiSideEffect.ShowToast ->
                         Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }

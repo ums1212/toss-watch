@@ -186,6 +186,22 @@ class SettingViewModelTest {
         }
 
     @Test
+    fun `OnTossKeyClicked는 NavigateToTossKey 사이드이펙트를 발행한다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+            val effects = collectSideEffects(viewModel)
+
+            viewModel.handleIntent(SettingUiIntent.OnTossKeyClicked)
+            runCurrent()
+
+            assertEquals(
+                listOf<SettingUiSideEffect>(SettingUiSideEffect.NavigateToTossKey),
+                effects,
+            )
+        }
+
+    @Test
     fun `OnWatchTokenReceived는 입력란이 비어 있을 때만 프리필한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             val viewModel = createViewModel()

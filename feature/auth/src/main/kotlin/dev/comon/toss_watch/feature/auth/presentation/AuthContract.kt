@@ -24,8 +24,11 @@ sealed interface AuthUiIntent : UiIntent {
 
 sealed interface AuthUiSideEffect : UiSideEffect {
 
-    /** 로그인 완료 — :app 최상위 라우터가 수신해 대시보드로 전환한다 (Phase 4-3). */
+    /** 로그인 완료(토스 키 등록됨) — :app 최상위 라우터가 수신해 대시보드로 전환한다 (Phase 4-3). */
     data object NavigateToDashboard : AuthUiSideEffect
+
+    /** 로그인 완료(토스 키 미등록) — :app 최상위 라우터가 수신해 토스 API 키 입력 화면으로 전환한다. */
+    data object NavigateToTossKeyInput : AuthUiSideEffect
 
     data class ShowToast(val message: String) : AuthUiSideEffect
 }

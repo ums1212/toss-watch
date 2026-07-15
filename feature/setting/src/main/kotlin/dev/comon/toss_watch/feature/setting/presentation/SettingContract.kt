@@ -40,6 +40,9 @@ sealed interface SettingUiIntent : UiIntent {
     /** 상단 앱바의 뒤로가기. */
     data object OnBackClicked : SettingUiIntent
 
+    /** 토스 API 키 재설정 버튼. */
+    data object OnTossKeyClicked : SettingUiIntent
+
     /** 에러 다이얼로그의 확인 버튼. */
     data object OnErrorDismissed : SettingUiIntent
 }
@@ -48,6 +51,9 @@ sealed interface SettingUiSideEffect : UiSideEffect {
 
     /** :app 라우터가 수신해 백스택을 pop한다. */
     data object NavigateBack : SettingUiSideEffect
+
+    /** :app 라우터가 수신해 토스 API 키 입력 화면으로 이동한다. */
+    data object NavigateToTossKey : SettingUiSideEffect
 
     data class ShowToast(val message: String) : SettingUiSideEffect
 }

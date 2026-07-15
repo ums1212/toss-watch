@@ -27,3 +27,11 @@ data object DashboardRoute : AppRoute
  */
 @Serializable
 data class SettingRoute(val watchToken: String? = null) : AppRoute
+
+/**
+ * 토스증권 Open API 키(client_id/client_secret) 등록.
+ * 로그인 직후 미등록 상태(has_toss_key=false)일 때의 루트 목적지이자,
+ * 설정 화면에서 재등록을 위해 진입할 수도 있는 목적지.
+ */
+@Serializable
+data object TossKeyRoute : AppRoute

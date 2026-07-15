@@ -2,6 +2,7 @@ package dev.comon.toss_watch.core.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.comon.toss_watch.core.datastore.crypto.TokenCipher
@@ -35,6 +36,19 @@ internal class DataStoreTokenStore @Inject constructor(
             .map { prefs -> prefs.contains(KEY_REFRESH_TOKEN) }
             .distinctUntilChanged()
 
+    override fun observeTossKeyRegistered(): Flow<Boolean> =
+        dataStore.data
+            .map { prefs -> prefs[KEY_TOSS_KEY_REGISTERED] ?: false }
+            .distinctUntilChanged()
+
+    override fun setTossKeyRegistered(registered: Boolean) {
+        runBlocking {
+            dataStore.edit { prefs ->
+                prefs[KEY_TOSS_KEY_REGISTERED] = registered
+            }
+        }
+    }
+
     override fun getAccessToken(): String? = readToken(KEY_ACCESS_TOKEN)
 
     override fun getRefreshToken(): String? = readToken(KEY_REFRESH_TOKEN)
@@ -61,6 +75,7 @@ internal class DataStoreTokenStore @Inject constructor(
             dataStore.edit { prefs ->
                 prefs.remove(KEY_ACCESS_TOKEN)
                 prefs.remove(KEY_REFRESH_TOKEN)
+                prefs.remove(KEY_TOSS_KEY_REGISTERED)
             }
         }
     }
@@ -78,5 +93,6 @@ internal class DataStoreTokenStore @Inject constructor(
     private companion object {
         val KEY_ACCESS_TOKEN = stringPreferencesKey("encrypted_access_token")
         val KEY_REFRESH_TOKEN = stringPreferencesKey("encrypted_refresh_token")
+        val KEY_TOSS_KEY_REGISTERED = booleanPreferencesKey("toss_key_registered")
     }
 }

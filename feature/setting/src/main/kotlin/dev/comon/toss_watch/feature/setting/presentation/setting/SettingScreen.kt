@@ -57,11 +57,13 @@ import dev.comon.toss_watch.feature.setting.presentation.setting.component.Alarm
  *
  * @param watchToken SettingRoute.watchToken — 페어링 흐름에서 전달된 FCM 토큰 프리필.
  * @param onNavigateBack [SettingUiSideEffect.NavigateBack] 수신 시 호출.
+ * @param onNavigateToTossKey [SettingUiSideEffect.NavigateToTossKey] 수신 시 호출.
  */
 @Composable
 fun SettingScreen(
     watchToken: String?,
     onNavigateBack: () -> Unit,
+    onNavigateToTossKey: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -79,6 +81,7 @@ fun SettingScreen(
             viewModel.sideEffect.collect { effect ->
                 when (effect) {
                     SettingUiSideEffect.NavigateBack -> onNavigateBack()
+                    SettingUiSideEffect.NavigateToTossKey -> onNavigateToTossKey()
                     is SettingUiSideEffect.ShowToast ->
                         Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
@@ -182,6 +185,10 @@ private fun SettingContent(
                     }
                 }
 
+                item(key = "toss_key_section") {
+                    TossKeySection(onIntent = onIntent)
+                }
+
                 item(key = "watch_section") {
                     WatchTokenSection(
                         fcmTokenInput = uiState.fcmTokenInput,
@@ -209,6 +216,29 @@ private fun SettingContent(
             },
             onDismiss = { showAddAlarmDialog = false },
         )
+    }
+}
+
+@Composable
+private fun TossKeySection(
+    onIntent: (SettingUiIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.padding(top = 32.dp)) {
+        Text(
+            text = "토스 연동",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = { onIntent(SettingUiIntent.OnTossKeyClicked) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(text = "토스 API 키 재설정")
+        }
     }
 }
 

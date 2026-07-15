@@ -13,9 +13,11 @@ import androidx.navigation3.ui.NavDisplay
 import dev.comon.toss_watch.core.model.navigation.AuthRoute
 import dev.comon.toss_watch.core.model.navigation.DashboardRoute
 import dev.comon.toss_watch.core.model.navigation.SettingRoute
+import dev.comon.toss_watch.core.model.navigation.TossKeyRoute
 import dev.comon.toss_watch.feature.auth.presentation.login.LoginScreen
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardScreen
 import dev.comon.toss_watch.feature.setting.presentation.setting.SettingScreen
+import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
 
 /**
  * 최상위 Navigation 3 호스트.
@@ -40,6 +42,13 @@ fun TossWatchNavHost(
             SessionState.LOGGED_IN ->
                 if (navigator.backStack.none { it is DashboardRoute }) {
                     navigator.setRoot(DashboardRoute)
+                }
+
+            // 세션은 있으나 토스 키 미등록: 온보딩 화면 위에 있을 때만 루트 교체
+            // (설정 화면에서 재등록차 진입한 경우는 이미 LOGGED_IN이라 여기로 오지 않는다).
+            SessionState.NEEDS_TOSS_KEY ->
+                if (navigator.backStack.none { it is TossKeyRoute }) {
+                    navigator.setRoot(TossKeyRoute)
                 }
 
             // 로그아웃/세션 만료 감지: 보호된 화면을 모두 걷어내고 로그인으로.
@@ -70,6 +79,7 @@ fun TossWatchNavHost(
             entry<AuthRoute> {
                 LoginScreen(
                     onNavigateToDashboard = { navigator.setRoot(DashboardRoute) },
+                    onNavigateToTossKeyInput = { navigator.setRoot(TossKeyRoute) },
                 )
             }
 
@@ -82,6 +92,13 @@ fun TossWatchNavHost(
             entry<SettingRoute> { route ->
                 SettingScreen(
                     watchToken = route.watchToken,
+                    onNavigateBack = { navigator.goBack() },
+                    onNavigateToTossKey = { navigator.goTo(TossKeyRoute) },
+                )
+            }
+
+            entry<TossKeyRoute> {
+                TossKeyScreen(
                     onNavigateBack = { navigator.goBack() },
                 )
             }

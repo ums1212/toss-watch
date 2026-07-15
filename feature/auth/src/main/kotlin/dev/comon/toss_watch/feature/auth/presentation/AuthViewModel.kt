@@ -38,7 +38,11 @@ class AuthViewModel @Inject constructor(
             when (val result = loginWithGoogleUseCase(idToken)) {
                 is NetworkResult.Success -> {
                     updateState { copy(isLoading = false, isLoggedIn = true) }
-                    sendSideEffect(AuthUiSideEffect.NavigateToDashboard)
+                    if (result.data.hasTossKey) {
+                        sendSideEffect(AuthUiSideEffect.NavigateToDashboard)
+                    } else {
+                        sendSideEffect(AuthUiSideEffect.NavigateToTossKeyInput)
+                    }
                 }
 
                 is NetworkResult.ApiError -> updateState {

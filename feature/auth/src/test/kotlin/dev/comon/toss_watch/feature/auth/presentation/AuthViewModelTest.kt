@@ -81,9 +81,11 @@ class AuthViewModelTest {
         }
 
     @Test
-    fun `로그인 성공 시 NavigateToDashboard 사이드이펙트가 발행되고 로그인 상태가 된다`() =
+    fun `로그인 성공 + 토스 키 등록됨이면 NavigateToDashboard 사이드이펙트가 발행된다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.result = NetworkResult.Success(FakeAuthRepository.DEFAULT_SESSION)
+            fakeRepository.result = NetworkResult.Success(
+                FakeAuthRepository.DEFAULT_SESSION.copy(hasTossKey = true),
+            )
             val viewModel = createViewModel()
             val effects = collectSideEffects(viewModel)
 
@@ -95,6 +97,28 @@ class AuthViewModelTest {
             assertTrue(state.isLoggedIn)
             assertNull(state.errorMessage)
             assertEquals(listOf<AuthUiSideEffect>(AuthUiSideEffect.NavigateToDashboard), effects)
+        }
+
+    @Test
+    fun `로그인 성공 + 토스 키 미등록이면 NavigateToTossKeyInput 사이드이펙트가 발행된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.result = NetworkResult.Success(
+                FakeAuthRepository.DEFAULT_SESSION.copy(hasTossKey = false),
+            )
+            val viewModel = createViewModel()
+            val effects = collectSideEffects(viewModel)
+
+            viewModel.handleIntent(AuthUiIntent.OnGoogleLoginClicked(ID_TOKEN))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            assertTrue(state.isLoggedIn)
+            assertNull(state.errorMessage)
+            assertEquals(
+                listOf<AuthUiSideEffect>(AuthUiSideEffect.NavigateToTossKeyInput),
+                effects,
+            )
         }
 
     @Test

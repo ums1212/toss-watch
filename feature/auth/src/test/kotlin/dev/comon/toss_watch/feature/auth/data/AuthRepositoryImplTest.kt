@@ -82,9 +82,18 @@ class AuthRepositoryImplTest {
     private class FakeTokenStore : TokenStore {
         private var accessToken: String? = null
         private var refreshToken: String? = null
+        var tossKeyRegistered: Boolean = false
+            private set
 
         override fun observeHasSession(): kotlinx.coroutines.flow.Flow<Boolean> =
             kotlinx.coroutines.flow.flowOf(refreshToken != null)
+
+        override fun observeTossKeyRegistered(): kotlinx.coroutines.flow.Flow<Boolean> =
+            kotlinx.coroutines.flow.flowOf(tossKeyRegistered)
+
+        override fun setTossKeyRegistered(registered: Boolean) {
+            tossKeyRegistered = registered
+        }
 
         override fun getAccessToken(): String? = accessToken
 
@@ -102,6 +111,7 @@ class AuthRepositoryImplTest {
         override fun clear() {
             accessToken = null
             refreshToken = null
+            tossKeyRegistered = false
         }
     }
 
