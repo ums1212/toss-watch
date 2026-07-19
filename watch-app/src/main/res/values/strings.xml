@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">toss-watch</string>
+    <string name="hello_world">Hello, %1$s!</string>
+
+    <string name="onboarding_title">폰 앱으로 QR을 스캔하세요</string>
+    <string name="onboarding_loading">토큰 발급 중…</string>
+    <string name="onboarding_error">토큰을 불러오지 못했습니다</string>
+    <string name="onboarding_retry">다시 시도</string>
+
+    <string name="stock_alarm_change_rate">%1$s</string>
+    <string name="stock_alarm_current_price">%1$s</string>
+    <string name="stock_alarm_total_buy_amount">보유 금액 %1$s</string>
+    <string name="stock_alarm_dismiss">닫기</string>
+</resources>
