@@ -81,7 +81,7 @@ class AuthViewModelTest {
         }
 
     @Test
-    fun `로그인 성공 + 토스 키 등록됨이면 NavigateToDashboard 사이드이펙트가 발행된다`() =
+    fun `로그인 성공 시 isLoggedIn이 true가 되고 로딩 상태가 유지되며 네비게이션 사이드이펙트는 발행되지 않는다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             fakeRepository.result = NetworkResult.Success(
                 FakeAuthRepository.DEFAULT_SESSION.copy(hasTossKey = true),
@@ -93,32 +93,12 @@ class AuthViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertFalse(state.isLoading)
+            // 네비게이션은 :app의 MainViewModel.sessionState(토큰 저장 감지)가 트리거하므로,
+            // 이 ViewModel은 화면 전환이 반영될 때까지 로딩 오버레이를 유지한다.
+            assertTrue(state.isLoading)
             assertTrue(state.isLoggedIn)
             assertNull(state.errorMessage)
-            assertEquals(listOf<AuthUiSideEffect>(AuthUiSideEffect.NavigateToDashboard), effects)
-        }
-
-    @Test
-    fun `로그인 성공 + 토스 키 미등록이면 NavigateToTossKeyInput 사이드이펙트가 발행된다`() =
-        runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.result = NetworkResult.Success(
-                FakeAuthRepository.DEFAULT_SESSION.copy(hasTossKey = false),
-            )
-            val viewModel = createViewModel()
-            val effects = collectSideEffects(viewModel)
-
-            viewModel.handleIntent(AuthUiIntent.OnGoogleLoginClicked(ID_TOKEN))
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            assertFalse(state.isLoading)
-            assertTrue(state.isLoggedIn)
-            assertNull(state.errorMessage)
-            assertEquals(
-                listOf<AuthUiSideEffect>(AuthUiSideEffect.NavigateToTossKeyInput),
-                effects,
-            )
+            assertTrue(effects.isEmpty())
         }
 
     @Test

@@ -37,12 +37,12 @@ class AuthViewModel @Inject constructor(
 
             when (val result = loginWithGoogleUseCase(idToken)) {
                 is NetworkResult.Success -> {
-                    updateState { copy(isLoading = false, isLoggedIn = true) }
-                    if (result.data.hasTossKey) {
-                        sendSideEffect(AuthUiSideEffect.NavigateToDashboard)
-                    } else {
-                        sendSideEffect(AuthUiSideEffect.NavigateToTossKeyInput)
-                    }
+                    // 네비게이션은 여기서 트리거하지 않는다 — 토큰은 이미 Data 레이어에서
+                    // 영속 저장이 끝난 뒤이므로, :app의 MainViewModel.sessionState가 이를
+                    // 감지해 대시보드/토스키 루트로 전환한다(단일 소스 오브 트루스).
+                    // isLoading은 그 전환이 반영될 때까지 true로 유지해 로딩 오버레이가
+                    // 화면 전환 순간까지 이어지도록 한다(로그인 화면 재노출 방지).
+                    updateState { copy(isLoggedIn = true) }
                 }
 
                 is NetworkResult.ApiError -> updateState {

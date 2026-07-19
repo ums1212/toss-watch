@@ -54,8 +54,10 @@ fun TossWatchNavHost(
                 }
 
             // 로그아웃/세션 만료 감지: 보호된 화면을 모두 걷어내고 로그인으로.
+            // (백스택이 비어 있는 콜드 스타트 최초 판별도 이 분기로 커버된다 —
+            // `any { it !is AuthRoute }`는 빈 스택에서 false라 걸러지지 않는다.)
             SessionState.LOGGED_OUT ->
-                if (navigator.backStack.any { it !is AuthRoute }) {
+                if (navigator.backStack.singleOrNull() != AuthRoute) {
                     navigator.setRoot(AuthRoute)
                 }
 
@@ -63,7 +65,10 @@ fun TossWatchNavHost(
         }
     }
 
-    if (sessionState == SessionState.LOADING) {
+    // 세션 판별 전(LOADING)이거나, 판별은 끝났지만 위 LaunchedEffect가 아직
+    // setRoot를 적용하지 못한 콜드 스타트 프레임(backStack 비어있음)에는
+    // 낡은/빈 백스택이 그려지지 않도록 스플래시를 유지한다.
+    if (sessionState == SessionState.LOADING || navigator.backStack.isEmpty()) {
         SplashScreen(modifier = modifier)
         return
     }
@@ -79,10 +84,7 @@ fun TossWatchNavHost(
         ),
         entryProvider = entryProvider {
             entry<AuthRoute> {
-                LoginScreen(
-                    onNavigateToDashboard = { navigator.setRoot(DashboardRoute) },
-                    onNavigateToTossKeyInput = { navigator.setRoot(TossKeyRoute) },
-                )
+                LoginScreen()
             }
 
             entry<DashboardRoute> {

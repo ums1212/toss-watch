@@ -22,13 +22,16 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun loginWithGoogle(idToken: String): NetworkResult<UserSession> =
         safeApiCall { authApi.loginWithGoogle(GoogleLoginRequest(idToken = idToken)) }
             .onSuccess { response ->
+                // 토스 키 등록 여부를 세션 토큰보다 먼저 저장한다 — :app의 MainViewModel은
+                // observeHasSession()과 observeTossKeyRegistered()를 combine해 라우팅하므로,
+                // saveTokens()로 세션 플래그가 켜지는 시점에 토스 키 값이 이미 최신이어야
+                // (hasSession=true, hasTossKey=false)라는 중간 상태를 거치지 않는다.
+                tokenStore.setTossKeyRegistered(response.hasTossKey)
                 // 세션 토큰은 Domain으로 흘려보내지 않고 여기서 즉시 암호화 저장한다.
                 tokenStore.saveTokens(
                     accessToken = response.accessToken,
                     refreshToken = response.refreshToken,
                 )
-                // 콜드 스타트 시에도 토스 키 온보딩 분기를 판단할 수 있도록 영속 저장.
-                tokenStore.setTossKeyRegistered(response.hasTossKey)
             }
             .map { it.toUserSession() }
 }
