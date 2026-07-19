@@ -40,6 +40,13 @@ fun AlarmProfileItem(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (alarm.disabledReason.isNotBlank()) {
+                Text(
+                    text = alarm.disabledReason,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
 
         Switch(

@@ -4,6 +4,7 @@
 안드로이드 폰앱(Phase 4)과 Wear OS 워치앱(Phase 5) 클라이언트 개발 시 이 문서를 기준으로 한다.
 
 - **Base URL**: `https://comon.dev` (로컬 개발: `http://127.0.0.1:8000`)
+- **API Prefix**: 모든 엔드포인트는 `/api/v1/toss-watch/` 아래에 마운트된다.
 - **인증 방식**: 서비스 전용 JWT (`Authorization: Bearer <access_token>`)
 - **Content-Type**: `application/json`
 - 모든 시각은 `Asia/Seoul` 기준.
@@ -15,7 +16,7 @@
 ### 1-1. 구글 소셜 로그인 (회원가입 겸용)
 
 ```
-POST /api/v1/auth/google/          [인증 불필요]
+POST /api/v1/toss-watch/auth/google/          [인증 불필요]
 ```
 
 안드로이드 앱이 Google Sign-In으로 받은 `id_token`을 전달하면 서버가 구글 공개키로
@@ -49,7 +50,7 @@ POST /api/v1/auth/google/          [인증 불필요]
 ### 1-2. Access Token 갱신
 
 ```
-POST /api/v1/auth/refresh/         [인증 불필요]
+POST /api/v1/toss-watch/auth/refresh/         [인증 불필요]
 ```
 
 **Request Body**: `{"refresh": "<refresh_token>"}`
@@ -67,7 +68,7 @@ POST /api/v1/auth/refresh/         [인증 불필요]
 ### 2-1. 토스 API 키 등록/수정
 
 ```
-POST /api/v1/users/toss-key/       [JWT 필수]
+POST /api/v1/toss-watch/users/toss-key/       [JWT 필수]
 ```
 
 유저 본인의 토스증권 Open API 키를 등록한다. `client_secret`은 서버에서
@@ -88,11 +89,40 @@ Fernet(AES-128-CBC + HMAC) 양방향 암호화되어 DB에 저장된다.
 ### 2-2. 토스 키 등록 상태 조회
 
 ```
-GET /api/v1/users/toss-key/        [JWT 필수]
+GET /api/v1/toss-watch/users/toss-key/        [JWT 필수]
 ```
 
 **Response 200**: `{"has_toss_key": true, "toss_client_id": "tsck_live_..."}`
 (시크릿은 어떤 API로도 조회 불가)
+
+### 2-3. 워치 FCM 토큰 등록/갱신
+
+```
+PUT /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
+```
+
+유저(디바이스) 본인의 워치 FCM 등록 토큰을 저장한다. **유저당 토큰은 1개만 유지**되며,
+재등록 시 기존 값을 덮어쓴다. 로그인 직후, 그리고 `onNewToken` 콜백으로 토큰이 갱신될 때마다
+호출할 것.
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| `fcm_token` | string | ✅ | 워치 기기의 FCM 등록 토큰. 비워둘 수 없음 |
+
+**Response 200**: `{"message": "FCM 토큰이 등록되었습니다."}`
+**Errors**
+- `400 Bad Request` `fcm_token` 누락/빈 값 (`{"error": "body에 'fcm_token'이 필요합니다."}`)
+- `401 Unauthorized` JWT 인증 정보 누락/만료/위조
+
+### 2-4. 워치 FCM 토큰 등록 상태 조회
+
+```
+GET /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
+```
+
+**Response 200**: `{"has_fcm_token": true}`
 
 ---
 
@@ -101,7 +131,7 @@ GET /api/v1/users/toss-key/        [JWT 필수]
 ### 3-1. 계좌목록 조회
 
 ```
-GET /api/v1/toss/accounts/     [JWT 필수, 유저당 분당 20회 제한]
+GET /api/v1/toss-watch/accounts/     [JWT 필수, 유저당 분당 20회 제한]
 ```
 
 유저가 등록한 본인 토스 API 키로 토스증권에 개설된 사용자의 계좌 목록을 조회해 반환한다.
@@ -134,7 +164,7 @@ GET /api/v1/toss/accounts/     [JWT 필수, 유저당 분당 20회 제한]
 ### 3-2. 포트폴리오 조회 (Portfolio)
 
 ```
-GET /api/v1/toss/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
+GET /api/v1/toss-watch/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
 ```
 
 유저가 등록한 본인 토스 키로 보유 종목 잔고를 조회해 안드로이드 대시보드용 DTO로 반환한다.
@@ -143,7 +173,7 @@ GET /api/v1/toss/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
-| `accountSeq` | number |  | 특정 계좌의 식별 키. 지정하지 않을 경우, `GET /api/v1/toss/accounts/`로 조회된 계좌 목록 중 첫 번째 계좌를 기본값으로 사용한다. |
+| `accountSeq` | number |  | 특정 계좌의 식별 키. 지정하지 않을 경우, `GET /api/v1/toss-watch/accounts/`로 조회된 계좌 목록 중 첫 번째 계좌를 기본값으로 사용한다. |
 
 토스 Open API `GET /api/v1/holdings` 응답(계좌당 KRW/USD 종목이 섞일 수 있어
 합계는 통화별로 분리됨)을 그대로 가공해 반환한다.
@@ -226,7 +256,7 @@ GET /api/v1/toss/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
 ### 4-1. 알림 목록 조회
 
 ```
-GET /api/v1/notifications/
+GET /api/v1/toss-watch/notifications/
 ```
 
 **Response 200** — 알림 객체 배열 (alarm_time 오름차순)
@@ -238,7 +268,6 @@ GET /api/v1/notifications/
     "stock_code": "005930",
     "alarm_time": "09:00:00",
     "is_active": true,
-    "watch_fcm_token": "dXNlci10b2tlbg...",
     "disabled_reason": "",
     "created_at": "2026-07-10T14:00:00+09:00",
     "updated_at": "2026-07-10T14:00:00+09:00"
@@ -247,12 +276,14 @@ GET /api/v1/notifications/
 ```
 
 - `disabled_reason`: 서버가 자동 비활성화한 경우 그 사유
-  (예: FCM 토큰 무효, 토스 키 미등록). 유저가 다시 `is_active: true`로 켜면(`PUT` or `PATCH`) `disabled_reason`은 빈 문자열(`""`)로 자동 초기화된다.
+  (예: 워치 FCM 토큰 무효/미등록, 토스 키 미등록). 유저가 다시 `is_active: true`로 켜면(`PUT` or `PATCH`) `disabled_reason`은 빈 문자열(`""`)로 자동 초기화된다.
+- 워치 FCM 토큰은 알림 레코드가 아닌 유저(디바이스) 단위로 별도 저장된다 →
+  [2-3. 워치 FCM 토큰 등록/갱신](#2-3-워치-fcm-토큰-등록갱신) 참고.
 
 ### 4-2. 알림 등록
 
 ```
-POST /api/v1/notifications/
+POST /api/v1/toss-watch/notifications/
 ```
 
 **Request Body**
@@ -261,28 +292,30 @@ POST /api/v1/notifications/
 |---|---|---|---|
 | `stock_code` | string | ✅ | 종목 코드 (예: `005930`, `AAPL`). 비워둘 수 없음 |
 | `alarm_time` | string | ✅ | `HH:MM` — 매일 이 시각(Asia/Seoul)에 발송. 초 단위는 무시(0으로 정규화)됨 |
-| `watch_fcm_token` | string | ✅ | 워치 기기의 FCM 등록 토큰. 비워둘 수 없음 |
 | `is_active` | boolean | — | 기본 `true` |
+
+워치 FCM 토큰은 이 요청에 포함하지 않는다. 발송 시 서버가 유저 프로필에 등록된 토큰
+(`PUT /api/v1/toss-watch/users/fcm-token/`)을 사용하므로, 알림 등록 전에 토큰이 먼저 등록되어 있어야
+실제 발송이 이루어진다 (미등록 시 첫 발송 시도에서 자동 비활성화됨 — 5장 참고).
 
 **Response 201** — 생성된 알림 객체 (4-1과 동일 구조)
 
 **Errors**
 - `400 Bad Request` 유효성 검사 실패
   - `stock_code` 누락/빈 값: `{"stock_code": ["종목 코드는 비워둘 수 없습니다."]}`
-  - `watch_fcm_token` 누락/빈 값: `{"watch_fcm_token": ["워치 FCM 토큰은 비워둘 수 없습니다."]}`
   - `alarm_time` 형식 오류
 
 ### 4-3. 알림 단건 조회 / 수정 / 삭제
 
 ```
-GET    /api/v1/notifications/<id>/
-PUT    /api/v1/notifications/<id>/     (전체 수정)
-PATCH  /api/v1/notifications/<id>/     (부분 수정 — 워치 FCM 토큰 갱신도 이걸로)
-DELETE /api/v1/notifications/<id>/     → 204
+GET    /api/v1/toss-watch/notifications/<id>/
+PUT    /api/v1/toss-watch/notifications/<id>/     (전체 수정)
+PATCH  /api/v1/toss-watch/notifications/<id>/     (부분 수정)
+DELETE /api/v1/toss-watch/notifications/<id>/     → 204
 ```
 
-워치 FCM 토큰이 갱신되면(`onNewToken`) 클라이언트는 해당 유저의 알림들에
-`PATCH {"watch_fcm_token": "<새 토큰>"}`을 호출해야 한다.
+워치 FCM 토큰이 갱신되면(`onNewToken`) 클라이언트는 [2-3. 워치 FCM 토큰 등록/갱신](#2-3-워치-fcm-토큰-등록갱신)
+(`PUT /api/v1/toss-watch/users/fcm-token/`)을 한 번만 호출하면 된다. 알림 레코드마다 개별 갱신할 필요는 없다.
 
 ---
 
@@ -304,9 +337,10 @@ DELETE /api/v1/notifications/<id>/     → 204
 | `change_rate` | `"+2.30%"` | 부호 포함 대비율. 계산 불가 시 빈 문자열 |
 | `timestamp` | `"1783662000"` | 시세 기준시각 (Unix epoch 초) |
 
-**발송 실패 처리(서버측)**: FCM 토큰이 등록 해제(Unregistered)로 판명되면 해당 알림은
-자동으로 `is_active: false` + `disabled_reason` 기록됨 → 폰앱은 알림 목록에서 이를 감지해
-유저에게 재설정을 안내할 것.
+**발송 실패 처리(서버측)**: 아래 경우 해당 알림은 자동으로 `is_active: false` + `disabled_reason`
+기록됨 → 폰앱은 알림 목록에서 이를 감지해 유저에게 재설정을 안내할 것.
+- 유저 프로필에 워치 FCM 토큰이 아예 등록되어 있지 않음 (`disabled_reason`: `"워치 FCM 토큰 미등록으로 자동 비활성화"`)
+- FCM 토큰이 등록 해제(Unregistered)로 판명됨 (`disabled_reason`: `"FCM 토큰 무효로 자동 비활성화: ..."`)
 
 ---
 

@@ -9,6 +9,7 @@ package dev.comon.toss_watch.feature.setting.domain.model
  * @param hour 알림 시각(0-23)
  * @param minute 알림 분(0-59)
  * @param isEnabled 알림 활성 여부
+ * @param disabledReason 서버가 자동 비활성화한 경우 그 사유 (예: 워치 FCM 토큰 미등록, 토스 키 미등록)
  */
 data class AlarmProfile(
     val id: Long,
@@ -17,4 +18,5 @@ data class AlarmProfile(
     val hour: Int,
     val minute: Int,
     val isEnabled: Boolean,
+    val disabledReason: String = "",
 )

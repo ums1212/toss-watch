@@ -4,7 +4,7 @@ import dev.comon.toss_watch.feature.auth.domain.model.UserSession
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** `POST /api/v1/auth/google/` 200 응답 바디. */
+/** `POST /api/v1/toss-watch/auth/google/` 200 응답 바디. */
 @Serializable
 data class GoogleLoginResponse(
     @SerialName("access_token") val accessToken: String,

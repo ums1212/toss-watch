@@ -13,7 +13,7 @@ data class AlarmProfileRequest(
 
 @Serializable
 data class AlarmToggleRequest(
-    @SerialName("is_enabled") val isEnabled: Boolean,
+    @SerialName("is_active") val isEnabled: Boolean,
 )
 
 @Serializable
@@ -22,7 +22,8 @@ data class AlarmProfileResponse(
     @SerialName("stock_code") val stockCode: String,
     @SerialName("stock_name") val stockName: String = "",
     @SerialName("alarm_time") val alarmTime: String,
-    @SerialName("is_enabled") val isEnabled: Boolean = true,
+    @SerialName("is_active") val isEnabled: Boolean = true,
+    @SerialName("disabled_reason") val disabledReason: String = "",
 )
 
 fun AlarmProfileResponse.toAlarmProfile(): AlarmProfile {
@@ -35,6 +36,7 @@ fun AlarmProfileResponse.toAlarmProfile(): AlarmProfile {
         hour = parts.getOrNull(0)?.toIntOrNull() ?: 0,
         minute = parts.getOrNull(1)?.toIntOrNull() ?: 0,
         isEnabled = isEnabled,
+        disabledReason = disabledReason,
     )
 }
 

@@ -17,7 +17,7 @@ import okhttp3.Route
  * 1. 재시도 횟수가 [MAX_AUTH_RETRY]를 넘으면 포기한다 (무한 401 루프 방지).
  * 2. Refresh Token이 없으면 갱신 불가 → null 반환 (요청 실패 확정).
  * 3. 다른 스레드가 이미 토큰을 갱신해 뒀다면 그 토큰으로 즉시 재시도한다.
- * 4. 그 외에는 `POST /api/v1/auth/refresh/`를 동기 호출해 새 토큰을 발급받는다.
+ * 4. 그 외에는 `POST /api/v1/toss-watch/auth/refresh/`를 동기 호출해 새 토큰을 발급받는다.
  * 5. Refresh Token 자체가 만료/위조(401)된 경우에만 세션을 정리한다.
  *    일시적 네트워크 오류로는 세션을 지우지 않는다.
  */
@@ -63,7 +63,7 @@ class TokenAuthenticator @Inject constructor(
     }
 
     /**
-     * `POST /api/v1/auth/refresh/`를 동기 호출한다.
+     * `POST /api/v1/toss-watch/auth/refresh/`를 동기 호출한다.
      * Authenticator는 OkHttp 스레드에서 실행되므로 [retrofit2.Call.execute]를 사용하며,
      * 재귀 방지를 위해 Authenticator가 없는 @RefreshClient 클라이언트를 사용한다.
      */

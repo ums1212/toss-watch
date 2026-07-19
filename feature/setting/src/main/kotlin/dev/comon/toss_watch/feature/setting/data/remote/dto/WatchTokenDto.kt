@@ -15,5 +15,5 @@ data class WatchTokenRequest(
 
 @Serializable
 data class WatchTokenResponse(
-    @SerialName("fcm_token") val fcmToken: String,
+    @SerialName("message") val message: String = "",
 )
