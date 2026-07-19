@@ -27,23 +27,20 @@ class WatchNotificationService : FirebaseMessagingService() {
         val stockName = data[EXTRA_STOCK_NAME] ?: return
         val currentPrice = data[EXTRA_CURRENT_PRICE].orEmpty()
         val changeRate = data[EXTRA_CHANGE_RATE].orEmpty()
-        val totalBuyAmount = data[EXTRA_TOTAL_BUY_AMOUNT].orEmpty()
 
-        showFullScreenAlarm(stockName, currentPrice, changeRate, totalBuyAmount)
+        showFullScreenAlarm(stockName, currentPrice, changeRate)
     }
 
     private fun showFullScreenAlarm(
         stockName: String,
         currentPrice: String,
         changeRate: String,
-        totalBuyAmount: String,
     ) {
         val fullScreenIntent = Intent(this, StockAlarmActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra(EXTRA_STOCK_NAME, stockName)
             putExtra(EXTRA_CURRENT_PRICE, currentPrice)
             putExtra(EXTRA_CHANGE_RATE, changeRate)
-            putExtra(EXTRA_TOTAL_BUY_AMOUNT, totalBuyAmount)
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(
             this,
@@ -81,9 +78,8 @@ class WatchNotificationService : FirebaseMessagingService() {
 
     companion object {
         const val EXTRA_STOCK_NAME = "stock_name"
-        const val EXTRA_CURRENT_PRICE = "current_price"
+        const val EXTRA_CURRENT_PRICE = "price"
         const val EXTRA_CHANGE_RATE = "change_rate"
-        const val EXTRA_TOTAL_BUY_AMOUNT = "total_buy_amount"
 
         private const val CHANNEL_ID = "stock_alarm_channel"
         private const val CHANNEL_NAME = "주식 알림"

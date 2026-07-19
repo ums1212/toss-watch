@@ -9,6 +9,5 @@
 
     <string name="stock_alarm_change_rate">%1$s</string>
     <string name="stock_alarm_current_price">%1$s</string>
-    <string name="stock_alarm_total_buy_amount">보유 금액 %1$s</string>
     <string name="stock_alarm_dismiss">닫기</string>
 </resources>

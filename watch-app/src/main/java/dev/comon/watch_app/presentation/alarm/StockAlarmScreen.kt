@@ -26,7 +26,6 @@ fun StockAlarmScreen(
     stockName: String,
     currentPrice: String,
     changeRate: String,
-    totalBuyAmount: String,
     onDismissClick: () -> Unit,
 ) {
     // 국내 시세 관례: 상승 빨강 / 하락 파랑 / 보합 중립.
@@ -66,14 +65,6 @@ fun StockAlarmScreen(
                 .background(color = badgeColor.copy(alpha = 0.15f), shape = RoundedCornerShape(50))
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         )
-
-        if (totalBuyAmount.isNotBlank()) {
-            Text(
-                text = stringResource(R.string.stock_alarm_total_buy_amount, totalBuyAmount),
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
 
         Button(
             onClick = onDismissClick,

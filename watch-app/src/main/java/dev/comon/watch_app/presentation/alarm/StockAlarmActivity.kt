@@ -23,7 +23,6 @@ class StockAlarmActivity : ComponentActivity() {
         val stockName = intent.getStringExtra(WatchNotificationService.EXTRA_STOCK_NAME).orEmpty()
         val currentPrice = intent.getStringExtra(WatchNotificationService.EXTRA_CURRENT_PRICE).orEmpty()
         val changeRate = intent.getStringExtra(WatchNotificationService.EXTRA_CHANGE_RATE).orEmpty()
-        val totalBuyAmount = intent.getStringExtra(WatchNotificationService.EXTRA_TOTAL_BUY_AMOUNT).orEmpty()
 
         setContent {
             TosswatchTheme {
@@ -31,7 +30,6 @@ class StockAlarmActivity : ComponentActivity() {
                     stockName = stockName,
                     currentPrice = currentPrice,
                     changeRate = changeRate,
-                    totalBuyAmount = totalBuyAmount,
                     onDismissClick = { finish() },
                 )
             }
