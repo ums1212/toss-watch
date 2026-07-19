@@ -32,6 +32,8 @@ composeNavigation = "1.5.6"
 firebaseBom = "34.16.0"
 googleServicesPlugin = "4.5.0"
 zxing = "3.5.4"
+camerax = "1.6.0"
+mlkitBarcodeScanning = "17.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -86,6 +88,11 @@ compose-navigation = { group = "androidx.wear.compose", name = "compose-navigati
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcodeScanning" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

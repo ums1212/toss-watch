@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -56,26 +55,20 @@ import dev.comon.toss_watch.feature.setting.presentation.setting.component.Alarm
 /**
  * 알림 스케줄러 + Wear OS 연동 설정.
  *
- * @param watchToken SettingRoute.watchToken — 페어링 흐름에서 전달된 FCM 토큰 프리필.
  * @param onNavigateBack [SettingUiSideEffect.NavigateBack] 수신 시 호출.
  * @param onNavigateToTossKey [SettingUiSideEffect.NavigateToTossKey] 수신 시 호출.
+ * @param onNavigateToWatchPair [SettingUiSideEffect.NavigateToWatchPair] 수신 시 호출.
  */
 @Composable
 fun SettingScreen(
-    watchToken: String?,
     onNavigateBack: () -> Unit,
     onNavigateToTossKey: () -> Unit,
+    onNavigateToWatchPair: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-
-    LaunchedEffect(watchToken) {
-        if (!watchToken.isNullOrBlank()) {
-            viewModel.handleIntent(SettingUiIntent.OnWatchTokenReceived(watchToken))
-        }
-    }
 
     LaunchedEffect(viewModel, lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -83,6 +76,7 @@ fun SettingScreen(
                 when (effect) {
                     SettingUiSideEffect.NavigateBack -> onNavigateBack()
                     SettingUiSideEffect.NavigateToTossKey -> onNavigateToTossKey()
+                    SettingUiSideEffect.NavigateToWatchPair -> onNavigateToWatchPair()
                     is SettingUiSideEffect.ShowToast ->
                         Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
@@ -191,11 +185,7 @@ private fun SettingContent(
                 }
 
                 item(key = "watch_section") {
-                    WatchTokenSection(
-                        fcmTokenInput = uiState.fcmTokenInput,
-                        isSaving = uiState.isSaving,
-                        onIntent = onIntent,
-                    )
+                    WatchTokenSection(onIntent = onIntent)
                 }
             }
 
@@ -246,8 +236,6 @@ private fun TossKeySection(
 
 @Composable
 private fun WatchTokenSection(
-    fcmTokenInput: String,
-    isSaving: Boolean,
     onIntent: (SettingUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -260,22 +248,17 @@ private fun WatchTokenSection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = fcmTokenInput,
-            onValueChange = { onIntent(SettingUiIntent.OnFcmTokenChanged(it)) },
-            label = { Text("워치 FCM 토큰") },
-            supportingText = { Text("워치 앱 페어링 화면에 표시된 토큰을 붙여넣어 주세요.") },
-            singleLine = true,
-            enabled = !isSaving,
-            modifier = Modifier.fillMaxWidth(),
+        Text(
+            text = "워치 앱 페어링 화면에 표시된 QR 코드를 스캔해 연동해요.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TossWatchButton(
-            text = if (isSaving) "등록 중이에요…" else "워치 토큰 등록",
-            onClick = { onIntent(SettingUiIntent.OnFcmTokenSubmitted) },
-            enabled = !isSaving,
+            text = "QR로 워치 연동",
+            onClick = { onIntent(SettingUiIntent.OnPairWatchClicked) },
         )
     }
 }
@@ -294,7 +277,6 @@ private fun SettingContentPreview() {
                     CachedStock("005930", "삼성전자"),
                     CachedStock("035420", "NAVER"),
                 ),
-                fcmTokenInput = "wear-fcm-token",
             ),
             onIntent = {},
         )

@@ -9,7 +9,6 @@ import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
-import dev.comon.toss_watch.feature.setting.domain.usecase.RegisterWatchTokenUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -19,7 +18,6 @@ class SettingViewModel @Inject constructor(
     private val fetchAlarmProfilesUseCase: FetchAlarmProfilesUseCase,
     private val addAlarmProfileUseCase: AddAlarmProfileUseCase,
     private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
-    private val registerWatchTokenUseCase: RegisterWatchTokenUseCase,
     private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
@@ -37,15 +35,8 @@ class SettingViewModel @Inject constructor(
             is SettingUiIntent.OnToggleAlarm ->
                 toggleAlarm(intent.alarmId, intent.enabled)
 
-            is SettingUiIntent.OnFcmTokenChanged -> updateState {
-                copy(fcmTokenInput = intent.value)
-            }
-
-            is SettingUiIntent.OnWatchTokenReceived -> updateState {
-                if (fcmTokenInput.isBlank()) copy(fcmTokenInput = intent.token) else this
-            }
-
-            SettingUiIntent.OnFcmTokenSubmitted -> registerWatchToken()
+            SettingUiIntent.OnPairWatchClicked ->
+                sendSideEffect(SettingUiSideEffect.NavigateToWatchPair)
 
             SettingUiIntent.OnBackClicked ->
                 sendSideEffect(SettingUiSideEffect.NavigateBack)
@@ -126,30 +117,6 @@ class SettingViewModel @Inject constructor(
         }
     }
 
-    private fun registerWatchToken() {
-        val token = uiState.value.fcmTokenInput.trim()
-        if (token.isEmpty()) {
-            updateState { copy(errorMessage = ERROR_EMPTY_TOKEN) }
-            return
-        }
-        if (uiState.value.isSaving) return
-
-        viewModelScope.launch(dispatcherProvider.io) {
-            updateState { copy(isSaving = true, errorMessage = null) }
-
-            when (val result = registerWatchTokenUseCase(token)) {
-                is NetworkResult.Success -> {
-                    updateState { copy(isSaving = false) }
-                    sendSideEffect(SettingUiSideEffect.ShowToast(TOAST_TOKEN_REGISTERED))
-                }
-
-                else -> updateState {
-                    copy(isSaving = false, errorMessage = result.toErrorMessage())
-                }
-            }
-        }
-    }
-
     private fun List<AlarmProfile>.replaceById(updated: AlarmProfile): List<AlarmProfile> =
         map { if (it.id == updated.id) updated else it }
 
@@ -162,8 +129,6 @@ class SettingViewModel @Inject constructor(
     companion object {
         const val DEFAULT_API_ERROR = "설정을 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
         const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
-        const val ERROR_EMPTY_TOKEN = "등록할 워치 토큰을 입력해 주세요."
         const val TOAST_ALARM_ADDED = "알림이 추가됐어요."
-        const val TOAST_TOKEN_REGISTERED = "워치 알림 토큰이 등록됐어요."
     }
 }

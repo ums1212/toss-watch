@@ -19,14 +19,9 @@ data object AuthRoute : AppRoute
 @Serializable
 data object DashboardRoute : AppRoute
 
-/**
- * 알림 스케줄러 설정.
- *
- * @param watchToken 페어링 딥링크 등으로 전달된 Wear OS FCM 토큰.
- *   null이 아니면 설정 화면의 토큰 입력란에 프리필된다.
- */
+/** 알림 스케줄러 설정. */
 @Serializable
-data class SettingRoute(val watchToken: String? = null) : AppRoute
+data object SettingRoute : AppRoute
 
 /**
  * 토스증권 Open API 키(client_id/client_secret) 등록.
@@ -35,3 +30,10 @@ data class SettingRoute(val watchToken: String? = null) : AppRoute
  */
 @Serializable
 data object TossKeyRoute : AppRoute
+
+/**
+ * Wear OS 페어링 — 워치 온보딩 화면에 표시된 QR(FCM 토큰)을 카메라로 스캔해 등록한다.
+ * 설정 화면에서 진입하는 목적지.
+ */
+@Serializable
+data object WatchPairRoute : AppRoute

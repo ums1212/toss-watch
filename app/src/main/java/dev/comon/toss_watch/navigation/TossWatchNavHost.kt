@@ -14,9 +14,11 @@ import dev.comon.toss_watch.core.model.navigation.AuthRoute
 import dev.comon.toss_watch.core.model.navigation.DashboardRoute
 import dev.comon.toss_watch.core.model.navigation.SettingRoute
 import dev.comon.toss_watch.core.model.navigation.TossKeyRoute
+import dev.comon.toss_watch.core.model.navigation.WatchPairRoute
 import dev.comon.toss_watch.feature.auth.presentation.login.LoginScreen
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardScreen
 import dev.comon.toss_watch.feature.setting.presentation.setting.SettingScreen
+import dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairScreen
 import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
 
 /**
@@ -85,20 +87,26 @@ fun TossWatchNavHost(
 
             entry<DashboardRoute> {
                 DashboardScreen(
-                    onNavigateToSetting = { navigator.goTo(SettingRoute()) },
+                    onNavigateToSetting = { navigator.goTo(SettingRoute) },
                 )
             }
 
-            entry<SettingRoute> { route ->
+            entry<SettingRoute> {
                 SettingScreen(
-                    watchToken = route.watchToken,
                     onNavigateBack = { navigator.goBack() },
                     onNavigateToTossKey = { navigator.goTo(TossKeyRoute) },
+                    onNavigateToWatchPair = { navigator.goTo(WatchPairRoute) },
                 )
             }
 
             entry<TossKeyRoute> {
                 TossKeyScreen(
+                    onNavigateBack = { navigator.goBack() },
+                )
+            }
+
+            entry<WatchPairRoute> {
+                WatchPairScreen(
                     onNavigateBack = { navigator.goBack() },
                 )
             }

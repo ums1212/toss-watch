@@ -10,7 +10,6 @@ data class SettingUiState(
     val configuredAlarms: List<AlarmProfile> = emptyList(),
     /** 대시보드가 캐싱해 둔 보유 종목 — 알림 추가 다이얼로그의 종목 선택지로 쓰인다. */
     val availableStocks: List<CachedStock> = emptyList(),
-    val fcmTokenInput: String = "",
     val isSaving: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -31,14 +30,8 @@ sealed interface SettingUiIntent : UiIntent {
         val enabled: Boolean,
     ) : SettingUiIntent
 
-    /** 토큰 입력란 변경. */
-    data class OnFcmTokenChanged(val value: String) : SettingUiIntent
-
-    /** SettingRoute.watchToken으로 전달된 페어링 토큰 — 입력란이 비어 있을 때만 프리필. */
-    data class OnWatchTokenReceived(val token: String) : SettingUiIntent
-
-    /** 토큰 등록 버튼. */
-    data object OnFcmTokenSubmitted : SettingUiIntent
+    /** "QR로 워치 연동" 버튼 — WatchPairRoute로 이동해 QR 스캔을 시작한다. */
+    data object OnPairWatchClicked : SettingUiIntent
 
     /** 상단 앱바의 뒤로가기. */
     data object OnBackClicked : SettingUiIntent
@@ -57,6 +50,9 @@ sealed interface SettingUiSideEffect : UiSideEffect {
 
     /** :app 라우터가 수신해 토스 API 키 입력 화면으로 이동한다. */
     data object NavigateToTossKey : SettingUiSideEffect
+
+    /** :app 라우터가 수신해 Wear OS QR 페어링 화면으로 이동한다. */
+    data object NavigateToWatchPair : SettingUiSideEffect
 
     data class ShowToast(val message: String) : SettingUiSideEffect
 }

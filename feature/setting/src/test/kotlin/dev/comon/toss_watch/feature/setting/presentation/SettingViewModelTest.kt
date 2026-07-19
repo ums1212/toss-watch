@@ -1,10 +1,8 @@
 package dev.comon.toss_watch.feature.setting.presentation
 
-import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
-import dev.comon.toss_watch.feature.setting.domain.usecase.RegisterWatchTokenUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.util.FakeSettingRepository
 import dev.comon.toss_watch.feature.setting.util.MainDispatcherRule
@@ -19,7 +17,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -37,7 +34,6 @@ class SettingViewModelTest {
             fetchAlarmProfilesUseCase = FetchAlarmProfilesUseCase(fakeRepository),
             addAlarmProfileUseCase = AddAlarmProfileUseCase(fakeRepository),
             toggleAlarmProfileUseCase = ToggleAlarmProfileUseCase(fakeRepository),
-            registerWatchTokenUseCase = RegisterWatchTokenUseCase(fakeRepository),
             observePortfolioStocksUseCase = ObservePortfolioStocksUseCase(fakeRepository),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
@@ -64,68 +60,19 @@ class SettingViewModelTest {
         }
 
     @Test
-    fun `토큰 등록 성공 시 UseCase가 호출되고 isSaving이 올바르게 전이된다`() =
+    fun `OnPairWatchClicked는 NavigateToWatchPair 사이드이펙트를 발행한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             val viewModel = createViewModel()
             advanceUntilIdle()
             val effects = collectSideEffects(viewModel)
 
-            viewModel.handleIntent(SettingUiIntent.OnFcmTokenChanged("wear-fcm-token"))
+            viewModel.handleIntent(SettingUiIntent.OnPairWatchClicked)
             runCurrent()
 
-            fakeRepository.suspendUntilReleased = true
-            viewModel.handleIntent(SettingUiIntent.OnFcmTokenSubmitted)
-            runCurrent()
-
-            // 등록 요청이 진행되는 동안 isSaving = true
-            assertTrue(viewModel.uiState.value.isSaving)
-
-            fakeRepository.release()
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            assertFalse(state.isSaving)
-            assertNull(state.errorMessage)
-            assertEquals(1, fakeRepository.registerInvocationCount)
-            assertEquals("wear-fcm-token", fakeRepository.lastRegisteredToken)
             assertEquals(
-                listOf<SettingUiSideEffect>(
-                    SettingUiSideEffect.ShowToast(SettingViewModel.TOAST_TOKEN_REGISTERED),
-                ),
+                listOf<SettingUiSideEffect>(SettingUiSideEffect.NavigateToWatchPair),
                 effects,
             )
-        }
-
-    @Test
-    fun `빈 토큰 제출은 UseCase 호출 없이 에러 안내로 환원된다`() =
-        runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            val viewModel = createViewModel()
-            advanceUntilIdle()
-
-            viewModel.handleIntent(SettingUiIntent.OnFcmTokenSubmitted)
-            runCurrent()
-
-            assertEquals(
-                SettingViewModel.ERROR_EMPTY_TOKEN,
-                viewModel.uiState.value.errorMessage,
-            )
-            assertEquals(0, fakeRepository.registerInvocationCount)
-        }
-
-    @Test
-    fun `토큰 등록 API 에러 시 isSaving이 해제되고 errorMessage가 표시된다`() =
-        runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.tokenResult = NetworkResult.ApiError(code = 400, message = "잘못된 토큰")
-            val viewModel = createViewModel()
-            advanceUntilIdle()
-
-            viewModel.handleIntent(SettingUiIntent.OnFcmTokenChanged("bad-token"))
-            viewModel.handleIntent(SettingUiIntent.OnFcmTokenSubmitted)
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            assertFalse(state.isSaving)
-            assertEquals("잘못된 토큰", state.errorMessage)
         }
 
     @Test
@@ -201,22 +148,5 @@ class SettingViewModelTest {
                 listOf<SettingUiSideEffect>(SettingUiSideEffect.NavigateToTossKey),
                 effects,
             )
-        }
-
-    @Test
-    fun `OnWatchTokenReceived는 입력란이 비어 있을 때만 프리필한다`() =
-        runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            val viewModel = createViewModel()
-            advanceUntilIdle()
-
-            viewModel.handleIntent(SettingUiIntent.OnWatchTokenReceived("paired-token"))
-            runCurrent()
-            assertEquals("paired-token", viewModel.uiState.value.fcmTokenInput)
-
-            // 사용자가 입력한 값은 라우트 파라미터로 덮어쓰지 않는다.
-            viewModel.handleIntent(SettingUiIntent.OnFcmTokenChanged("user-edited"))
-            viewModel.handleIntent(SettingUiIntent.OnWatchTokenReceived("paired-token-2"))
-            runCurrent()
-            assertEquals("user-edited", viewModel.uiState.value.fcmTokenInput)
         }
 }

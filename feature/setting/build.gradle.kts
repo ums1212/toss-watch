@@ -35,12 +35,20 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 
+    // QR 스캔 기반 Wear OS 페어링 — 카메라 프리뷰 + 바코드 인식.
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     ksp(libs.androidx.hilt.compiler)
 
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.ui)
