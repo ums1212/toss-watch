@@ -6,12 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class WatchTokenRequest(
     @SerialName("fcm_token") val fcmToken: String,
-    @SerialName("device_type") val deviceType: String = DEVICE_TYPE_WEAR_OS,
-) {
-    companion object {
-        const val DEVICE_TYPE_WEAR_OS = "WEAR_OS"
-    }
-}
+    @SerialName("uuid") val uuid: String,
+    @SerialName("model_name") val modelName: String,
+)
 
 @Serializable
 data class WatchTokenResponse(

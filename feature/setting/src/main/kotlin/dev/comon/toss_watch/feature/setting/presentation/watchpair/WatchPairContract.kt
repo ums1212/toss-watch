@@ -15,8 +15,12 @@ sealed interface WatchPairUiIntent : UiIntent {
     /** 카메라 권한 요청 결과. */
     data class OnPermissionResult(val granted: Boolean) : WatchPairUiIntent
 
-    /** 카메라 프리뷰가 QR(워치 FCM 토큰 원문)을 인식했을 때. */
-    data class OnQrScanned(val token: String) : WatchPairUiIntent
+    /**
+     * 카메라 프리뷰가 QR 원문을 인식했을 때.
+     * 워치가 발급한 [dev.comon.toss_watch.core.model.watch.WatchPairingPayload] JSON
+     * (fcm_token + uuid + model_name)이며, 파싱은 ViewModel이 담당한다.
+     */
+    data class OnQrScanned(val rawPayload: String) : WatchPairUiIntent
 
     /** 에러 다이얼로그의 확인 버튼 — 스캔을 다시 시작한다. */
     data object OnRetry : WatchPairUiIntent

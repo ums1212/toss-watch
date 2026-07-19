@@ -1,5 +1,6 @@
 package dev.comon.toss_watch.core.datastore
 
+import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -25,6 +26,18 @@ interface TokenStore {
     fun observeTossKeyRegistered(): Flow<Boolean>
 
     fun setTossKeyRegistered(registered: Boolean)
+
+    /**
+     * 연동 완료된 워치(기기명 + UUID)의 반응형 스트림.
+     * 서버 `GET /users/fcm-token/`은 등록 여부(Boolean)만 반환하므로,
+     * 폰이 QR 스캔 후 등록 성공(200) 시점에 저장한 값을 그대로 관측한다.
+     * 미연동 상태면 `null`.
+     */
+    fun observePairedWatch(): Flow<PairedWatchInfo?>
+
+    fun setPairedWatch(modelName: String, uuid: String)
+
+    fun clearPairedWatch()
 
     fun getAccessToken(): String?
 

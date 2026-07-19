@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.comon.toss_watch.core.datastore.crypto.TokenCipher
+import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import java.security.GeneralSecurityException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,6 +50,37 @@ internal class DataStoreTokenStore @Inject constructor(
         }
     }
 
+    override fun observePairedWatch(): Flow<PairedWatchInfo?> =
+        dataStore.data
+            .map { prefs ->
+                val modelName = prefs[KEY_PAIRED_WATCH_MODEL]
+                val uuid = prefs[KEY_PAIRED_WATCH_UUID]
+                if (modelName != null && uuid != null) {
+                    PairedWatchInfo(modelName = modelName, uuid = uuid)
+                } else {
+                    null
+                }
+            }
+            .distinctUntilChanged()
+
+    override fun setPairedWatch(modelName: String, uuid: String) {
+        runBlocking {
+            dataStore.edit { prefs ->
+                prefs[KEY_PAIRED_WATCH_MODEL] = modelName
+                prefs[KEY_PAIRED_WATCH_UUID] = uuid
+            }
+        }
+    }
+
+    override fun clearPairedWatch() {
+        runBlocking {
+            dataStore.edit { prefs ->
+                prefs.remove(KEY_PAIRED_WATCH_MODEL)
+                prefs.remove(KEY_PAIRED_WATCH_UUID)
+            }
+        }
+    }
+
     override fun getAccessToken(): String? = readToken(KEY_ACCESS_TOKEN)
 
     override fun getRefreshToken(): String? = readToken(KEY_REFRESH_TOKEN)
@@ -76,6 +108,8 @@ internal class DataStoreTokenStore @Inject constructor(
                 prefs.remove(KEY_ACCESS_TOKEN)
                 prefs.remove(KEY_REFRESH_TOKEN)
                 prefs.remove(KEY_TOSS_KEY_REGISTERED)
+                prefs.remove(KEY_PAIRED_WATCH_MODEL)
+                prefs.remove(KEY_PAIRED_WATCH_UUID)
             }
         }
     }
@@ -94,5 +128,7 @@ internal class DataStoreTokenStore @Inject constructor(
         val KEY_ACCESS_TOKEN = stringPreferencesKey("encrypted_access_token")
         val KEY_REFRESH_TOKEN = stringPreferencesKey("encrypted_refresh_token")
         val KEY_TOSS_KEY_REGISTERED = booleanPreferencesKey("toss_key_registered")
+        val KEY_PAIRED_WATCH_MODEL = stringPreferencesKey("paired_watch_model_name")
+        val KEY_PAIRED_WATCH_UUID = stringPreferencesKey("paired_watch_uuid")
     }
 }

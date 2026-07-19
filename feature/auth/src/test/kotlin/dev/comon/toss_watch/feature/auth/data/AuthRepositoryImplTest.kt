@@ -84,6 +84,7 @@ class AuthRepositoryImplTest {
         private var refreshToken: String? = null
         var tossKeyRegistered: Boolean = false
             private set
+        private var pairedWatch: dev.comon.toss_watch.core.model.watch.PairedWatchInfo? = null
 
         override fun observeHasSession(): kotlinx.coroutines.flow.Flow<Boolean> =
             kotlinx.coroutines.flow.flowOf(refreshToken != null)
@@ -93,6 +94,17 @@ class AuthRepositoryImplTest {
 
         override fun setTossKeyRegistered(registered: Boolean) {
             tossKeyRegistered = registered
+        }
+
+        override fun observePairedWatch(): kotlinx.coroutines.flow.Flow<dev.comon.toss_watch.core.model.watch.PairedWatchInfo?> =
+            kotlinx.coroutines.flow.flowOf(pairedWatch)
+
+        override fun setPairedWatch(modelName: String, uuid: String) {
+            pairedWatch = dev.comon.toss_watch.core.model.watch.PairedWatchInfo(modelName, uuid)
+        }
+
+        override fun clearPairedWatch() {
+            pairedWatch = null
         }
 
         override fun getAccessToken(): String? = accessToken

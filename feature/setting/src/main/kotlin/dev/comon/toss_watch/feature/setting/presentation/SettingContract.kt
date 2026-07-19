@@ -4,12 +4,15 @@ import dev.comon.toss_watch.core.common.mvi.UiIntent
 import dev.comon.toss_watch.core.common.mvi.UiSideEffect
 import dev.comon.toss_watch.core.common.mvi.UiState
 import dev.comon.toss_watch.core.model.CachedStock
+import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 
 data class SettingUiState(
     val configuredAlarms: List<AlarmProfile> = emptyList(),
     /** 대시보드가 캐싱해 둔 보유 종목 — 알림 추가 다이얼로그의 종목 선택지로 쓰인다. */
     val availableStocks: List<CachedStock> = emptyList(),
+    /** 연동 완료된 워치(기기명+UUID). `null`이면 미연동 — "QR로 워치 연동" 버튼을 노출한다. */
+    val pairedWatch: PairedWatchInfo? = null,
     val isSaving: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,

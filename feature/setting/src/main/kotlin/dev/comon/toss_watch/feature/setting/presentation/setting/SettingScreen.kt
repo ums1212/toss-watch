@@ -44,6 +44,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.core.model.CachedStock
+import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiIntent
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiSideEffect
@@ -185,7 +186,7 @@ private fun SettingContent(
                 }
 
                 item(key = "watch_section") {
-                    WatchTokenSection(onIntent = onIntent)
+                    WatchTokenSection(pairedWatch = uiState.pairedWatch, onIntent = onIntent)
                 }
             }
 
@@ -236,6 +237,7 @@ private fun TossKeySection(
 
 @Composable
 private fun WatchTokenSection(
+    pairedWatch: PairedWatchInfo?,
     onIntent: (SettingUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -248,16 +250,29 @@ private fun WatchTokenSection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            text = "워치 앱 페어링 화면에 표시된 QR 코드를 스캔해 연동해요.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (pairedWatch != null) {
+            Text(
+                text = "연동된 워치: ${pairedWatch.modelName}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "UUID: ${pairedWatch.uuid}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Text(
+                text = "워치 앱 페어링 화면에 표시된 QR 코드를 스캔해 연동해요.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TossWatchButton(
-            text = "QR로 워치 연동",
+            text = if (pairedWatch != null) "재연동" else "QR로 워치 연동",
             onClick = { onIntent(SettingUiIntent.OnPairWatchClicked) },
         )
     }

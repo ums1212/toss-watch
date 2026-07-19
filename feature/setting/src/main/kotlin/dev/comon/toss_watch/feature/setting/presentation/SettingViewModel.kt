@@ -8,6 +8,7 @@ import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import javax.inject.Inject
@@ -19,12 +20,14 @@ class SettingViewModel @Inject constructor(
     private val addAlarmProfileUseCase: AddAlarmProfileUseCase,
     private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
     private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
+    private val observePairedWatchUseCase: ObservePairedWatchUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
 
     init {
         loadAlarms()
         observePortfolioStocks()
+        observePairedWatch()
     }
 
     override fun handleIntent(intent: SettingUiIntent) {
@@ -71,6 +74,18 @@ class SettingViewModel @Inject constructor(
         viewModelScope.launch(dispatcherProvider.io) {
             observePortfolioStocksUseCase().collect { stocks ->
                 updateState { copy(availableStocks = stocks) }
+            }
+        }
+    }
+
+    /**
+     * 연동 완료된 워치 정보를 구독한다. WatchPair 화면에서 등록 성공 후 pop 복귀해도
+     * 로컬(core:datastore) 값이 갱신되는 즉시 반영되므로 별도 재진입 트리거가 필요 없다.
+     */
+    private fun observePairedWatch() {
+        viewModelScope.launch(dispatcherProvider.io) {
+            observePairedWatchUseCase().collect { pairedWatch ->
+                updateState { copy(pairedWatch = pairedWatch) }
             }
         }
     }

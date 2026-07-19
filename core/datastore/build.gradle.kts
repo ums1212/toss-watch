@@ -21,6 +21,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:model"))
+
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.tink.android)
     implementation(libs.hilt.android)

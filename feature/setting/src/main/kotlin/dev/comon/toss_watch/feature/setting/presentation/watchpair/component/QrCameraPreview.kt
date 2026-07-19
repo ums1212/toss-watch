@@ -28,7 +28,9 @@ import java.util.concurrent.atomic.AtomicReference
 
 /**
  * CameraX 프리뷰 + ML Kit 바코드 스캐너로 QR 코드를 인식한다.
- * 워치 온보딩 QR은 순수 FCM 토큰 문자열이라 별도 파싱 없이 [onQrDetected]로 그대로 전달한다.
+ * 워치 온보딩 QR은 `WatchPairingPayload`(fcm_token+uuid+model_name) JSON 문자열이며,
+ * 이 컴포넌트는 파싱 없이 원문(rawValue)을 그대로 [onQrDetected]로 전달한다
+ * (파싱은 [dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairViewModel]이 담당).
  *
  * 최초 1건만 콜백하도록 내부에서 가드한다 — 등록이 끝나기 전까지 매 프레임 재호출되는 것을 막는다.
  * [resetSignal] 값이 바뀌면(예: 등록 실패 후 재시도) 카메라 재바인딩 없이 가드만 초기화해

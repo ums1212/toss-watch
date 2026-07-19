@@ -2,6 +2,7 @@ package dev.comon.toss_watch.feature.setting.util
 
 import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.domain.repository.SettingRepository
 import kotlinx.coroutines.CompletableDeferred
@@ -15,6 +16,7 @@ class FakeSettingRepository : SettingRepository {
     var toggleResult: NetworkResult<AlarmProfile>? = null
     var tokenResult: NetworkResult<Unit> = NetworkResult.Success(Unit)
     val portfolioStocks: MutableStateFlow<List<CachedStock>> = MutableStateFlow(DEFAULT_STOCKS)
+    val pairedWatch: MutableStateFlow<PairedWatchInfo?> = MutableStateFlow(null)
 
     /** true면 [release] 호출 전까지 쓰기 요청을 지연시켜 isSaving 검증을 가능하게 한다. */
     var suspendUntilReleased: Boolean = false
@@ -30,6 +32,10 @@ class FakeSettingRepository : SettingRepository {
     var lastToggledEnabled: Boolean? = null
         private set
     var lastRegisteredToken: String? = null
+        private set
+    var lastRegisteredUuid: String? = null
+        private set
+    var lastRegisteredModelName: String? = null
         private set
     var registerInvocationCount: Int = 0
         private set
@@ -65,12 +71,23 @@ class FakeSettingRepository : SettingRepository {
             )
     }
 
-    override suspend fun registerWatchToken(fcmToken: String): NetworkResult<Unit> {
+    override suspend fun registerWatchToken(
+        fcmToken: String,
+        uuid: String,
+        modelName: String,
+    ): NetworkResult<Unit> {
         registerInvocationCount++
         lastRegisteredToken = fcmToken
+        lastRegisteredUuid = uuid
+        lastRegisteredModelName = modelName
         if (suspendUntilReleased) gate.await()
+        if (tokenResult is NetworkResult.Success) {
+            pairedWatch.value = PairedWatchInfo(modelName = modelName, uuid = uuid)
+        }
         return tokenResult
     }
+
+    override fun observePairedWatch(): Flow<PairedWatchInfo?> = pairedWatch
 
     fun release() {
         gate.complete(Unit)

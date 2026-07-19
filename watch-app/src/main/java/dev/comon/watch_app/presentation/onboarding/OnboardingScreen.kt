@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,6 +41,8 @@ fun OnboardingRoute(viewModel: WatchOnboardingViewModel = hiltViewModel()) {
     OnboardingScreen(
         uiState = uiState,
         onRetryClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RetryClicked) },
+        onRefreshClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RefreshClicked) },
+        onCheckNowClick = { viewModel.handleIntent(WatchOnboardingUiIntent.CheckNowClicked) },
     )
 }
 
@@ -45,7 +50,10 @@ fun OnboardingRoute(viewModel: WatchOnboardingViewModel = hiltViewModel()) {
 fun OnboardingScreen(
     uiState: WatchOnboardingUiState,
     onRetryClick: () -> Unit,
+    onRefreshClick: () -> Unit,
+    onCheckNowClick: () -> Unit,
 ) {
+    val phase = uiState.phase
     AppScaffold {
         val listState = rememberTransformingLazyColumnState()
         val transformationSpec = rememberTransformationSpec()
@@ -56,7 +64,13 @@ fun OnboardingScreen(
                         modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
                         transformation = SurfaceTransformation(transformationSpec),
                     ) {
-                        Text(text = stringResource(R.string.onboarding_title))
+                        Text(
+                            text = if (phase is WatchOnboardingPhase.Paired) {
+                                stringResource(R.string.onboarding_paired_title)
+                            } else {
+                                stringResource(R.string.onboarding_title)
+                            },
+                        )
                     }
                 }
                 item {
@@ -67,17 +81,18 @@ fun OnboardingScreen(
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        when {
-                            uiState.qrBitmap != null -> QrCodeCard(uiState.qrBitmap)
-                            uiState.errorMessage != null -> Text(
-                                text = uiState.errorMessage,
+                        when (phase) {
+                            is WatchOnboardingPhase.Qr -> QrCodeCard(phase.bitmap)
+                            is WatchOnboardingPhase.Paired -> PairedInfo(phase)
+                            is WatchOnboardingPhase.Error -> Text(
+                                text = phase.message,
                                 color = MaterialTheme.colorScheme.error,
                             )
-                            else -> CircularProgressIndicator()
+                            WatchOnboardingPhase.Loading -> CircularProgressIndicator()
                         }
                     }
                 }
-                if (uiState.errorMessage != null) {
+                if (phase is WatchOnboardingPhase.Error) {
                     item {
                         Button(
                             onClick = onRetryClick,
@@ -88,17 +103,54 @@ fun OnboardingScreen(
                         }
                     }
                 }
+                if (phase is WatchOnboardingPhase.Qr) {
+                    item {
+                        Button(
+                            onClick = onRefreshClick,
+                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
+                            Text(stringResource(R.string.onboarding_refresh))
+                        }
+                    }
+                    item {
+                        Button(
+                            onClick = onCheckNowClick,
+                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
+                            Text(stringResource(R.string.onboarding_check_now))
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
+private fun PairedInfo(phase: WatchOnboardingPhase.Paired) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = stringResource(R.string.onboarding_paired_model, phase.modelName),
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.padding(top = 4.dp))
+        Text(
+            text = stringResource(R.string.onboarding_paired_uuid, phase.uuid),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
 private fun QrCodeCard(bitmap: Bitmap) {
-    // 원형 디스플레이의 곡면 테두리에 잘리지 않도록 화면 폭의 절반 수준으로 QR 크기를 제한한다.
+    // ScreenScaffold의 contentPadding이 이미 원형 세이프존을 계산해 주므로,
+    // 그 안에서는 폭을 최대한 채워 스캔 인식률을 높인다(과거 0.55f는 지나치게 보수적이었음).
     Box(
         modifier = Modifier
-            .fillMaxWidth(fraction = 0.55f)
+            .fillMaxWidth(fraction = 0.9f)
             .aspectRatio(1f)
             .background(color = Color.White, shape = RoundedCornerShape(8.dp))
             .padding(6.dp),

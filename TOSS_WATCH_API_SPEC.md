@@ -101,19 +101,22 @@ GET /api/v1/toss-watch/users/toss-key/        [JWT 필수]
 PUT /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
 ```
 
-유저(디바이스) 본인의 워치 FCM 등록 토큰을 저장한다. **유저당 토큰은 1개만 유지**되며,
-재등록 시 기존 값을 덮어쓴다. 로그인 직후, 그리고 `onNewToken` 콜백으로 토큰이 갱신될 때마다
-호출할 것.
+유저(디바이스) 본인의 워치 FCM 등록 토큰과 기기 식별용 UUID, (선택) 워치 모델명을 저장한다.
+**유저당 토큰·UUID·모델명은 각 1개만 유지**되며, 재등록 시 기존 값을 덮어쓴다.
+로그인 직후, 그리고 `onNewToken` 콜백으로 토큰이 갱신될 때마다 호출할 것
+(이때도 `uuid`는 매번 함께 전달해야 함).
 
 **Request Body**
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
 | `fcm_token` | string | ✅ | 워치 기기의 FCM 등록 토큰. 비워둘 수 없음 |
+| `uuid` | string | ✅ | 워치 기기를 식별하는 UUID. 비워둘 수 없음 |
+| `model_name` | string | — | 워치 기기 모델명. 미전달/빈 값이면 DB에 `NULL`로 저장 |
 
 **Response 200**: `{"message": "FCM 토큰이 등록되었습니다."}`
 **Errors**
-- `400 Bad Request` `fcm_token` 누락/빈 값 (`{"error": "body에 'fcm_token'이 필요합니다."}`)
+- `400 Bad Request` `fcm_token` 누락/빈 값 (`{"error": "body에 'fcm_token'이 필요합니다."}`) 또는 `uuid` 누락/빈 값 (`{"error": "body에 'uuid'가 필요합니다."}`)
 - `401 Unauthorized` JWT 인증 정보 누락/만료/위조
 
 ### 2-4. 워치 FCM 토큰 등록 상태 조회
@@ -123,6 +126,35 @@ GET /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
 ```
 
 **Response 200**: `{"has_fcm_token": true}`
+
+### 2-5. 워치 FCM 토큰 등록 여부 확인 (워치앱 전용)
+
+```
+POST /api/v1/toss-watch/fcm-token/check/      [X-Toss-Watch-Api-Key 헤더 필수, JWT 불필요]
+```
+
+2-4와 달리 **로그인 세션 없이** 특정 FCM 토큰 문자열 자체가 서버 어딘가에(어느 유저든)
+등록되어 있는지만 확인한다. 안드로이드 워치앱이 부팅/재연결 시 로컬에 캐시해둔 토큰이
+아직 서버 기준으로 유효(등록됨)한지 빠르게 점검하는 용도. 워치앱 외 클라이언트의 호출을
+막기 위해 앱 전용 API key를 헤더로 요구한다.
+
+**Request Header**
+
+| 헤더 | 필수 | 설명 |
+|---|---|---|
+| `X-Toss-Watch-Api-Key` | ✅ | 워치앱 빌드에 내장된 고정 API 키 (`.env`의 `TOSS_WATCH_APP_API_KEY`와 일치해야 함) |
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| `fcm_token` | string | ✅ | 등록 여부를 확인할 FCM 토큰. 비워둘 수 없음 |
+
+**Response 200**: `{"registered": true}` 또는 `{"registered": false}`
+
+**Errors**
+- `400 Bad Request` `fcm_token` 누락/빈 값 (`{"error": "body에 'fcm_token'이 필요합니다."}`)
+- `403 Forbidden` `X-Toss-Watch-Api-Key` 헤더 누락/불일치
 
 ---
 
@@ -352,6 +384,6 @@ DELETE /api/v1/toss-watch/notifications/<id>/     → 204
 | 배치 1회 수동 실행 | `uv run python manage.py run_watch_scheduler --one-off` |
 | FCM 수동 발송 테스트 | `uv run python manage.py test_fcm_send --token=<FCM토큰> [--code --name --price --rate]` |
 | 시세 조회 재시도 | 토스 API 일시 장애 시 5초 간격 최대 3회 |
-| 필수 환경변수(.env) | `SECRET_KEY`, `TOSS_KEY_ENCRYPTION_KEY`, `TOSS_WATCH_FIREBASE_KEY_PATH`(전용 Firebase 서비스 계정 키), `TOSS_WATCH_GOOGLE_CLIENT_ID` (+ 서버 공용 `TOSS_CLIENT_ID/SECRET`은 개발 검증용) |
+| 필수 환경변수(.env) | `SECRET_KEY`, `TOSS_KEY_ENCRYPTION_KEY`, `TOSS_WATCH_FIREBASE_KEY_PATH`(전용 Firebase 서비스 계정 키), `TOSS_WATCH_GOOGLE_CLIENT_ID`, `TOSS_WATCH_APP_API_KEY`(2-5 워치앱 전용 헤더 검증용) (+ 서버 공용 `TOSS_CLIENT_ID/SECRET`은 개발 검증용) |
 | 모니터링 로그 | `[Cron 09:00] 총 X건의 워치 알림 푸시 발송 완료 (성공: Y, 실패: Z)` |
 | 토스 API IP 제한 | 서버(고정 IP)가 토스 화이트리스트에 등록되어 있어야 함 |

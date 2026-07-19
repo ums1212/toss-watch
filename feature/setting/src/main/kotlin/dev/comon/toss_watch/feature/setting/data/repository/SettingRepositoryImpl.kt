@@ -1,9 +1,12 @@
 package dev.comon.toss_watch.feature.setting.data.repository
 
 import dev.comon.toss_watch.core.database.PortfolioStockCache
+import dev.comon.toss_watch.core.datastore.TokenStore
 import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.map
+import dev.comon.toss_watch.core.model.onSuccess
+import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.core.network.safeApiCall
 import dev.comon.toss_watch.feature.setting.data.remote.SettingApi
 import dev.comon.toss_watch.feature.setting.data.remote.dto.AlarmProfileRequest
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 class SettingRepositoryImpl @Inject constructor(
     private val settingApi: SettingApi,
     private val portfolioStockCache: PortfolioStockCache,
+    private val tokenStore: TokenStore,
 ) : SettingRepository {
 
     override suspend fun fetchAlarmProfiles(): NetworkResult<List<AlarmProfile>> =
@@ -55,7 +59,18 @@ class SettingRepositoryImpl @Inject constructor(
             )
         }.map { it.toAlarmProfile() }
 
-    override suspend fun registerWatchToken(fcmToken: String): NetworkResult<Unit> =
-        safeApiCall { settingApi.registerWatchToken(WatchTokenRequest(fcmToken = fcmToken)) }
+    override suspend fun registerWatchToken(
+        fcmToken: String,
+        uuid: String,
+        modelName: String,
+    ): NetworkResult<Unit> =
+        safeApiCall {
+            settingApi.registerWatchToken(
+                WatchTokenRequest(fcmToken = fcmToken, uuid = uuid, modelName = modelName),
+            )
+        }
+            .onSuccess { tokenStore.setPairedWatch(modelName = modelName, uuid = uuid) }
             .map { }
+
+    override fun observePairedWatch(): Flow<PairedWatchInfo?> = tokenStore.observePairedWatch()
 }

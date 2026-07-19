@@ -1,6 +1,7 @@
 package dev.comon.toss_watch.feature.setting.presentation.watchpair
 
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.core.model.watch.WatchPairingPayload
 import dev.comon.toss_watch.feature.setting.domain.usecase.RegisterWatchTokenUseCase
 import dev.comon.toss_watch.feature.setting.util.FakeSettingRepository
 import dev.comon.toss_watch.feature.setting.util.MainDispatcherRule
@@ -13,6 +14,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -33,6 +35,16 @@ class WatchPairViewModelTest {
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
+    private fun qrPayload(
+        fcmToken: String,
+        uuid: String = "11111111-1111-1111-1111-111111111111",
+        modelName: String = "Galaxy Watch7",
+    ): String =
+        Json.encodeToString(
+            WatchPairingPayload.serializer(),
+            WatchPairingPayload(fcmToken = fcmToken, uuid = uuid, modelName = modelName),
+        )
+
     private fun TestScope.collectSideEffects(
         viewModel: WatchPairViewModel,
     ): List<WatchPairUiSideEffect> {
@@ -50,7 +62,7 @@ class WatchPairViewModelTest {
             val effects = collectSideEffects(viewModel)
 
             fakeRepository.suspendUntilReleased = true
-            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned("wear-fcm-token"))
+            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned(qrPayload("wear-fcm-token")))
             runCurrent()
 
             // 등록 요청이 진행되는 동안 isRegistering = true
@@ -64,6 +76,8 @@ class WatchPairViewModelTest {
             assertEquals(null, state.errorMessage)
             assertEquals(1, fakeRepository.registerInvocationCount)
             assertEquals("wear-fcm-token", fakeRepository.lastRegisteredToken)
+            assertEquals("11111111-1111-1111-1111-111111111111", fakeRepository.lastRegisteredUuid)
+            assertEquals("Galaxy Watch7", fakeRepository.lastRegisteredModelName)
             assertEquals(
                 listOf<WatchPairUiSideEffect>(
                     WatchPairUiSideEffect.ShowToast(WatchPairViewModel.TOAST_TOKEN_REGISTERED),
@@ -79,9 +93,9 @@ class WatchPairViewModelTest {
             val viewModel = createViewModel()
 
             fakeRepository.suspendUntilReleased = true
-            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned("first-token"))
+            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned(qrPayload("first-token")))
             runCurrent()
-            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned("second-token"))
+            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned(qrPayload("second-token")))
             runCurrent()
 
             assertEquals(1, fakeRepository.registerInvocationCount)
@@ -96,7 +110,7 @@ class WatchPairViewModelTest {
             fakeRepository.tokenResult = NetworkResult.ApiError(code = 400, message = "잘못된 토큰")
             val viewModel = createViewModel()
 
-            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned("bad-token"))
+            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned(qrPayload("bad-token")))
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -110,7 +124,7 @@ class WatchPairViewModelTest {
             fakeRepository.tokenResult = NetworkResult.ApiError(code = 400, message = "잘못된 토큰")
             val viewModel = createViewModel()
 
-            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned("bad-token"))
+            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned(qrPayload("bad-token")))
             advanceUntilIdle()
             assertEquals("잘못된 토큰", viewModel.uiState.value.errorMessage)
 
@@ -118,6 +132,18 @@ class WatchPairViewModelTest {
             runCurrent()
 
             assertEquals(null, viewModel.uiState.value.errorMessage)
+        }
+
+    @Test
+    fun `JSON이 아닌 QR을 스캔하면 errorMessage에 잘못된 QR 안내가 표시되고 등록은 호출되지 않는다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+
+            viewModel.handleIntent(WatchPairUiIntent.OnQrScanned("not-a-json-payload"))
+            advanceUntilIdle()
+
+            assertEquals(0, fakeRepository.registerInvocationCount)
+            assertEquals(WatchPairViewModel.DEFAULT_INVALID_QR_ERROR, viewModel.uiState.value.errorMessage)
         }
 
     @Test
