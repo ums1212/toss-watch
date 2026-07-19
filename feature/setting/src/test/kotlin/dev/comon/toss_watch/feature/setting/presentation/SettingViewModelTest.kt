@@ -3,6 +3,7 @@ package dev.comon.toss_watch.feature.setting.presentation
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.RegisterWatchTokenUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.util.FakeSettingRepository
@@ -37,6 +38,7 @@ class SettingViewModelTest {
             addAlarmProfileUseCase = AddAlarmProfileUseCase(fakeRepository),
             toggleAlarmProfileUseCase = ToggleAlarmProfileUseCase(fakeRepository),
             registerWatchTokenUseCase = RegisterWatchTokenUseCase(fakeRepository),
+            observePortfolioStocksUseCase = ObservePortfolioStocksUseCase(fakeRepository),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 

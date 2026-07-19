@@ -8,6 +8,7 @@ import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.RegisterWatchTokenUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import javax.inject.Inject
@@ -19,11 +20,13 @@ class SettingViewModel @Inject constructor(
     private val addAlarmProfileUseCase: AddAlarmProfileUseCase,
     private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
     private val registerWatchTokenUseCase: RegisterWatchTokenUseCase,
+    private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
 
     init {
         loadAlarms()
+        observePortfolioStocks()
     }
 
     override fun handleIntent(intent: SettingUiIntent) {
@@ -68,6 +71,15 @@ class SettingViewModel @Inject constructor(
                 else -> updateState {
                     copy(isLoading = false, errorMessage = result.toErrorMessage())
                 }
+            }
+        }
+    }
+
+    /** 대시보드가 캐싱한 보유 종목을 구독 — API 재호출 없이 알림 추가 종목 후보를 최신 상태로 유지한다. */
+    private fun observePortfolioStocks() {
+        viewModelScope.launch(dispatcherProvider.io) {
+            observePortfolioStocksUseCase().collect { stocks ->
+                updateState { copy(availableStocks = stocks) }
             }
         }
     }

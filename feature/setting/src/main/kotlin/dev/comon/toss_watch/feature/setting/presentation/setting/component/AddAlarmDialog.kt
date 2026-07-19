@@ -9,6 +9,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,28 +23,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
-/** 표준 종목 선택지 — Phase 5에서 서버 종목 검색 API로 대체 예정. */
-internal val StandardTickerOptions = listOf(
-    "005930" to "삼성전자",
-    "000660" to "SK하이닉스",
-    "035420" to "NAVER",
-    "035720" to "카카오",
-    "005380" to "현대차",
-)
+import dev.comon.toss_watch.core.model.CachedStock
 
 /**
- * 알림 추가 다이얼로그 — 표준 종목 드롭다운 + 시/분 입력.
+ * 알림 추가 다이얼로그 — 보유 종목(대시보드 캐시) 드롭다운 + 시/분 입력.
  *
+ * @param stocks 대시보드가 캐싱해 둔 보유 종목 선택지. 비어 있으면 안내 문구만 표시하고 '추가'를 비활성화한다.
  * @param onConfirm (stockCode, hour, minute) 확정 콜백 — [SettingUiIntent.OnAddAlarm]로 환원된다.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAlarmDialog(
+    stocks: List<CachedStock>,
     onConfirm: (stockCode: String, hour: Int, minute: Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var selectedTicker by remember { mutableStateOf(StandardTickerOptions.first()) }
+    var selectedStock by remember { mutableStateOf(stocks.firstOrNull()) }
     var isTickerMenuExpanded by remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState(
         initialHour = 9,
@@ -56,57 +51,64 @@ fun AddAlarmDialog(
         title = { Text(text = "알림 추가") },
         text = {
             Column {
-                ExposedDropdownMenuBox(
-                    expanded = isTickerMenuExpanded,
-                    onExpandedChange = { isTickerMenuExpanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = "${selectedTicker.second} (${selectedTicker.first})",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("종목") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = isTickerMenuExpanded,
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                if (stocks.isEmpty()) {
+                    Text(
+                        text = "보유 종목이 없어요. 대시보드에서 계좌를 먼저 확인해 주세요.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-
-                    ExposedDropdownMenu(
+                } else {
+                    ExposedDropdownMenuBox(
                         expanded = isTickerMenuExpanded,
-                        onDismissRequest = { isTickerMenuExpanded = false },
+                        onExpandedChange = { isTickerMenuExpanded = it },
                     ) {
-                        StandardTickerOptions.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text("${option.second} (${option.first})") },
-                                onClick = {
-                                    selectedTicker = option
-                                    isTickerMenuExpanded = false
-                                },
-                            )
+                        OutlinedTextField(
+                            value = selectedStock?.let { "${it.stockName} (${it.stockCode})" }.orEmpty(),
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("종목") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                    expanded = isTickerMenuExpanded,
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = isTickerMenuExpanded,
+                            onDismissRequest = { isTickerMenuExpanded = false },
+                        ) {
+                            stocks.forEach { stock ->
+                                DropdownMenuItem(
+                                    text = { Text("${stock.stockName} (${stock.stockCode})") },
+                                    onClick = {
+                                        selectedStock = stock
+                                        isTickerMenuExpanded = false
+                                    },
+                                )
+                            }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(text = "알림 시각")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TimeInput(state = timePickerState)
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(text = "알림 시각")
-                Spacer(modifier = Modifier.height(8.dp))
-                TimeInput(state = timePickerState)
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirm(
-                        selectedTicker.first,
-                        timePickerState.hour,
-                        timePickerState.minute,
-                    )
+                    selectedStock?.let { stock ->
+                        onConfirm(stock.stockCode, timePickerState.hour, timePickerState.minute)
+                    }
                 },
+                enabled = selectedStock != null,
             ) {
                 Text(text = "추가")
             }

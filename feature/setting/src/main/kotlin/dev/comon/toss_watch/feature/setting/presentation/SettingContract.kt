@@ -3,10 +3,13 @@ package dev.comon.toss_watch.feature.setting.presentation
 import dev.comon.toss_watch.core.common.mvi.UiIntent
 import dev.comon.toss_watch.core.common.mvi.UiSideEffect
 import dev.comon.toss_watch.core.common.mvi.UiState
+import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 
 data class SettingUiState(
     val configuredAlarms: List<AlarmProfile> = emptyList(),
+    /** 대시보드가 캐싱해 둔 보유 종목 — 알림 추가 다이얼로그의 종목 선택지로 쓰인다. */
+    val availableStocks: List<CachedStock> = emptyList(),
     val fcmTokenInput: String = "",
     val isSaving: Boolean = false,
     val isLoading: Boolean = false,

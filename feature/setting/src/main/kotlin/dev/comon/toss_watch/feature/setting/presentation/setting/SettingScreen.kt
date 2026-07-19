@@ -44,6 +44,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiIntent
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiSideEffect
@@ -210,6 +211,7 @@ private fun SettingContent(
 
     if (showAddAlarmDialog) {
         AddAlarmDialog(
+            stocks = uiState.availableStocks,
             onConfirm = { stockCode, hour, minute ->
                 showAddAlarmDialog = false
                 onIntent(SettingUiIntent.OnAddAlarm(stockCode, hour, minute))
@@ -287,6 +289,10 @@ private fun SettingContentPreview() {
                 configuredAlarms = listOf(
                     AlarmProfile(1L, "005930", "삼성전자", 9, 0, true),
                     AlarmProfile(2L, "035420", "NAVER", 15, 30, false),
+                ),
+                availableStocks = listOf(
+                    CachedStock("005930", "삼성전자"),
+                    CachedStock("035420", "NAVER"),
                 ),
                 fcmTokenInput = "wear-fcm-token",
             ),
