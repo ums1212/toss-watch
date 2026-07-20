@@ -10,6 +10,7 @@ import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCas
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -21,6 +22,7 @@ class SettingViewModel @Inject constructor(
     private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
     private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
     private val observePairedWatchUseCase: ObservePairedWatchUseCase,
+    private val syncPairedWatchUseCase: SyncPairedWatchUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
 
@@ -28,6 +30,7 @@ class SettingViewModel @Inject constructor(
         loadAlarms()
         observePortfolioStocks()
         observePairedWatch()
+        syncPairedWatch()
     }
 
     override fun handleIntent(intent: SettingUiIntent) {
@@ -87,6 +90,17 @@ class SettingViewModel @Inject constructor(
             observePairedWatchUseCase().collect { pairedWatch ->
                 updateState { copy(pairedWatch = pairedWatch) }
             }
+        }
+    }
+
+    /**
+     * 서버 워치 FCM 등록 상태를 재조회해 로컬 pairedWatch를 서버 기준으로 복원/정리한다.
+     * 폰앱 재설치 등으로 로컬 값이 유실된 경우를 대비한 best-effort 호출 — 실패해도
+     * [observePairedWatch]가 기존 로컬 값을 그대로 유지하므로 UI를 방해하지 않는다.
+     */
+    private fun syncPairedWatch() {
+        viewModelScope.launch(dispatcherProvider.io) {
+            syncPairedWatchUseCase()
         }
     }
 

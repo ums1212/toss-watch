@@ -29,13 +29,12 @@ interface TokenStore {
 
     /**
      * 연동 완료된 워치(기기명 + UUID)의 반응형 스트림.
-     * 서버 `GET /users/fcm-token/`은 등록 여부(Boolean)만 반환하므로,
-     * 폰이 QR 스캔 후 등록 성공(200) 시점에 저장한 값을 그대로 관측한다.
-     * 미연동 상태면 `null`.
+     * 폰이 QR 스캔 후 등록 성공(200) 시점, 또는 서버 `GET /users/fcm-token/` 재조회로
+     * 저장한 값을 그대로 관측한다. 미연동 상태면 `null`. 모델명은 서버가 `null`로 저장했을 수 있다.
      */
     fun observePairedWatch(): Flow<PairedWatchInfo?>
 
-    fun setPairedWatch(modelName: String, uuid: String)
+    fun setPairedWatch(modelName: String?, uuid: String)
 
     fun clearPairedWatch()
 

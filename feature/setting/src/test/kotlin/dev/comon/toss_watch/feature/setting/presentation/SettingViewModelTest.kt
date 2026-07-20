@@ -2,8 +2,10 @@ package dev.comon.toss_watch.feature.setting.presentation
 
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
+import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.util.FakeSettingRepository
 import dev.comon.toss_watch.feature.setting.util.MainDispatcherRule
@@ -37,6 +39,7 @@ class SettingViewModelTest {
             toggleAlarmProfileUseCase = ToggleAlarmProfileUseCase(fakeRepository),
             observePortfolioStocksUseCase = ObservePortfolioStocksUseCase(fakeRepository),
             observePairedWatchUseCase = ObservePairedWatchUseCase(fakeRepository),
+            syncPairedWatchUseCase = SyncPairedWatchUseCase(fakeRepository),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -59,6 +62,21 @@ class SettingViewModelTest {
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
             assertEquals(FakeSettingRepository.DEFAULT_ALARMS, state.configuredAlarms)
+        }
+
+    @Test
+    fun `init 시 syncPairedWatch가 호출되어 서버에 복원된 워치 정보가 상태에 반영된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.syncedWatch = PairedWatchInfo(modelName = "Galaxy Watch 6", uuid = "uuid-abc")
+
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            assertEquals(1, fakeRepository.syncInvocationCount)
+            assertEquals(
+                PairedWatchInfo(modelName = "Galaxy Watch 6", uuid = "uuid-abc"),
+                viewModel.uiState.value.pairedWatch,
+            )
         }
 
     @Test

@@ -73,4 +73,15 @@ class SettingRepositoryImpl @Inject constructor(
             .map { }
 
     override fun observePairedWatch(): Flow<PairedWatchInfo?> = tokenStore.observePairedWatch()
+
+    override suspend fun syncPairedWatch(): NetworkResult<Unit> =
+        safeApiCall { settingApi.getWatchTokenStatus() }
+            .onSuccess { status ->
+                if (status.hasFcmToken && !status.uuid.isNullOrBlank()) {
+                    tokenStore.setPairedWatch(modelName = status.modelName, uuid = status.uuid)
+                } else {
+                    tokenStore.clearPairedWatch()
+                }
+            }
+            .map { }
 }

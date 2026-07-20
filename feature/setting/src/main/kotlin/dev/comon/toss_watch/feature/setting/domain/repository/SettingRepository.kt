@@ -31,8 +31,15 @@ interface SettingRepository {
 
     /**
      * 연동 완료된 워치(기기명+UUID)의 반응형 스트림.
-     * 서버 `GET /users/fcm-token/`는 등록 여부(Boolean)만 반환하므로, 등록 성공(200) 시점에
-     * 로컬(core:datastore)에 저장해 둔 값을 그대로 관측한다. 미연동이면 `null`.
+     * QR 등록 성공(200) 시점 또는 [syncPairedWatch] 복원으로 로컬(core:datastore)에
+     * 저장해 둔 값을 그대로 관측한다. 미연동이면 `null`.
      */
     fun observePairedWatch(): Flow<PairedWatchInfo?>
+
+    /**
+     * 서버 `GET /users/fcm-token/`로 등록 상태를 조회해 로컬(core:datastore) pairedWatch를
+     * 서버 기준으로 재동기화한다. 폰앱 재설치 등으로 로컬 값이 유실된 경우 복원하고,
+     * 서버가 미등록을 반환하면 로컬 stale 값을 정리한다. best-effort 호출을 전제로 한다.
+     */
+    suspend fun syncPairedWatch(): NetworkResult<Unit>
 }

@@ -99,7 +99,7 @@ class AuthRepositoryImplTest {
         override fun observePairedWatch(): kotlinx.coroutines.flow.Flow<dev.comon.toss_watch.core.model.watch.PairedWatchInfo?> =
             kotlinx.coroutines.flow.flowOf(pairedWatch)
 
-        override fun setPairedWatch(modelName: String, uuid: String) {
+        override fun setPairedWatch(modelName: String?, uuid: String) {
             pairedWatch = dev.comon.toss_watch.core.model.watch.PairedWatchInfo(modelName, uuid)
         }
 

@@ -53,20 +53,23 @@ internal class DataStoreTokenStore @Inject constructor(
     override fun observePairedWatch(): Flow<PairedWatchInfo?> =
         dataStore.data
             .map { prefs ->
-                val modelName = prefs[KEY_PAIRED_WATCH_MODEL]
                 val uuid = prefs[KEY_PAIRED_WATCH_UUID]
-                if (modelName != null && uuid != null) {
-                    PairedWatchInfo(modelName = modelName, uuid = uuid)
+                if (uuid != null) {
+                    PairedWatchInfo(modelName = prefs[KEY_PAIRED_WATCH_MODEL], uuid = uuid)
                 } else {
                     null
                 }
             }
             .distinctUntilChanged()
 
-    override fun setPairedWatch(modelName: String, uuid: String) {
+    override fun setPairedWatch(modelName: String?, uuid: String) {
         runBlocking {
             dataStore.edit { prefs ->
-                prefs[KEY_PAIRED_WATCH_MODEL] = modelName
+                if (modelName != null) {
+                    prefs[KEY_PAIRED_WATCH_MODEL] = modelName
+                } else {
+                    prefs.remove(KEY_PAIRED_WATCH_MODEL)
+                }
                 prefs[KEY_PAIRED_WATCH_UUID] = uuid
             }
         }

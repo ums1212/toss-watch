@@ -125,7 +125,12 @@ PUT /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
 GET /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
 ```
 
-**Response 200**: `{"has_fcm_token": true}`
+등록된 경우에만 현재 저장된 `model_name`/`uuid`를 함께 반환한다.
+
+**Response 200 (등록됨)**: `{"has_fcm_token": true, "model_name": "Galaxy Watch 6", "uuid": "uuid-abc"}`
+- `model_name`: 등록 시 `model_name`을 전달하지 않았다면 `null`
+
+**Response 200 (미등록)**: `{"has_fcm_token": false}`
 
 ### 2-5. 워치 FCM 토큰 등록 여부 확인 (워치앱 전용)
 

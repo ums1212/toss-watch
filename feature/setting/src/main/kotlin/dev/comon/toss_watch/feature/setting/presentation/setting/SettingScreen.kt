@@ -252,7 +252,7 @@ private fun WatchTokenSection(
 
         if (pairedWatch != null) {
             Text(
-                text = "연동된 워치: ${pairedWatch.modelName}",
+                text = "연동된 워치: ${pairedWatch.modelName ?: "이름 미확인 워치"}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
