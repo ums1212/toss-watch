@@ -19,14 +19,15 @@ Common commands (run from repo root; use `gradlew.bat` on Windows cmd, `./gradle
 
 ## 1. Project Overview & Tech Stack
 
-- **SDK Version:** Min SDK 26 (Android 8.0) or higher.
+- **SDK Version:** Min SDK 26 (Android 8.0) for the phone app; `:watch-app` targets Wear OS with Min SDK 30.
 - **Paradigm:** Multi-module Clean Architecture + MVI Pattern.
 - **Core Libraries:**
-  - **UI/Design:** Jetpack Compose (Material 3), Compose for Wear OS (for future expansion).
+  - **UI/Design:** Jetpack Compose (Material 3); Compose for Wear OS in `:watch-app`.
   - **Asynchronous/Streams:** Kotlin Coroutines & Flow.
   - **DI / Navigation:** Hilt / Jetpack Navigation 3 (Type-Safe Routing).
   - **Network / Serialization:** Retrofit 2, OkHttp 3 / Kotlinx Serialization (Moshi/Gson BANNED).
   - **Local Storage / Auth:** Jetpack DataStore + Tink AEAD (Android Keystore-wrapped keyset; EncryptedSharedPreferences BANNED — deprecated) / `Credential Manager` API.
+  - **Local Storage / Caching:** Room (`:core:database`) for offline/local data caching (e.g. portfolio stock cache), separate from the DataStore+Tink session-token store.
 
 ## 2. Multi-Module Architecture & Directory Structure
 
@@ -38,9 +39,11 @@ Enforce strict decoupling between modules. Dependency direction must always flow
 - `:core:model`: Pure Kotlin module. Contains domain entities, `NetworkResult`, and common DTOs (UI-free).
 - `:core:network`: Retrofit setup, common error handlers, and JWT auto-refresh via `OkHttp Authenticator`.
 - `:core:datastore`: Secure local storage for session tokens (Access/Refresh JWT). Preferences DataStore persists only ciphertext produced by Tink AEAD (AES256-GCM keyset wrapped by an Android Keystore master key). See `core/datastore/README.md` for the encryption design.
+- `:core:database`: Room-backed local cache (e.g. `PortfolioStockCache`) for offline/local data, separate in purpose from `:core:datastore` (which is auth-only).
 - `:core:designsystem`: Material 3 shared theme, design tokens, and reusable Atomic components.
-- `:core:common`: Global extensions, coroutine dispatcher helpers, and logging utilities.
-- `:feature:[auth/dashboard/setting]`: Independent business modules enclosing screen UI and UseCases.
+- `:core:common`: Global extensions, coroutine dispatcher helpers, logging utilities, and the shared MVI contracts (`UiState`/`UiIntent`/`UiSideEffect`) used by both `:app` features and `:watch-app`.
+- `:feature:[auth/dashboard/setting/tosskey]`: Independent business modules enclosing screen UI and UseCases.
+- `:watch-app`: Standalone Wear OS application module (own `applicationId`/`namespace` `dev.comon.watch_app`, distinct from the phone app's `dev.comon.toss_watch`). Not a library consumed by `:app` — it is built and installed independently on the watch, and talks to the backend directly (via its own Retrofit/Hilt network setup, gated by an `X-Toss-Watch-Api-Key` header). Internally layered as data/domain/presentation like the feature modules, and reuses `:core:common`'s MVI base classes. Requires `tossWatch.apiBaseUrl` and `tossWatch.watchApiKey` in `local.properties` to build.
 
 ### 2.2. Feature Module Internal Layering (Feature-Centric)
 
@@ -80,3 +83,5 @@ abstract class BaseMviViewModel<S : E I UiIntent, UiSideEffect UiState,>(initial
 - Presentation layers must NEVER bypass UseCases to access Repositories directly.
 
 - Composable functions exceeding 300 lines must be split into sub-component files immediately.
+
+- `:watch-app` intentionally does NOT depend on `:core:network` or `:core:datastore` — it maintains its own Retrofit/Hilt network stack and local DataStore (see `di/Watch*Module.kt`). Do not "fix" this by wiring it to those modules unless explicitly asked; it is a deliberate separation, not an oversight.
