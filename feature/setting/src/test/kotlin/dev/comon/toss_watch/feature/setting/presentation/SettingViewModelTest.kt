@@ -3,6 +3,7 @@ package dev.comon.toss_watch.feature.setting.presentation
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
+import dev.comon.toss_watch.feature.setting.domain.usecase.LogoutUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
@@ -40,6 +41,7 @@ class SettingViewModelTest {
             observePortfolioStocksUseCase = ObservePortfolioStocksUseCase(fakeRepository),
             observePairedWatchUseCase = ObservePairedWatchUseCase(fakeRepository),
             syncPairedWatchUseCase = SyncPairedWatchUseCase(fakeRepository),
+            logoutUseCase = LogoutUseCase(fakeRepository),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -168,5 +170,17 @@ class SettingViewModelTest {
                 listOf<SettingUiSideEffect>(SettingUiSideEffect.NavigateToTossKey),
                 effects,
             )
+        }
+
+    @Test
+    fun `OnLogoutClicked는 저장소의 logout을 호출한다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(SettingUiIntent.OnLogoutClicked)
+            advanceUntilIdle()
+
+            assertEquals(1, fakeRepository.logoutInvocationCount)
         }
 }

@@ -42,4 +42,11 @@ interface SettingRepository {
      * 서버가 미등록을 반환하면 로컬 stale 값을 정리한다. best-effort 호출을 전제로 한다.
      */
     suspend fun syncPairedWatch(): NetworkResult<Unit>
+
+    /**
+     * 로컬(core:datastore)에 저장된 세션 토큰(Access/Refresh JWT) 및 연동 상태를 모두 제거한다.
+     * 서버 측 세션 무효화 API는 없음 — 클라이언트가 토큰을 지우는 즉시
+     * :app 최상위 라우터가 `observeHasSession()`을 통해 로그인 화면으로 전환한다.
+     */
+    fun logout()
 }

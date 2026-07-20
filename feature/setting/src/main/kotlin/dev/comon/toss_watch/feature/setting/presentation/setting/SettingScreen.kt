@@ -1,6 +1,7 @@
 package dev.comon.toss_watch.feature.setting.presentation.setting
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -188,6 +190,10 @@ private fun SettingContent(
                 item(key = "watch_section") {
                     WatchTokenSection(pairedWatch = uiState.pairedWatch, onIntent = onIntent)
                 }
+
+                item(key = "logout_section") {
+                    LogoutSection(onIntent = onIntent)
+                }
             }
 
             uiState.errorMessage?.let { message ->
@@ -275,6 +281,25 @@ private fun WatchTokenSection(
             text = if (pairedWatch != null) "재연동" else "QR로 워치 연동",
             onClick = { onIntent(SettingUiIntent.OnPairWatchClicked) },
         )
+    }
+}
+
+@Composable
+private fun LogoutSection(
+    onIntent: (SettingUiIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.padding(top = 32.dp)) {
+        OutlinedButton(
+            onClick = { onIntent(SettingUiIntent.OnLogoutClicked) },
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error,
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(text = "로그아웃")
+        }
     }
 }
 

@@ -105,6 +105,13 @@ class FakeSettingRepository : SettingRepository {
         return syncResult
     }
 
+    var logoutInvocationCount: Int = 0
+        private set
+
+    override fun logout() {
+        logoutInvocationCount++
+    }
+
     fun release() {
         gate.complete(Unit)
         gate = CompletableDeferred()

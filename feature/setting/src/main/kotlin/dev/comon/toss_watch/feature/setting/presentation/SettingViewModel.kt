@@ -8,6 +8,7 @@ import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.LogoutUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
@@ -23,6 +24,7 @@ class SettingViewModel @Inject constructor(
     private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
     private val observePairedWatchUseCase: ObservePairedWatchUseCase,
     private val syncPairedWatchUseCase: SyncPairedWatchUseCase,
+    private val logoutUseCase: LogoutUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
 
@@ -53,6 +55,8 @@ class SettingViewModel @Inject constructor(
             SettingUiIntent.OnErrorDismissed -> updateState {
                 copy(errorMessage = null)
             }
+
+            SettingUiIntent.OnLogoutClicked -> logout()
         }
     }
 
@@ -101,6 +105,16 @@ class SettingViewModel @Inject constructor(
     private fun syncPairedWatch() {
         viewModelScope.launch(dispatcherProvider.io) {
             syncPairedWatchUseCase()
+        }
+    }
+
+    /**
+     * 로그아웃 — 로컬 세션 토큰을 제거한다. :app 최상위 라우터가 [dev.comon.toss_watch.core.datastore.TokenStore.observeHasSession]
+     * 변화를 감지해 로그인 화면으로 자동 전환하므로 이 화면에서 별도 네비게이션을 발생시키지 않는다.
+     */
+    private fun logout() {
+        viewModelScope.launch(dispatcherProvider.io) {
+            logoutUseCase()
         }
     }
 

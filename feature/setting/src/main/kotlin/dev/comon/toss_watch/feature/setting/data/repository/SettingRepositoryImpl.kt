@@ -84,4 +84,6 @@ class SettingRepositoryImpl @Inject constructor(
                 }
             }
             .map { }
+
+    override fun logout() = tokenStore.clear()
 }

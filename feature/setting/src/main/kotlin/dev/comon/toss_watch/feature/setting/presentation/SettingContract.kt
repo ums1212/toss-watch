@@ -44,6 +44,9 @@ sealed interface SettingUiIntent : UiIntent {
 
     /** 에러 다이얼로그의 확인 버튼. */
     data object OnErrorDismissed : SettingUiIntent
+
+    /** 설정 화면 맨 아래 로그아웃 버튼. */
+    data object OnLogoutClicked : SettingUiIntent
 }
 
 sealed interface SettingUiSideEffect : UiSideEffect {
