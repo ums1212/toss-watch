@@ -2,7 +2,7 @@ package dev.comon.toss_watch.core.network
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
@@ -19,11 +19,11 @@ data class TokenRefreshResponse(
 /**
  * Access Token 갱신 전용 API (`POST /api/v1/toss-watch/auth/refresh/`, 인증 불필요).
  *
- * [TokenAuthenticator]가 OkHttp 스레드에서 동기 실행하므로 suspend 대신
- * [Call]을 반환하며, 반드시 Authenticator가 없는 별도 클라이언트로 호출해야 한다.
+ * [TokenAuthenticator]가 `runBlocking` 안에서 suspend 호출하며, 반드시
+ * Authenticator가 없는 별도 클라이언트로 호출해야 한다(재귀 401 방지).
  */
 interface TokenRefreshApi {
 
     @POST("v1/toss-watch/auth/refresh/")
-    fun refresh(@Body body: TokenRefreshRequest): Call<TokenRefreshResponse>
+    suspend fun refresh(@Body body: TokenRefreshRequest): Response<TokenRefreshResponse>
 }

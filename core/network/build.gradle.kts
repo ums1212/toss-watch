@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":core:datastore"))
 
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
     api(libs.retrofit)
     implementation(libs.retrofit.converter.kotlinx.serialization)
     api(libs.okhttp)
