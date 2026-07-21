@@ -18,4 +18,10 @@ interface WatchPairingRepository {
      * `true`면 이미 폰과 연동 완료된 상태.
      */
     suspend fun checkFcmTokenRegistered(fcmToken: String): NetworkResult<Boolean>
+
+    /** 로컬에 저장된 연동 완료 여부. 앱 재실행 시 등록 확인 API 호출을 건너뛰기 위한 캐시. */
+    suspend fun isPaired(): Boolean
+
+    /** 연동 완료 여부를 로컬에 영속화한다. */
+    suspend fun setPaired(paired: Boolean)
 }

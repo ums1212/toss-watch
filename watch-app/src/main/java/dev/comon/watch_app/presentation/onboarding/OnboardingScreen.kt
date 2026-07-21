@@ -1,6 +1,7 @@
 package dev.comon.watch_app.presentation.onboarding
 
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -9,18 +10,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
@@ -38,11 +45,26 @@ import dev.comon.watch_app.R
 @Composable
 fun OnboardingRoute(viewModel: WatchOnboardingViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(viewModel, lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.sideEffect.collect { effect ->
+                when (effect) {
+                    is WatchOnboardingUiSideEffect.ShowToast ->
+                        Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     OnboardingScreen(
         uiState = uiState,
         onRetryClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RetryClicked) },
         onRefreshClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RefreshClicked) },
         onCheckNowClick = { viewModel.handleIntent(WatchOnboardingUiIntent.CheckNowClicked) },
+        onGenerateQrClick = { viewModel.handleIntent(WatchOnboardingUiIntent.GenerateQrClicked) },
     )
 }
 
@@ -52,6 +74,7 @@ fun OnboardingScreen(
     onRetryClick: () -> Unit,
     onRefreshClick: () -> Unit,
     onCheckNowClick: () -> Unit,
+    onGenerateQrClick: () -> Unit,
 ) {
     val phase = uiState.phase
     AppScaffold {
@@ -116,10 +139,26 @@ fun OnboardingScreen(
                     item {
                         Button(
                             onClick = onCheckNowClick,
+                            enabled = !uiState.isCheckingNow,
                             modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
                         ) {
-                            Text(stringResource(R.string.onboarding_check_now))
+                            if (uiState.isCheckingNow) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                            } else {
+                                Text(stringResource(R.string.onboarding_check_now))
+                            }
+                        }
+                    }
+                }
+                if (phase is WatchOnboardingPhase.Paired) {
+                    item {
+                        Button(
+                            onClick = onGenerateQrClick,
+                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
+                            Text(stringResource(R.string.onboarding_generate_qr))
                         }
                     }
                 }

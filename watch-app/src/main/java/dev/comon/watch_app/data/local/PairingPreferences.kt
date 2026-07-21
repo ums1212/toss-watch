@@ -2,6 +2,7 @@ package dev.comon.watch_app.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import java.util.UUID
@@ -28,7 +29,15 @@ class PairingPreferences @Inject constructor(
         return generated
     }
 
+    /** 폰과의 연동 완료 여부. true면 앱 재실행 시 등록 확인 API 없이 바로 연동완료 화면을 보여준다. */
+    suspend fun isPaired(): Boolean = dataStore.data.first()[KEY_IS_PAIRED] ?: false
+
+    suspend fun setPaired(paired: Boolean) {
+        dataStore.edit { prefs -> prefs[KEY_IS_PAIRED] = paired }
+    }
+
     private companion object {
         val KEY_DEVICE_UUID = stringPreferencesKey("device_uuid")
+        val KEY_IS_PAIRED = booleanPreferencesKey("is_paired")
     }
 }

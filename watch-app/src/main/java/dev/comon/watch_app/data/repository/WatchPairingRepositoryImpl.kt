@@ -34,4 +34,10 @@ class WatchPairingRepositoryImpl @Inject constructor(
     override suspend fun checkFcmTokenRegistered(fcmToken: String): NetworkResult<Boolean> =
         watchSafeApiCall { watchApi.checkFcmToken(FcmTokenCheckRequest(fcmToken = fcmToken)) }
             .map { it.registered }
+
+    override suspend fun isPaired(): Boolean = pairingPreferences.isPaired()
+
+    override suspend fun setPaired(paired: Boolean) {
+        pairingPreferences.setPaired(paired)
+    }
 }

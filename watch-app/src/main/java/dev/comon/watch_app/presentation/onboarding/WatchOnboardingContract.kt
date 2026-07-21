@@ -7,6 +7,8 @@ import dev.comon.toss_watch.core.common.mvi.UiState
 
 data class WatchOnboardingUiState(
     val phase: WatchOnboardingPhase = WatchOnboardingPhase.Loading,
+    /** "지금 확인" 버튼으로 트리거한 단발성 확인이 진행 중인지 여부. 버튼에 로딩 표시를 하기 위함. */
+    val isCheckingNow: Boolean = false,
 ) : UiState
 
 /**
@@ -30,6 +32,14 @@ sealed interface WatchOnboardingUiIntent : UiIntent {
 
     /** "지금 확인" 버튼 — 자동 폴링을 기다리지 않고 즉시 등록 여부를 재확인한다. */
     data object CheckNowClicked : WatchOnboardingUiIntent
+
+    /**
+     * 연동 완료 화면의 "QR 생성" 버튼 — 폰이 다른 워치와 재연동해 이 기기의 연동 정보가
+     * 서버에서 이미 무효화됐을 수 있는 경우, 새 QR을 발급해 재연동 화면으로 되돌아간다.
+     */
+    data object GenerateQrClicked : WatchOnboardingUiIntent
 }
 
-sealed interface WatchOnboardingUiSideEffect : UiSideEffect
+sealed interface WatchOnboardingUiSideEffect : UiSideEffect {
+    data class ShowToast(val message: String) : WatchOnboardingUiSideEffect
+}

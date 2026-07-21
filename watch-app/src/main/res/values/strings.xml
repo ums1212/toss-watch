@@ -10,6 +10,7 @@
     <string name="onboarding_paired_title">연동 완료</string>
     <string name="onboarding_paired_model">기기: %1$s</string>
     <string name="onboarding_paired_uuid">UUID: %1$s</string>
+    <string name="onboarding_generate_qr">QR 생성</string>
 
     <string name="stock_alarm_change_rate">%1$s</string>
     <string name="stock_alarm_current_price">%1$s</string>
