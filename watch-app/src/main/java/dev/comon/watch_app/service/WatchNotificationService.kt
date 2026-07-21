@@ -1,12 +1,14 @@
 package dev.comon.watch_app.service
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -42,11 +44,25 @@ class WatchNotificationService : FirebaseMessagingService() {
             putExtra(EXTRA_CURRENT_PRICE, currentPrice)
             putExtra(EXTRA_CHANGE_RATE, changeRate)
         }
+        // 화면이 꺼진 상태에서는 워치 OEM의 알림 패널(예: 삼성 One UI Watch sysui)이 우리 대신
+        // 이 PendingIntent를 전송한다. Android 15+에서는 그런 대리 전송 시 발신자뿐 아니라
+        // PendingIntent를 만든 이 앱도 백그라운드 액티비티 실행을 명시적으로 허용해야 한다
+        // (creator opt-in). 이게 없으면 ActivityTaskManager가 BAL_BLOCK으로 조용히 막는다.
+        val options = if (Build.VERSION.SDK_INT >= 35) {
+            ActivityOptions.makeBasic()
+                .setPendingIntentCreatorBackgroundActivityStartMode(
+                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED,
+                )
+                .toBundle()
+        } else {
+            null
+        }
         val fullScreenPendingIntent = PendingIntent.getActivity(
             this,
             stockName.hashCode(),
             fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            options,
         )
 
         ensureNotificationChannel()
@@ -57,6 +73,8 @@ class WatchNotificationService : FirebaseMessagingService() {
             .setContentText("$currentPrice ($changeRate)")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVibrate(VIBRATION_PATTERN)
             .setFullScreenIntent(fullScreenPendingIntent, true)
             .setAutoCancel(true)
             .build()
@@ -66,12 +84,16 @@ class WatchNotificationService : FirebaseMessagingService() {
         ) {
             return
         }
+        // 종목별 고유 ID로 발행 — 같은 종목 재알림은 갱신되고, 다른 종목은 각각 쌓인다.
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-            .notify(NOTIFICATION_ID, notification)
+            .notify(stockName.hashCode(), notification)
     }
 
     private fun ensureNotificationChannel() {
-        val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH)
+        val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH).apply {
+            enableVibration(true)
+            vibrationPattern = VIBRATION_PATTERN
+        }
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
             .createNotificationChannel(channel)
     }
@@ -81,8 +103,10 @@ class WatchNotificationService : FirebaseMessagingService() {
         const val EXTRA_CURRENT_PRICE = "price"
         const val EXTRA_CHANGE_RATE = "change_rate"
 
-        private const val CHANNEL_ID = "stock_alarm_channel"
+        // NotificationChannel 설정(진동 등)은 최초 생성 후 불변이므로, 채널 설정 변경 시
+        // ID를 새로 바꿔야 기존 설치 기기에도 새 설정이 반영된다.
+        private const val CHANNEL_ID = "stock_alarm_channel_v2"
         private const val CHANNEL_NAME = "주식 알림"
-        private const val NOTIFICATION_ID = 1001
+        private val VIBRATION_PATTERN = longArrayOf(0, 500, 200, 500)
     }
 }
