@@ -7,6 +7,7 @@ import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.DeleteAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.LogoutUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
@@ -21,6 +22,7 @@ class SettingViewModel @Inject constructor(
     private val fetchAlarmProfilesUseCase: FetchAlarmProfilesUseCase,
     private val addAlarmProfileUseCase: AddAlarmProfileUseCase,
     private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
+    private val deleteAlarmProfileUseCase: DeleteAlarmProfileUseCase,
     private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
     private val observePairedWatchUseCase: ObservePairedWatchUseCase,
     private val syncPairedWatchUseCase: SyncPairedWatchUseCase,
@@ -42,6 +44,9 @@ class SettingViewModel @Inject constructor(
 
             is SettingUiIntent.OnToggleAlarm ->
                 toggleAlarm(intent.alarmId, intent.enabled)
+
+            is SettingUiIntent.OnDeleteAlarm ->
+                deleteAlarm(intent.alarmId)
 
             SettingUiIntent.OnPairWatchClicked ->
                 sendSideEffect(SettingUiSideEffect.NavigateToWatchPair)
@@ -160,8 +165,32 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    private fun deleteAlarm(alarmId: Long) {
+        if (uiState.value.isSaving) return
+
+        viewModelScope.launch(dispatcherProvider.io) {
+            updateState { copy(isSaving = true, errorMessage = null) }
+
+            when (val result = deleteAlarmProfileUseCase(alarmId)) {
+                is NetworkResult.Success -> {
+                    updateState {
+                        copy(isSaving = false, configuredAlarms = configuredAlarms.removeById(alarmId))
+                    }
+                    sendSideEffect(SettingUiSideEffect.ShowToast(TOAST_ALARM_DELETED))
+                }
+
+                else -> updateState {
+                    copy(isSaving = false, errorMessage = result.toErrorMessage())
+                }
+            }
+        }
+    }
+
     private fun List<AlarmProfile>.replaceById(updated: AlarmProfile): List<AlarmProfile> =
         map { if (it.id == updated.id) updated else it }
+
+    private fun List<AlarmProfile>.removeById(alarmId: Long): List<AlarmProfile> =
+        filterNot { it.id == alarmId }
 
     private fun NetworkResult<*>.toErrorMessage(): String? = when (this) {
         is NetworkResult.Success -> null
@@ -173,5 +202,6 @@ class SettingViewModel @Inject constructor(
         const val DEFAULT_API_ERROR = "설정을 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
         const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
         const val TOAST_ALARM_ADDED = "알림이 추가됐어요."
+        const val TOAST_ALARM_DELETED = "알림이 삭제됐어요."
     }
 }

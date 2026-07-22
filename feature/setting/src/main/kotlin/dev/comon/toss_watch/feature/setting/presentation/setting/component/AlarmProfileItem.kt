@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -15,11 +19,12 @@ import androidx.compose.ui.unit.dp
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 
-/** 알림 프로필 1행 — 종목, 알림 시각, 활성 토글 스위치. */
+/** 알림 프로필 1행 — 종목, 알림 시각, 활성 토글 스위치, 삭제 버튼. */
 @Composable
 fun AlarmProfileItem(
     alarm: AlarmProfile,
     onToggle: (Boolean) -> Unit,
+    onDelete: () -> Unit,
     enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -49,6 +54,14 @@ fun AlarmProfileItem(
             }
         }
 
+        IconButton(onClick = onDelete, enabled = enabled) {
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = "알림 삭제",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         Switch(
             checked = alarm.isEnabled,
             onCheckedChange = onToggle,
@@ -71,6 +84,7 @@ private fun AlarmProfileItemPreview() {
                 isEnabled = true,
             ),
             onToggle = {},
+            onDelete = {},
             enabled = true,
         )
     }

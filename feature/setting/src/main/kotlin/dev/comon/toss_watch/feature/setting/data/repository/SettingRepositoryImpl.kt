@@ -8,6 +8,7 @@ import dev.comon.toss_watch.core.model.map
 import dev.comon.toss_watch.core.model.onSuccess
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.core.network.safeApiCall
+import dev.comon.toss_watch.core.network.safeApiCallNoContent
 import dev.comon.toss_watch.feature.setting.data.remote.SettingApi
 import dev.comon.toss_watch.feature.setting.data.remote.dto.AlarmProfileRequest
 import dev.comon.toss_watch.feature.setting.data.remote.dto.AlarmToggleRequest
@@ -58,6 +59,9 @@ class SettingRepositoryImpl @Inject constructor(
                 body = AlarmToggleRequest(isEnabled = isEnabled),
             )
         }.map { it.toAlarmProfile() }
+
+    override suspend fun deleteAlarmProfile(alarmId: Long): NetworkResult<Unit> =
+        safeApiCallNoContent { settingApi.deleteAlarmProfile(alarmId) }
 
     override suspend fun registerWatchToken(
         fcmToken: String,

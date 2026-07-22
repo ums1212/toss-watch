@@ -27,6 +27,9 @@ interface SettingRepository {
         isEnabled: Boolean,
     ): NetworkResult<AlarmProfile>
 
+    /** 알림 프로필 삭제 (DELETE /api/v1/toss-watch/notifications/{id}/). */
+    suspend fun deleteAlarmProfile(alarmId: Long): NetworkResult<Unit>
+
     suspend fun registerWatchToken(fcmToken: String, uuid: String, modelName: String): NetworkResult<Unit>
 
     /**

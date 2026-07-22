@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -25,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -101,6 +103,7 @@ private fun SettingContent(
     modifier: Modifier = Modifier,
 ) {
     var showAddAlarmDialog by remember { mutableStateOf(false) }
+    var alarmPendingDelete by remember { mutableStateOf<AlarmProfile?>(null) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -164,6 +167,7 @@ private fun SettingContent(
                             onToggle = { enabled ->
                                 onIntent(SettingUiIntent.OnToggleAlarm(alarm.id, enabled))
                             },
+                            onDelete = { alarmPendingDelete = alarm },
                             enabled = !uiState.isSaving,
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -214,6 +218,29 @@ private fun SettingContent(
                 onIntent(SettingUiIntent.OnAddAlarm(stockCode, hour, minute))
             },
             onDismiss = { showAddAlarmDialog = false },
+        )
+    }
+
+    alarmPendingDelete?.let { target ->
+        AlertDialog(
+            onDismissRequest = { alarmPendingDelete = null },
+            title = { Text(text = "알림 삭제") },
+            text = { Text(text = "'${target.stockName}' 알림을 삭제할까요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onIntent(SettingUiIntent.OnDeleteAlarm(target.id))
+                        alarmPendingDelete = null
+                    },
+                ) {
+                    Text(text = "삭제")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { alarmPendingDelete = null }) {
+                    Text(text = "취소")
+                }
+            },
         )
     }
 }

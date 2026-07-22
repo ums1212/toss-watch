@@ -33,6 +33,11 @@ sealed interface SettingUiIntent : UiIntent {
         val enabled: Boolean,
     ) : SettingUiIntent
 
+    /** 알람 행의 삭제 버튼 — 확인 다이얼로그에서 확정된 후 전달된다. */
+    data class OnDeleteAlarm(
+        val alarmId: Long,
+    ) : SettingUiIntent
+
     /** "QR로 워치 연동" 버튼 — WatchPairRoute로 이동해 QR 스캔을 시작한다. */
     data object OnPairWatchClicked : SettingUiIntent
 

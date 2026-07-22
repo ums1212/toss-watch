@@ -8,6 +8,7 @@ import dev.comon.toss_watch.feature.setting.data.remote.dto.WatchTokenResponse
 import dev.comon.toss_watch.feature.setting.data.remote.dto.WatchTokenStatusResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -31,6 +32,12 @@ interface SettingApi {
         @Path("id") alarmId: Long,
         @Body body: AlarmToggleRequest,
     ): Response<AlarmProfileResponse>
+
+    /** 알림 프로필 삭제 — 성공 시 204 No Content. */
+    @DELETE("v1/toss-watch/notifications/{id}/")
+    suspend fun deleteAlarmProfile(
+        @Path("id") alarmId: Long,
+    ): Response<Unit>
 
     /** Wear OS 컴패니언 FCM 토큰 등록/갱신 (계정당 1개 — 멱등 PUT). */
     @PUT("v1/toss-watch/users/fcm-token/")
