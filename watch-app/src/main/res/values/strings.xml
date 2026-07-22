@@ -15,4 +15,5 @@
     <string name="stock_alarm_change_rate">%1$s</string>
     <string name="stock_alarm_current_price">%1$s</string>
     <string name="stock_alarm_dismiss">닫기</string>
+    <string name="stock_alarm_image_desc">시세 알림</string>
 </resources>

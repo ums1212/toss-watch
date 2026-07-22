@@ -53,7 +53,7 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:taskAffinity=""
-            android:theme="@android:style/Theme.DeviceDefault" />
+            android:theme="@style/StockAlarmActivityTheme" />
 
         <service
             android:name=".service.WatchNotificationService"
