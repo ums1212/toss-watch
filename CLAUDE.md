@@ -4,22 +4,12 @@ This document dictates the architectural rules and code conventions that the AI 
 
 ## 0. Build system
 
-Gradle with Kotlin DSL, using a version catalog at `gradle/libs.versions.toml` for all dependency/plugin versions. Key versions: AGP 9.2.1, Kotlin 2.2.10, compileSdk 37, minSdk 26, targetSdk 37.
+Gradle with Kotlin DSL, using a version catalog at `gradle/libs.versions.toml` for all dependency/plugin versions.
 
-Common commands (run from repo root; use `gradlew.bat` on Windows cmd, `./gradlew` in Git Bash):
-
-```
-./gradlew assembleDebug              # build debug APK
-./gradlew installDebug                # build and install on connected device/emulator
-./gradlew test                        # run JVM unit tests (app/src/test)
-./gradlew testDebugUnitTest --tests "dev.comon.toss_watch.ExampleUnitTest"   # run a single unit test
-./gradlew connectedAndroidTest         # run instrumented tests (app/src/androidTest), needs device/emulator
-./gradlew lint                        # run Android Lint
-```
+Run commands from repo root; use `gradlew.bat` on Windows cmd, `./gradlew` in Git Bash.
 
 ## 1. Project Overview & Tech Stack
 
-- **SDK Version:** Min SDK 26 (Android 8.0) for the phone app; `:watch-app` targets Wear OS with Min SDK 30.
 - **Paradigm:** Multi-module Clean Architecture + MVI Pattern.
 - **Core Libraries:**
   - **UI/Design:** Jetpack Compose (Material 3); Compose for Wear OS in `:watch-app`.
@@ -56,17 +46,6 @@ Instead of a single monolithic data module, encapsulate Domain and Data layers i
 
 Enforce a Unidirectional Data Flow (UDF) with Immutable UI States.
 - **UiState / UiIntent / UiSideEffect:** Sealed interfaces for state classes, user actions, and one-time events, respectively.
-
-```kotlin
-abstract class BaseMviViewModel<S : E I UiIntent, UiSideEffect UiState,>(initialState: S) : ViewModel() {
-    private val _uiState = MutableStateFlow(initialState)
-    val uiState = _uiState.asStateFlow()
-    private val _sideEffect = MutableSharedFlow<E>()
-    val sideEffect = _sideEffect.asSharedFlow()
-    abstract fun handleIntent(intent: I)
-    protected fun updateState(reducer: S.() -> S) { _uiState.update { it.reducer() } }
-    protected fun sendSideEffect(effect: E) { viewModelScope.launch { _sideEffect.emit(effect) } }
-}
 
 ## 4. Network Handling & Routing Constraints
 
