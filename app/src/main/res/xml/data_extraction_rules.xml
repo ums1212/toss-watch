@@ -4,16 +4,16 @@
    for details.
 -->
 <data-extraction-rules>
-    <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
-    </cloud-backup>
     <!--
-    <device-transfer>
-        <include .../>
-        <exclude .../>
-    </device-transfer>
+   Tink이 Android Keystore 마스터키로 감싼 토큰 암호화 키셋 파일(toss_watch_keyset_prefs)은
+   클라우드 백업/기기 이전 대상에서 제외한다. Keystore 키는 하드웨어에 종속되어 새 기기/재설치 시
+   복원되지 않으므로, 감싸진 키셋만 복원되면 존재하지 않는 키 ID를 참조하게 되어
+   InvalidKeyException으로 크래시한다.
     -->
+    <cloud-backup>
+        <exclude domain="sharedpref" path="toss_watch_keyset_prefs.xml"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="toss_watch_keyset_prefs.xml"/>
+    </device-transfer>
 </data-extraction-rules>
