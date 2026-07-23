@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -37,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.dashboard.domain.model.Account
 import dev.comon.toss_watch.feature.dashboard.domain.model.Currency
@@ -128,13 +128,16 @@ private fun DashboardContent(
             ) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    contentPadding = PaddingValues(
+                        horizontal = TossSpacing.containerMargin,
+                        vertical = TossSpacing.stackMd,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
                 ) {
                     item(key = "portfolio_summary") {
                         PortfolioSummaryCard(
                             portfolio = uiState.portfolio,
-                            modifier = Modifier.padding(bottom = 16.dp),
+                            modifier = Modifier.padding(bottom = TossSpacing.stackMd),
                         )
                     }
 
@@ -143,7 +146,7 @@ private fun DashboardContent(
                             text = "보유 종목",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            modifier = Modifier.padding(vertical = TossSpacing.stackSm),
                         )
                     }
 
@@ -157,7 +160,7 @@ private fun DashboardContent(
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 32.dp),
+                                    .padding(vertical = TossSpacing.sectionPadding),
                             )
                         }
                     } else {

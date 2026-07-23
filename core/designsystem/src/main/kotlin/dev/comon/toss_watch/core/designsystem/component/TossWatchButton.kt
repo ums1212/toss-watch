@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 
 /**
@@ -46,7 +47,7 @@ fun TossWatchButton(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
-        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(horizontal = TossSpacing.stackLg, vertical = TossSpacing.stackMd),
     ) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -58,7 +59,7 @@ fun TossWatchButton(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 leadingIcon?.let { icon ->
                     icon()
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(TossSpacing.stackSm))
                 }
                 Text(
                     text = text,

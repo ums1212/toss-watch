@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -38,6 +37,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.component.QrCameraPreview
 
@@ -137,7 +137,7 @@ private fun WatchPairContent(
                     color = Color.White,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(24.dp),
+                        .padding(TossSpacing.stackLg),
                 )
 
                 if (uiState.isRegistering) {
@@ -156,7 +156,7 @@ private fun WatchPairContent(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 20.dp),
+                        .padding(horizontal = TossSpacing.containerMargin),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
@@ -169,7 +169,7 @@ private fun WatchPairContent(
                     TossWatchButton(
                         text = "카메라 권한 허용",
                         onClick = onRequestPermission,
-                        modifier = Modifier.padding(top = 20.dp),
+                        modifier = Modifier.padding(top = TossSpacing.containerMargin),
                     )
                 }
             }

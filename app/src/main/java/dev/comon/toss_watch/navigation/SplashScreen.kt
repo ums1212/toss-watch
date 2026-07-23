@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.comon.toss_watch.R
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 
 /** 세션 판별(LOADING) 동안 표시되는 스플래시 — 브랜드 카드와 타이틀만 노출해 라우팅 깜빡임을 가린다. */
@@ -41,7 +42,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = TossSpacing.containerMargin),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Surface(
@@ -62,7 +63,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(TossSpacing.stackLg))
 
             Text(
                 text = stringResource(id = R.string.splash_subtitle),
@@ -79,7 +80,7 @@ private fun SplashPageDots(modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
         repeat(3) { index ->
             if (index > 0) {
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(TossSpacing.stackSm))
             }
             Box(
                 modifier = Modifier

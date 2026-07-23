@@ -46,6 +46,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
@@ -128,15 +129,18 @@ private fun SettingContent(
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                contentPadding = PaddingValues(
+                    horizontal = TossSpacing.containerMargin,
+                    vertical = TossSpacing.stackMd,
+                ),
+                verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
             ) {
                 item(key = "alarm_header") {
                     Text(
                         text = "알림 스케줄",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier.padding(bottom = TossSpacing.stackSm),
                     )
                 }
 
@@ -145,7 +149,7 @@ private fun SettingContent(
                         TossWatchLoadingIndicator(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 24.dp),
+                                .padding(vertical = TossSpacing.stackLg),
                         )
                     }
                 } else if (uiState.configuredAlarms.isEmpty()) {
@@ -154,7 +158,7 @@ private fun SettingContent(
                             text = "등록된 알림이 없어요. 종목과 시각을 골라 추가해 보세요.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 16.dp),
+                            modifier = Modifier.padding(vertical = TossSpacing.stackMd),
                         )
                     }
                 } else {
@@ -180,7 +184,7 @@ private fun SettingContent(
                         enabled = !uiState.isSaving && !uiState.isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 12.dp),
+                            .padding(top = TossSpacing.stackSm),
                     ) {
                         Icon(imageVector = Icons.Filled.Add, contentDescription = null)
                         Text(text = "알림 추가")
@@ -250,14 +254,14 @@ private fun TossKeySection(
     onIntent: (SettingUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.padding(top = 32.dp)) {
+    Column(modifier = modifier.padding(top = TossSpacing.sectionPadding)) {
         Text(
             text = "토스 연동",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
         OutlinedButton(
             onClick = { onIntent(SettingUiIntent.OnTossKeyClicked) },
@@ -274,14 +278,14 @@ private fun WatchTokenSection(
     onIntent: (SettingUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.padding(top = 32.dp)) {
+    Column(modifier = modifier.padding(top = TossSpacing.sectionPadding)) {
         Text(
             text = "Wear OS 연동",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
         if (pairedWatch != null) {
             Text(
@@ -302,7 +306,7 @@ private fun WatchTokenSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(TossSpacing.stackMd))
 
         TossWatchButton(
             text = if (pairedWatch != null) "재연동" else "QR로 워치 연동",
@@ -316,7 +320,7 @@ private fun LogoutSection(
     onIntent: (SettingUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.padding(top = 32.dp)) {
+    Column(modifier = modifier.padding(top = TossSpacing.sectionPadding)) {
         OutlinedButton(
             onClick = { onIntent(SettingUiIntent.OnLogoutClicked) },
             colors = ButtonDefaults.outlinedButtonColors(

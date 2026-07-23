@@ -13,10 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import dev.comon.toss_watch.core.designsystem.theme.Blue40
-import dev.comon.toss_watch.core.designsystem.theme.Red40
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.designsystem.theme.toss
 import dev.comon.toss_watch.feature.dashboard.domain.model.Portfolio
 import dev.comon.toss_watch.feature.dashboard.domain.model.PortfolioSummary
 import java.text.NumberFormat
@@ -36,14 +35,14 @@ fun PortfolioSummaryCard(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(TossSpacing.containerMargin)) {
             Text(
                 text = "총 평가 자산",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
             val summary = portfolio?.summary
             Text(
@@ -53,7 +52,7 @@ fun PortfolioSummaryCard(
             )
 
             if (summary != null && summary.hasUsdHoldings()) {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(TossSpacing.stackSm))
                 Text(
                     text = summary.totalEvaluationUsd.toUsd(),
                     style = MaterialTheme.typography.titleMedium,
@@ -62,7 +61,7 @@ fun PortfolioSummaryCard(
             }
 
             if (summary != null) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(TossSpacing.stackSm))
                 Text(
                     text = buildProfitLabel(summary.totalProfitLossKrw, isUsd = false),
                     style = MaterialTheme.typography.bodyMedium,
@@ -75,7 +74,7 @@ fun PortfolioSummaryCard(
                         color = variationColor(summary.totalProfitLossUsd),
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(TossSpacing.stackSm))
                 Text(
                     text = buildReturnRateLabel(summary.totalReturnRate),
                     style = MaterialTheme.typography.labelLarge,
@@ -116,8 +115,8 @@ internal fun Double.toUsd(): String {
 /** 국내 시세 관례 색상 — 상승 빨강 / 하락 파랑 / 보합 중립. */
 @Composable
 internal fun variationColor(value: Double): Color = when {
-    value > 0 -> Red40
-    value < 0 -> Blue40
+    value > 0 -> MaterialTheme.toss.rise
+    value < 0 -> MaterialTheme.toss.fall
     else -> MaterialTheme.colorScheme.onSurfaceVariant
 }
 

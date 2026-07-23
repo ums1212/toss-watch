@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -34,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.tosskey.presentation.TossKeyUiIntent
 import dev.comon.toss_watch.feature.tosskey.presentation.TossKeyUiSideEffect
@@ -108,7 +108,7 @@ private fun TossKeyContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = TossSpacing.containerMargin, vertical = TossSpacing.stackMd),
                 verticalArrangement = Arrangement.Top,
             ) {
                 Text(
@@ -117,7 +117,7 @@ private fun TossKeyContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(TossSpacing.stackLg))
 
                 OutlinedTextField(
                     value = uiState.clientId,
@@ -129,7 +129,7 @@ private fun TossKeyContent(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(TossSpacing.stackMd))
 
                 OutlinedTextField(
                     value = uiState.clientSecret,
@@ -142,7 +142,7 @@ private fun TossKeyContent(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(TossSpacing.stackLg))
 
                 TossWatchButton(
                     text = if (uiState.isSaving) "등록 중이에요…" else "토스 API 키 등록",

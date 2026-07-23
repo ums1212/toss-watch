@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 
 /**
@@ -41,7 +42,7 @@ fun TossWatchLoadingIndicator(
         message?.let {
             Text(
                 text = it,
-                modifier = Modifier.padding(top = 16.dp),
+                modifier = Modifier.padding(top = TossSpacing.stackMd),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

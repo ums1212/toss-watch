@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
@@ -18,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.dashboard.domain.model.Account
 
@@ -47,7 +46,7 @@ fun AccountSelectDialog(
                         text = "등록된 계좌가 없어요.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 12.dp),
+                        modifier = Modifier.padding(vertical = TossSpacing.stackSm),
                     )
                 } else {
                     accounts.forEach { account ->
@@ -87,7 +86,7 @@ private fun AccountRow(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .selectedBackground(isSelected)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
+            .padding(horizontal = TossSpacing.stackSm, vertical = TossSpacing.stackSm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -118,7 +117,7 @@ private fun Modifier.selectedBackground(isSelected: Boolean): Modifier =
     if (isSelected) {
         this.background(
             color = MaterialTheme.colorScheme.primaryContainer,
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
         )
     } else {
         this

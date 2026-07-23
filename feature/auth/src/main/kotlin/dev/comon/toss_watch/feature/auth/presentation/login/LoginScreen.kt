@@ -32,6 +32,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
+import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.auth.BuildConfig
 import dev.comon.toss_watch.feature.auth.presentation.AuthUiIntent
@@ -104,14 +105,14 @@ private fun LoginContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = TossSpacing.stackLg),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
             BrandLogo()
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(TossSpacing.stackLg))
 
             Text(
                 text = "Toss Watch",
@@ -119,7 +120,7 @@ private fun LoginContent(
                 color = MaterialTheme.colorScheme.onBackground,
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
             Text(
                 text = "내 손목 위의 주식 알림,\n구글 계정으로 바로 시작하세요.",
@@ -134,7 +135,7 @@ private fun LoginContent(
                 text = "Google 계정으로 로그인",
                 onClick = onGoogleLoginClick,
                 enabled = !uiState.isLoading,
-                modifier = Modifier.padding(bottom = 48.dp),
+                modifier = Modifier.padding(bottom = TossSpacing.sectionPadding),
             )
         }
 
