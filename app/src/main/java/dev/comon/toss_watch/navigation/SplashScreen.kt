@@ -1,6 +1,5 @@
 package dev.comon.toss_watch.navigation
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,20 +13,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.comon.toss_watch.R
+import dev.comon.toss_watch.core.designsystem.component.BrandLogoCard
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 
@@ -45,23 +41,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
                 .padding(horizontal = TossSpacing.containerMargin),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Surface(
-                modifier = Modifier.size(200.dp),
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 12.dp,
-            ) {
-                Image(
-                    painter = painterResource(id = R.mipmap.ic_launcher_foreground),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    // adaptive icon 전경 리소스는 세이프존 여백이 포함돼 있어
-                    // 카드 전체를 채우려면 확대해 그 여백을 잘라내야 한다.
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .scale(1.5f),
-                )
-            }
+            BrandLogoCard()
 
             Spacer(modifier = Modifier.height(TossSpacing.stackLg))
 

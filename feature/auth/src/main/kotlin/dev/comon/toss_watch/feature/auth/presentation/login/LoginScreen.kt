@@ -5,13 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,13 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
+import dev.comon.toss_watch.core.designsystem.component.BrandLogoCard
+import dev.comon.toss_watch.core.designsystem.component.GoogleSignInButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
@@ -105,22 +106,14 @@ private fun LoginContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = TossSpacing.stackLg),
+                .padding(horizontal = TossSpacing.containerMargin),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1.4f))
 
-            BrandLogo()
+            BrandLogoCard()
 
             Spacer(modifier = Modifier.height(TossSpacing.stackLg))
-
-            Text(
-                text = "Toss Watch",
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-
-            Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
             Text(
                 text = "내 손목 위의 주식 알림,\n구글 계정으로 바로 시작하세요.",
@@ -131,12 +124,17 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            TossWatchButton(
+            GoogleSignInButton(
                 text = "Google 계정으로 로그인",
                 onClick = onGoogleLoginClick,
                 enabled = !uiState.isLoading,
-                modifier = Modifier.padding(bottom = TossSpacing.sectionPadding),
             )
+
+            Spacer(modifier = Modifier.height(TossSpacing.sectionPadding))
+
+            LoginFooter()
+
+            Spacer(modifier = Modifier.height(TossSpacing.stackLg))
         }
 
         if (uiState.isLoading) {
@@ -153,21 +151,34 @@ private fun LoginContent(
     }
 }
 
-/** 브랜드 로고 플레이스홀더 — Phase 5에서 정식 로고 리소스로 교체. */
+/** 이용약관/개인정보처리방침 및 저작권 표기. 별도 화면이 아직 없어 탐색 없이 텍스트만 노출한다. */
 @Composable
-private fun BrandLogo(modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.size(88.dp),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.primary,
+private fun LoginFooter(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Row(horizontalArrangement = Arrangement.Center) {
             Text(
-                text = "TW",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onPrimary,
+                text = "이용약관",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.width(TossSpacing.stackMd))
+            Text(
+                text = "개인정보처리방침",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        Spacer(modifier = Modifier.height(TossSpacing.stackSm))
+
+        Text(
+            text = "© 2026 toss-watch. All rights reserved.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline,
+        )
     }
 }
 
