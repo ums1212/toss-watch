@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">toss-watch</string>
+
+    <string name="splash_title">toss-watch</string>
+    <string name="splash_subtitle">HIGH VELOCITY INTELLIGENCE</string>
+    <string name="splash_tagline">Precise. Trusted. Fast.</string>
 </resources>
