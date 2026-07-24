@@ -93,12 +93,12 @@ private fun AccountRow(
             Text(
                 text = account.accountNo,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (isSelected) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = account.accountType,
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isSelected) MaterialTheme.colorScheme.inversePrimary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -106,7 +106,7 @@ private fun AccountRow(
             Icon(
                 imageVector = Icons.Filled.Check,
                 contentDescription = "선택된 계좌",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.inversePrimary,
             )
         }
     }
