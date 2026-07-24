@@ -14,6 +14,7 @@ class FakeSettingRepository : SettingRepository {
     var alarmsResult: NetworkResult<List<AlarmProfile>> = NetworkResult.Success(DEFAULT_ALARMS)
     var addResult: NetworkResult<AlarmProfile> = NetworkResult.Success(ADDED_ALARM)
     var toggleResult: NetworkResult<AlarmProfile>? = null
+    var deleteResult: NetworkResult<Unit> = NetworkResult.Success(Unit)
     var tokenResult: NetworkResult<Unit> = NetworkResult.Success(Unit)
     val portfolioStocks: MutableStateFlow<List<CachedStock>> = MutableStateFlow(DEFAULT_STOCKS)
     val pairedWatch: MutableStateFlow<PairedWatchInfo?> = MutableStateFlow(null)
@@ -40,6 +41,10 @@ class FakeSettingRepository : SettingRepository {
     var lastToggledEnabled: Boolean? = null
         private set
     var toggleInvocationCount: Int = 0
+        private set
+    var lastDeletedId: Long? = null
+        private set
+    var deleteInvocationCount: Int = 0
         private set
     var lastRegisteredToken: String? = null
         private set
@@ -80,6 +85,13 @@ class FakeSettingRepository : SettingRepository {
             ?: NetworkResult.Success(
                 DEFAULT_ALARMS.first { it.id == alarmId }.copy(isEnabled = isEnabled),
             )
+    }
+
+    override suspend fun deleteAlarmProfile(alarmId: Long): NetworkResult<Unit> {
+        deleteInvocationCount++
+        lastDeletedId = alarmId
+        if (suspendUntilReleased) gate.await()
+        return deleteResult
     }
 
     override suspend fun registerWatchToken(

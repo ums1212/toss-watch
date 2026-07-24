@@ -1,6 +1,7 @@
 package dev.comon.toss_watch.feature.setting.presentation
 
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.DeleteAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
@@ -39,6 +40,7 @@ class SettingViewModelTest {
             fetchAlarmProfilesUseCase = FetchAlarmProfilesUseCase(fakeRepository),
             addAlarmProfileUseCase = AddAlarmProfileUseCase(fakeRepository),
             toggleAlarmProfileUseCase = ToggleAlarmProfileUseCase(fakeRepository),
+            deleteAlarmProfileUseCase = DeleteAlarmProfileUseCase(fakeRepository),
             observePortfolioStocksUseCase = ObservePortfolioStocksUseCase(fakeRepository),
             observePairedWatchUseCase = ObservePairedWatchUseCase(fakeRepository),
             syncPairedWatchUseCase = SyncPairedWatchUseCase(fakeRepository),
@@ -122,6 +124,46 @@ class SettingViewModelTest {
                 ),
                 effects,
             )
+        }
+
+    @Test
+    fun `OnDeleteAlarm 성공 시 해당 프로필이 목록에서 제거되고 토스트가 발행된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+            val effects = collectSideEffects(viewModel)
+
+            viewModel.handleIntent(SettingUiIntent.OnDeleteAlarm(alarmId = 2L))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(2L, fakeRepository.lastDeletedId)
+            assertEquals(1, fakeRepository.deleteInvocationCount)
+            assertEquals(
+                FakeSettingRepository.DEFAULT_ALARMS.filterNot { it.id == 2L },
+                state.configuredAlarms,
+            )
+            assertEquals(
+                listOf<SettingUiSideEffect>(
+                    SettingUiSideEffect.ShowToast(SettingViewModel.TOAST_ALARM_DELETED),
+                ),
+                effects,
+            )
+        }
+
+    @Test
+    fun `OnDeleteAlarm 실패 시 목록은 그대로 유지되고 에러가 표시된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.deleteResult = NetworkResult.ApiError(code = 500, message = "삭제 서버 오류")
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(SettingUiIntent.OnDeleteAlarm(alarmId = 2L))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(FakeSettingRepository.DEFAULT_ALARMS, state.configuredAlarms)
+            assertEquals("삭제 서버 오류", state.errorMessage)
         }
 
     @Test
