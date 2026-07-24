@@ -3,6 +3,7 @@ package dev.comon.toss_watch.feature.dashboard.presentation.dashboard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +50,7 @@ import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiState
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardViewModel
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.AccountSelectDialog
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.HoldingListItem
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioBubbleChart
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioSummaryCard
 
 /**
@@ -126,31 +128,30 @@ private fun DashboardContent(
                 onRefresh = { onIntent(DashboardUiIntent.OnRefreshTriggered) },
                 modifier = Modifier.fillMaxSize(),
             ) {
+                val securities = uiState.portfolio?.securities.orEmpty()
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
                         horizontal = TossSpacing.containerMargin,
                         vertical = TossSpacing.stackMd,
                     ),
-                    verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
+                    verticalArrangement = Arrangement.spacedBy(TossSpacing.stackMd),
                 ) {
-                    item(key = "portfolio_summary") {
-                        PortfolioSummaryCard(
-                            portfolio = uiState.portfolio,
-                            modifier = Modifier.padding(bottom = TossSpacing.stackMd),
-                        )
+                    item(key = "account_card") {
+                        PortfolioSummaryCard(portfolio = uiState.portfolio)
                     }
 
-                    item(key = "holding_header") {
-                        Text(
-                            text = "보유 종목",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = TossSpacing.stackSm),
-                        )
+                    item(key = "market_performance_header") {
+                        SectionHeader(title = "보유 종목")
                     }
 
-                    val securities = uiState.portfolio?.securities.orEmpty()
+                    if (securities.isNotEmpty()) {
+                        item(key = "market_performance_chart") {
+                            PortfolioBubbleChart(holdings = securities)
+                        }
+                    }
+
                     if (securities.isEmpty() && !uiState.isLoading) {
                         item(key = "holding_empty") {
                             Text(
@@ -169,9 +170,6 @@ private fun DashboardContent(
                             key = { it.stockCode },
                         ) { holding ->
                             HoldingListItem(holding = holding)
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant,
-                            )
                         }
                     }
                 }
@@ -204,6 +202,24 @@ private fun DashboardContent(
     }
 }
 
+/** 섹션 제목. */
+@Composable
+private fun SectionHeader(title: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = TossSpacing.stackSm),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun DashboardContentPreview() {
@@ -216,13 +232,13 @@ private fun DashboardContentPreview() {
                 selectedAccountSeq = 987654,
                 portfolio = Portfolio(
                     summary = PortfolioSummary(
-                        totalInvestmentKrw = 650_000.0,
-                        totalInvestmentUsd = 0.0,
-                        totalEvaluationKrw = 725_000.0,
-                        totalEvaluationUsd = 0.0,
-                        totalProfitLossKrw = 75_000.0,
-                        totalProfitLossUsd = 0.0,
-                        totalReturnRate = 11.54,
+                        totalInvestmentKrw = 5_400_000.0,
+                        totalInvestmentUsd = 6_200.0,
+                        totalEvaluationKrw = 6_050_000.0,
+                        totalEvaluationUsd = 6_640.0,
+                        totalProfitLossKrw = 650_000.0,
+                        totalProfitLossUsd = 440.0,
+                        totalReturnRate = 12.04,
                     ),
                     securities = listOf(
                         HoldingStock(
@@ -236,6 +252,42 @@ private fun DashboardContentPreview() {
                             totalEvaluationAmount = 725_000.0,
                             profitLoss = 75_000.0,
                             returnRate = 11.54,
+                        ),
+                        HoldingStock(
+                            stockCode = "NVDA",
+                            stockName = "Nvidia Corp",
+                            currency = Currency.USD,
+                            quantity = 10.0,
+                            averageBuyPrice = 700.0,
+                            totalBuyAmount = 7_000.0,
+                            currentPrice = 875.28,
+                            totalEvaluationAmount = 8_752.8,
+                            profitLoss = 1_752.8,
+                            returnRate = 5.7,
+                        ),
+                        HoldingStock(
+                            stockCode = "TSLA",
+                            stockName = "Tesla Inc",
+                            currency = Currency.USD,
+                            quantity = 20.0,
+                            averageBuyPrice = 180.0,
+                            totalBuyAmount = 3_600.0,
+                            currentPrice = 175.40,
+                            totalEvaluationAmount = 3_508.0,
+                            profitLoss = -92.0,
+                            returnRate = -3.1,
+                        ),
+                        HoldingStock(
+                            stockCode = "AAPL",
+                            stockName = "Apple Inc",
+                            currency = Currency.USD,
+                            quantity = 15.0,
+                            averageBuyPrice = 178.0,
+                            totalBuyAmount = 2_670.0,
+                            currentPrice = 182.52,
+                            totalEvaluationAmount = 2_737.8,
+                            profitLoss = 67.8,
+                            returnRate = 2.4,
                         ),
                     ),
                 ),

@@ -1,18 +1,25 @@
 package dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.core.designsystem.theme.toss
@@ -23,64 +30,142 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToLong
 
-/** 포트폴리오 요약 카드 — 통화별 총 평가금액, 평가 손익, 계좌 전체 수익률. */
+/**
+ * 계좌 요약 카드 — 브랜드 블루 그라디언트 배경에 총 평가자산·수익률 배지·
+ * 평가손익/수익률 2분할 지표를 담는다.
+ *
+ * 카드 배경이 [MaterialTheme.toss.fall](파랑)과 같은 계열이라 카드 내부의
+ * 손익/수익률은 등락색 대신 온컬러(흰색 계열) 톤으로 고정한다. 등락 컬러
+ * 코딩은 버블 차트·보유종목 리스트에서만 사용한다.
+ */
 @Composable
 fun PortfolioSummaryCard(
     portfolio: Portfolio?,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(TossSpacing.containerMargin)) {
-            Text(
-                text = "총 평가 자산",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+    val summary = portfolio?.summary
+    val onPrimary = MaterialTheme.colorScheme.onPrimary
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.primary,
+                    ),
+                ),
             )
+            .padding(TossSpacing.stackLg),
+    ) {
+        Text(
+            text = "총 평가 자산",
+            style = MaterialTheme.typography.labelLarge,
+            color = onPrimary.copy(alpha = 0.8f),
+        )
 
-            Spacer(modifier = Modifier.height(TossSpacing.stackSm))
+        Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
-            val summary = portfolio?.summary
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = summary?.totalEvaluationKrw?.toKrw() ?: "—",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.displaySmall,
+                color = onPrimary,
             )
 
-            if (summary != null && summary.hasUsdHoldings()) {
-                Spacer(modifier = Modifier.height(TossSpacing.stackSm))
-                Text(
-                    text = summary.totalEvaluationUsd.toUsd(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
             if (summary != null) {
-                Spacer(modifier = Modifier.height(TossSpacing.stackSm))
-                Text(
-                    text = buildProfitLabel(summary.totalProfitLossKrw, isUsd = false),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = variationColor(summary.totalProfitLossKrw),
+                ReturnRateBadge(rate = summary.totalReturnRate, onPrimary = onPrimary)
+            }
+        }
+
+        if (summary != null && summary.hasUsdHoldings()) {
+            Spacer(modifier = Modifier.height(TossSpacing.stackSm))
+            Text(
+                text = summary.totalEvaluationUsd.toUsd(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = onPrimary.copy(alpha = 0.7f),
+            )
+        }
+
+        if (summary != null) {
+            Spacer(modifier = Modifier.height(TossSpacing.stackMd))
+            HorizontalDivider(color = onPrimary.copy(alpha = 0.2f))
+            Spacer(modifier = Modifier.height(TossSpacing.stackMd))
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                SummaryStat(
+                    modifier = Modifier.weight(1f),
+                    label = "평가 손익",
+                    valueKrw = buildProfitLabel(summary.totalProfitLossKrw, isUsd = false),
+                    valueUsd = if (summary.hasUsdHoldings()) {
+                        buildProfitLabel(summary.totalProfitLossUsd, isUsd = true)
+                    } else {
+                        null
+                    },
+                    isPositive = summary.totalProfitLossKrw >= 0,
+                    onPrimary = onPrimary,
                 )
-                if (summary.hasUsdHoldings()) {
-                    Text(
-                        text = buildProfitLabel(summary.totalProfitLossUsd, isUsd = true),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = variationColor(summary.totalProfitLossUsd),
-                    )
-                }
-                Spacer(modifier = Modifier.height(TossSpacing.stackSm))
-                Text(
-                    text = buildReturnRateLabel(summary.totalReturnRate),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = variationColor(summary.totalReturnRate),
+                SummaryStat(
+                    modifier = Modifier.weight(1f),
+                    label = "총 수익률",
+                    valueKrw = formatRatePercent(summary.totalReturnRate),
+                    valueUsd = null,
+                    isPositive = summary.totalReturnRate >= 0,
+                    onPrimary = onPrimary,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ReturnRateBadge(rate: Double, onPrimary: Color) {
+    Text(
+        text = formatRatePercent(rate),
+        style = MaterialTheme.typography.labelLarge,
+        color = onPrimary,
+        modifier = Modifier
+            .clip(RoundedCornerShape(percent = 50))
+            .background(onPrimary.copy(alpha = 0.18f))
+            .padding(horizontal = TossSpacing.stackSm, vertical = 4.dp),
+    )
+}
+
+@Composable
+private fun SummaryStat(
+    label: String,
+    valueKrw: String,
+    valueUsd: String?,
+    isPositive: Boolean,
+    onPrimary: Color,
+    modifier: Modifier = Modifier,
+) {
+    // 파란 배경 위에서는 하락(파랑) 등락색이 배경과 섞여 보이지 않으므로
+    // 부호는 텍스트(+/-)로만 구분하고 색상은 온컬러 톤 하나로 고정한다.
+    val valueColor = if (isPositive) onPrimary else onPrimary.copy(alpha = 0.75f)
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = onPrimary.copy(alpha = 0.8f),
+        )
+        Text(
+            text = valueKrw,
+            style = MaterialTheme.typography.titleMedium,
+            color = valueColor,
+        )
+        if (valueUsd != null) {
+            Text(
+                text = valueUsd,
+                style = MaterialTheme.typography.bodySmall,
+                color = onPrimary.copy(alpha = 0.7f),
+            )
         }
     }
 }
@@ -94,9 +179,9 @@ private fun buildProfitLabel(amount: Double, isUsd: Boolean): String {
     return "$sign$formatted"
 }
 
-private fun buildReturnRateLabel(rate: Double): String {
+private fun formatRatePercent(rate: Double): String {
     val sign = if (rate >= 0) "+" else ""
-    return "총 수익률 $sign${"%.2f".format(rate)}%"
+    return "$sign${"%.2f".format(rate)}%"
 }
 
 /** 원화 금액 포맷 — 소수점은 반올림해 정수 단위로 표시한다. */
@@ -138,5 +223,34 @@ private fun PortfolioSummaryCardPreview() {
                 securities = emptyList(),
             ),
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PortfolioSummaryCardKrwOnlyNegativePreview() {
+    TossWatchTheme {
+        PortfolioSummaryCard(
+            portfolio = Portfolio(
+                summary = PortfolioSummary(
+                    totalInvestmentKrw = 800_000.0,
+                    totalInvestmentUsd = 0.0,
+                    totalEvaluationKrw = 725_000.0,
+                    totalEvaluationUsd = 0.0,
+                    totalProfitLossKrw = -75_000.0,
+                    totalProfitLossUsd = 0.0,
+                    totalReturnRate = -9.38,
+                ),
+                securities = emptyList(),
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PortfolioSummaryCardEmptyPreview() {
+    TossWatchTheme {
+        PortfolioSummaryCard(portfolio = null)
     }
 }
