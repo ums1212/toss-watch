@@ -57,11 +57,12 @@ import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.P
  * 자산/보유 종목 대시보드.
  *
  * @param onNavigateToSetting [DashboardUiSideEffect.NavigateToSetting] 수신 시 호출 —
- *   :app의 Navigation 3 라우터가 SettingRoute push로 연결한다.
+ *   :app의 Navigation 3 라우터가 SettingRoute push로 연결한다. 보유종목 카드를 탭해 진입한 경우
+ *   해당 종목의 stockCode가 전달되며, 설정 아이콘을 통한 진입 시엔 null이다.
  */
 @Composable
 fun DashboardScreen(
-    onNavigateToSetting: () -> Unit,
+    onNavigateToSetting: (stockCode: String?) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -71,7 +72,7 @@ fun DashboardScreen(
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.sideEffect.collect { effect ->
                 when (effect) {
-                    DashboardUiSideEffect.NavigateToSetting -> onNavigateToSetting()
+                    is DashboardUiSideEffect.NavigateToSetting -> onNavigateToSetting(effect.stockCode)
                 }
             }
         }
@@ -169,7 +170,12 @@ private fun DashboardContent(
                             items = securities,
                             key = { it.stockCode },
                         ) { holding ->
-                            HoldingListItem(holding = holding)
+                            HoldingListItem(
+                                holding = holding,
+                                onClick = {
+                                    onIntent(DashboardUiIntent.OnHoldingClicked(holding.stockCode))
+                                },
+                            )
                         }
                     }
                 }

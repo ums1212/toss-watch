@@ -27,13 +27,19 @@ import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.dashboard.domain.model.Currency
 import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
 
-/** 보유 종목 1행(카드) — 심볼 아바타, 종목명/코드/보유수량, 평가금액, 등락 Pill. */
+/**
+ * 보유 종목 1행(카드) — 심볼 아바타, 종목명/코드/보유수량, 평가금액, 등락 Pill.
+ *
+ * @param onClick 카드 탭 — 해당 종목의 알림 추가 다이얼로그로 이동시키는 용도로 쓰인다.
+ */
 @Composable
 fun HoldingListItem(
     holding: HoldingStock,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -146,6 +152,7 @@ private fun HoldingListItemPreview() {
                     profitLoss = 75_000.0,
                     returnRate = 11.54,
                 ),
+                onClick = {},
             )
             HoldingListItem(
                 holding = HoldingStock(
@@ -160,6 +167,7 @@ private fun HoldingListItemPreview() {
                     profitLoss = 800.0,
                     returnRate = 30.77,
                 ),
+                onClick = {},
             )
             HoldingListItem(
                 holding = HoldingStock(
@@ -174,6 +182,7 @@ private fun HoldingListItemPreview() {
                     profitLoss = -123.0,
                     returnRate = -12.30,
                 ),
+                onClick = {},
             )
         }
     }

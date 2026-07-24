@@ -19,9 +19,14 @@ data object AuthRoute : AppRoute
 @Serializable
 data object DashboardRoute : AppRoute
 
-/** 알림 스케줄러 설정. */
+/**
+ * 알림 스케줄러 설정.
+ *
+ * @param prefillStockCode 대시보드 보유종목 카드를 탭해 진입한 경우, 알림 추가 다이얼로그에
+ *   미리 선택해 둘 종목 코드. 설정 아이콘을 통한 일반 진입 시엔 null.
+ */
 @Serializable
-data object SettingRoute : AppRoute
+data class SettingRoute(val prefillStockCode: String? = null) : AppRoute
 
 /**
  * 토스증권 Open API 키(client_id/client_secret) 등록.

@@ -89,12 +89,13 @@ fun TossWatchNavHost(
 
             entry<DashboardRoute> {
                 DashboardScreen(
-                    onNavigateToSetting = { navigator.goTo(SettingRoute) },
+                    onNavigateToSetting = { stockCode -> navigator.goTo(SettingRoute(stockCode)) },
                 )
             }
 
-            entry<SettingRoute> {
+            entry<SettingRoute> { route ->
                 SettingScreen(
+                    prefillStockCode = route.prefillStockCode,
                     onNavigateBack = { navigator.goBack() },
                     onNavigateToTossKey = { navigator.goTo(TossKeyRoute) },
                     onNavigateToWatchPair = { navigator.goTo(WatchPairRoute) },

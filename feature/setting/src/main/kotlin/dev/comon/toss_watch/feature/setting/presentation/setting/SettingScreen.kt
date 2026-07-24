@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +62,8 @@ import dev.comon.toss_watch.feature.setting.presentation.setting.component.Alarm
 /**
  * 알림 스케줄러 + Wear OS 연동 설정.
  *
+ * @param prefillStockCode 대시보드 보유종목 카드를 탭해 진입한 경우 전달되는 종목 코드.
+ *   지정되면 알림 추가 다이얼로그를 이 종목으로 미리 채운 채 자동으로 연다.
  * @param onNavigateBack [SettingUiSideEffect.NavigateBack] 수신 시 호출.
  * @param onNavigateToTossKey [SettingUiSideEffect.NavigateToTossKey] 수신 시 호출.
  * @param onNavigateToWatchPair [SettingUiSideEffect.NavigateToWatchPair] 수신 시 호출.
@@ -70,6 +73,7 @@ fun SettingScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTossKey: () -> Unit,
     onNavigateToWatchPair: () -> Unit,
+    prefillStockCode: String? = null,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -93,6 +97,7 @@ fun SettingScreen(
     SettingContent(
         uiState = uiState,
         onIntent = viewModel::handleIntent,
+        prefillStockCode = prefillStockCode,
     )
 }
 
@@ -101,11 +106,22 @@ fun SettingScreen(
 private fun SettingContent(
     uiState: SettingUiState,
     onIntent: (SettingUiIntent) -> Unit,
+    prefillStockCode: String? = null,
     modifier: Modifier = Modifier,
 ) {
     var showAddAlarmDialog by remember { mutableStateOf(false) }
     var alarmPendingDelete by remember { mutableStateOf<AlarmProfile?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    // prefillStockCode로 진입한 경우, 종목 목록(availableStocks)이 로드된 뒤 알림 추가
+    // 다이얼로그를 한 번만 자동으로 연다 — 재구성/재조회로 인한 재오픈을 막기 위해 플래그로 가드한다.
+    var prefillDialogHandled by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(prefillStockCode, uiState.availableStocks) {
+        if (!prefillDialogHandled && prefillStockCode != null && uiState.availableStocks.isNotEmpty()) {
+            showAddAlarmDialog = true
+            prefillDialogHandled = true
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -218,6 +234,7 @@ private fun SettingContent(
     if (showAddAlarmDialog) {
         AddAlarmDialog(
             stocks = uiState.availableStocks,
+            initialStockCode = prefillStockCode,
             onConfirm = { stockCode, hour, minute ->
                 showAddAlarmDialog = false
                 onIntent(SettingUiIntent.OnAddAlarm(stockCode, hour, minute))

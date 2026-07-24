@@ -29,6 +29,8 @@ import dev.comon.toss_watch.core.model.CachedStock
  * 알림 추가 다이얼로그 — 보유 종목(대시보드 캐시) 드롭다운 + 시/분 입력.
  *
  * @param stocks 대시보드가 캐싱해 둔 보유 종목 선택지. 비어 있으면 안내 문구만 표시하고 '추가'를 비활성화한다.
+ * @param initialStockCode 대시보드 보유종목 카드를 탭해 진입한 경우 미리 선택해 둘 종목 코드.
+ *   `stocks`에서 일치하는 항목이 없으면 첫 번째 종목으로 대체된다.
  * @param onConfirm (stockCode, hour, minute) 확정 콜백 — [SettingUiIntent.OnAddAlarm]로 환원된다.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,8 +39,11 @@ fun AddAlarmDialog(
     stocks: List<CachedStock>,
     onConfirm: (stockCode: String, hour: Int, minute: Int) -> Unit,
     onDismiss: () -> Unit,
+    initialStockCode: String? = null,
 ) {
-    var selectedStock by remember { mutableStateOf(stocks.firstOrNull()) }
+    var selectedStock by remember {
+        mutableStateOf(stocks.firstOrNull { it.stockCode == initialStockCode } ?: stocks.firstOrNull())
+    }
     var isTickerMenuExpanded by remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState(
         initialHour = 9,
