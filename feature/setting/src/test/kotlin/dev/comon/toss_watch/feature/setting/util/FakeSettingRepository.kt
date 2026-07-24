@@ -39,6 +39,8 @@ class FakeSettingRepository : SettingRepository {
         private set
     var lastToggledEnabled: Boolean? = null
         private set
+    var toggleInvocationCount: Int = 0
+        private set
     var lastRegisteredToken: String? = null
         private set
     var lastRegisteredUuid: String? = null
@@ -70,6 +72,7 @@ class FakeSettingRepository : SettingRepository {
         alarmId: Long,
         isEnabled: Boolean,
     ): NetworkResult<AlarmProfile> {
+        toggleInvocationCount++
         lastToggledId = alarmId
         lastToggledEnabled = isEnabled
         if (suspendUntilReleased) gate.await()

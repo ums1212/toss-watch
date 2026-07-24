@@ -15,6 +15,8 @@ import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStock
 import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -29,6 +31,9 @@ class SettingViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
+
+    /** 알람 ID별 토글 디바운스 Job — 연타 시 이전 요청을 취소하고 마지막 값만 서버에 반영한다. */
+    private val toggleJobs = mutableMapOf<Long, Job>()
 
     init {
         loadAlarms()
@@ -144,24 +149,42 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 낙관적 업데이트: 스위치를 누르는 즉시 로컬 상태를 반영해 응답을 기다리지 않고 UI가 움직이게 한다.
+     * 동일 알람에 대한 연타는 [TOGGLE_DEBOUNCE_MS] 안에 들어오면 이전 Job을 취소하고 마지막 값만
+     * 서버에 반영해 불필요한 API 호출을 막는다. 실패 시에만 이전 값으로 되돌린다.
+     */
     private fun toggleAlarm(alarmId: Long, enabled: Boolean) {
-        if (uiState.value.isSaving) return
+        val previousEnabled = uiState.value.configuredAlarms
+            .firstOrNull { it.id == alarmId }
+            ?.isEnabled
+            ?: return
 
-        viewModelScope.launch(dispatcherProvider.io) {
-            updateState { copy(isSaving = true, errorMessage = null) }
+        updateState {
+            copy(
+                errorMessage = null,
+                configuredAlarms = configuredAlarms.replaceEnabledById(alarmId, enabled),
+            )
+        }
+
+        toggleJobs[alarmId]?.cancel()
+        toggleJobs[alarmId] = viewModelScope.launch(dispatcherProvider.io) {
+            delay(TOGGLE_DEBOUNCE_MS)
 
             when (val result = toggleAlarmProfileUseCase(alarmId, enabled)) {
                 is NetworkResult.Success -> updateState {
-                    copy(
-                        isSaving = false,
-                        configuredAlarms = configuredAlarms.replaceById(result.data),
-                    )
+                    copy(configuredAlarms = configuredAlarms.replaceById(result.data))
                 }
 
                 else -> updateState {
-                    copy(isSaving = false, errorMessage = result.toErrorMessage())
+                    copy(
+                        errorMessage = result.toErrorMessage(),
+                        configuredAlarms = configuredAlarms.replaceEnabledById(alarmId, previousEnabled),
+                    )
                 }
             }
+
+            toggleJobs.remove(alarmId)
         }
     }
 
@@ -189,6 +212,9 @@ class SettingViewModel @Inject constructor(
     private fun List<AlarmProfile>.replaceById(updated: AlarmProfile): List<AlarmProfile> =
         map { if (it.id == updated.id) updated else it }
 
+    private fun List<AlarmProfile>.replaceEnabledById(alarmId: Long, isEnabled: Boolean): List<AlarmProfile> =
+        map { if (it.id == alarmId) it.copy(isEnabled = isEnabled) else it }
+
     private fun List<AlarmProfile>.removeById(alarmId: Long): List<AlarmProfile> =
         filterNot { it.id == alarmId }
 
@@ -203,5 +229,6 @@ class SettingViewModel @Inject constructor(
         const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
         const val TOAST_ALARM_ADDED = "알림이 추가됐어요."
         const val TOAST_ALARM_DELETED = "알림이 삭제됐어요."
+        const val TOGGLE_DEBOUNCE_MS = 500L
     }
 }

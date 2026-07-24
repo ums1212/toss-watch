@@ -2,6 +2,7 @@ package dev.comon.toss_watch.feature.setting.presentation
 
 import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
+import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.usecase.LogoutUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
@@ -138,6 +139,53 @@ class SettingViewModelTest {
             assertTrue(state.configuredAlarms.first { it.id == 2L }.isEnabled)
             // 나머지 프로필은 그대로 유지된다.
             assertTrue(state.configuredAlarms.first { it.id == 1L }.isEnabled)
+        }
+
+    @Test
+    fun `OnToggleAlarm은 API 응답을 기다리지 않고 즉시 로컬 상태를 낙관적으로 반영한다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(SettingUiIntent.OnToggleAlarm(alarmId = 2L, enabled = true))
+            runCurrent() // 500ms 디바운스가 지나기 전 — 아직 API는 호출되지 않은 시점.
+
+            assertTrue(viewModel.uiState.value.configuredAlarms.first { it.id == 2L }.isEnabled)
+            assertEquals(0, fakeRepository.toggleInvocationCount)
+        }
+
+    @Test
+    fun `동일 알람을 연타하면 마지막 값만 디바운스 후 한 번만 API에 반영된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(SettingUiIntent.OnToggleAlarm(alarmId = 2L, enabled = true))
+            viewModel.handleIntent(SettingUiIntent.OnToggleAlarm(alarmId = 2L, enabled = false))
+            viewModel.handleIntent(SettingUiIntent.OnToggleAlarm(alarmId = 2L, enabled = true))
+            advanceUntilIdle()
+
+            assertEquals(1, fakeRepository.toggleInvocationCount)
+            assertEquals(true, fakeRepository.lastToggledEnabled)
+            assertTrue(viewModel.uiState.value.configuredAlarms.first { it.id == 2L }.isEnabled)
+        }
+
+    @Test
+    fun `OnToggleAlarm 실패 시 낙관적으로 반영했던 값을 이전 상태로 되돌린다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.toggleResult = NetworkResult.ApiError(
+                code = 500,
+                message = "서버 오류",
+            )
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(SettingUiIntent.OnToggleAlarm(alarmId = 1L, enabled = false))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertTrue(state.configuredAlarms.first { it.id == 1L }.isEnabled)
+            assertEquals("서버 오류", state.errorMessage)
         }
 
     @Test
