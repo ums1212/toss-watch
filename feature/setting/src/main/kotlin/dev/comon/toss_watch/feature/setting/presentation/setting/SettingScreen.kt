@@ -105,6 +105,7 @@ private fun SettingContent(
 ) {
     var showAddAlarmDialog by remember { mutableStateOf(false) }
     var alarmPendingDelete by remember { mutableStateOf<AlarmProfile?>(null) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -200,7 +201,7 @@ private fun SettingContent(
                 }
 
                 item(key = "logout_section") {
-                    LogoutSection(onIntent = onIntent)
+                    LogoutSection(onLogoutClicked = { showLogoutDialog = true })
                 }
             }
 
@@ -243,6 +244,29 @@ private fun SettingContent(
             dismissButton = {
                 TextButton(onClick = { alarmPendingDelete = null }) {
                     Text(text = "취소")
+                }
+            },
+        )
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(text = "로그아웃") },
+            text = { Text(text = "로그아웃하시겠습니까?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        onIntent(SettingUiIntent.OnLogoutClicked)
+                    },
+                ) {
+                    Text(text = "예")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(text = "아니오")
                 }
             },
         )
@@ -317,12 +341,12 @@ private fun WatchTokenSection(
 
 @Composable
 private fun LogoutSection(
-    onIntent: (SettingUiIntent) -> Unit,
+    onLogoutClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.padding(top = TossSpacing.sectionPadding)) {
         OutlinedButton(
-            onClick = { onIntent(SettingUiIntent.OnLogoutClicked) },
+            onClick = onLogoutClicked,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error,
             ),
