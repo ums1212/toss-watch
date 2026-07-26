@@ -304,6 +304,7 @@ GET /api/v1/toss-watch/notifications/
     "id": 1,
     "stock_code": "005930",
     "alarm_time": "09:00:00",
+    "days_of_week": [0, 1, 2, 3, 4],
     "is_active": true,
     "disabled_reason": "",
     "created_at": "2026-07-10T14:00:00+09:00",
@@ -312,6 +313,7 @@ GET /api/v1/toss-watch/notifications/
 ]
 ```
 
+- `days_of_week`: 알림이 울릴 요일 목록. `0`=월요일 ~ `6`=일요일 (Python `date.weekday()` 기준), 오름차순 정렬되어 반환됨
 - `disabled_reason`: 서버가 자동 비활성화한 경우 그 사유
   (예: 워치 FCM 토큰 무효/미등록, 토스 키 미등록). 유저가 다시 `is_active: true`로 켜면(`PUT` or `PATCH`) `disabled_reason`은 빈 문자열(`""`)로 자동 초기화된다.
 - 워치 FCM 토큰은 알림 레코드가 아닌 유저(디바이스) 단위로 별도 저장된다 →
@@ -328,7 +330,8 @@ POST /api/v1/toss-watch/notifications/
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
 | `stock_code` | string | ✅ | 종목 코드 (예: `005930`, `AAPL`). 비워둘 수 없음 |
-| `alarm_time` | string | ✅ | `HH:MM` — 매일 이 시각(Asia/Seoul)에 발송. 초 단위는 무시(0으로 정규화)됨 |
+| `alarm_time` | string | ✅ | `HH:MM` — 지정된 요일마다 이 시각(Asia/Seoul)에 발송. 초 단위는 무시(0으로 정규화)됨 |
+| `days_of_week` | array[int] | — | 알림을 울릴 요일. `0`=월요일 ~ `6`=일요일 (Python `date.weekday()` 기준). 미전달 시 기본값 `[0,1,2,3,4,5,6]`(매일) |
 | `is_active` | boolean | — | 기본 `true` |
 
 워치 FCM 토큰은 이 요청에 포함하지 않는다. 발송 시 서버가 유저 프로필에 등록된 토큰
@@ -341,6 +344,8 @@ POST /api/v1/toss-watch/notifications/
 - `400 Bad Request` 유효성 검사 실패
   - `stock_code` 누락/빈 값: `{"stock_code": ["종목 코드는 비워둘 수 없습니다."]}`
   - `alarm_time` 형식 오류
+  - `days_of_week`가 빈 배열: `{"days_of_week": ["요일은 최소 1개 이상 선택해야 합니다."]}`
+  - `days_of_week`에 0~6 범위를 벗어난 값 포함: `{"days_of_week": ["요일 값은 0(월)~6(일) 사이의 정수여야 합니다."]}`
 
 ### 4-3. 알림 단건 조회 / 수정 / 삭제
 
@@ -358,7 +363,7 @@ DELETE /api/v1/toss-watch/notifications/<id>/     → 204
 
 ## 5. 워치가 수신하는 FCM 메시지 규격 (Wear OS 클라이언트용)
 
-매분 서버 스케줄러가 `alarm_time`이 일치하는 활성 알림을 골라 발송한다.
+매분 서버 스케줄러가 `alarm_time`이 일치하고 오늘 요일이 `days_of_week`에 포함된 활성 알림을 골라 발송한다.
 **Data-Only 메시지**(notification 필드 없음)이며 **Android priority: high**로 발송되므로,
 워치는 Doze 상태에서도 `FirebaseMessagingService.onMessageReceived()`로 수신해
 직접 풀스크린 알림을 그려야 한다.

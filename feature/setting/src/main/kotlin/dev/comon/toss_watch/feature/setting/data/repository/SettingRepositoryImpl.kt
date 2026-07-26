@@ -39,12 +39,14 @@ class SettingRepositoryImpl @Inject constructor(
         stockCode: String,
         hour: Int,
         minute: Int,
+        daysOfWeek: List<Int>,
     ): NetworkResult<AlarmProfile> =
         safeApiCall {
             settingApi.createAlarmProfile(
                 AlarmProfileRequest(
                     stockCode = stockCode,
                     alarmTime = formatAlarmTime(hour, minute),
+                    daysOfWeek = daysOfWeek,
                 ),
             )
         }.map { it.toAlarmProfile() }

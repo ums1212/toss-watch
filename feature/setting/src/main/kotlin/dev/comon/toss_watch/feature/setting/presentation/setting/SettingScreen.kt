@@ -235,9 +235,9 @@ private fun SettingContent(
         AddAlarmDialog(
             stocks = uiState.availableStocks,
             initialStockCode = prefillStockCode,
-            onConfirm = { stockCode, hour, minute ->
+            onConfirm = { stockCode, hour, minute, daysOfWeek ->
                 showAddAlarmDialog = false
-                onIntent(SettingUiIntent.OnAddAlarm(stockCode, hour, minute))
+                onIntent(SettingUiIntent.OnAddAlarm(stockCode, hour, minute, daysOfWeek))
             },
             onDismiss = { showAddAlarmDialog = false },
         )
@@ -382,8 +382,8 @@ private fun SettingContentPreview() {
         SettingContent(
             uiState = SettingUiState(
                 configuredAlarms = listOf(
-                    AlarmProfile(1L, "005930", "삼성전자", 9, 0, true),
-                    AlarmProfile(2L, "035420", "NAVER", 15, 30, false),
+                    AlarmProfile(1L, "005930", "삼성전자", 9, 0, listOf(0, 1, 2, 3, 4, 5, 6), true),
+                    AlarmProfile(2L, "035420", "NAVER", 15, 30, listOf(0, 1, 2, 3, 4), false),
                 ),
                 availableStocks = listOf(
                     CachedStock("005930", "삼성전자"),

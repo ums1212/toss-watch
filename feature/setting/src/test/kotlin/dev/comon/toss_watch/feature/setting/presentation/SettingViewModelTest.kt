@@ -107,13 +107,14 @@ class SettingViewModelTest {
             advanceUntilIdle()
             val effects = collectSideEffects(viewModel)
 
-            viewModel.handleIntent(SettingUiIntent.OnAddAlarm("000660", 10, 15))
+            viewModel.handleIntent(SettingUiIntent.OnAddAlarm("000660", 10, 15, listOf(0, 1, 2, 3, 4, 5)))
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertEquals("000660", fakeRepository.lastAddedStockCode)
             assertEquals(10, fakeRepository.lastAddedHour)
             assertEquals(15, fakeRepository.lastAddedMinute)
+            assertEquals(listOf(0, 1, 2, 3, 4, 5), fakeRepository.lastAddedDaysOfWeek)
             assertEquals(
                 FakeSettingRepository.DEFAULT_ALARMS + FakeSettingRepository.ADDED_ALARM,
                 state.configuredAlarms,

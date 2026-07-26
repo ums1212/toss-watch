@@ -41,7 +41,8 @@ fun AlarmProfileItem(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "${alarm.stockCode} · 매일 ${"%02d:%02d".format(alarm.hour, alarm.minute)}",
+                text = "${alarm.stockCode} · ${formatDaysOfWeek(alarm.daysOfWeek)} " +
+                    "%02d:%02d".format(alarm.hour, alarm.minute),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -70,6 +71,23 @@ fun AlarmProfileItem(
     }
 }
 
+/** 요일 라벨 — index가 곧 서버 계약의 요일 값(0=월 ~ 6=일). */
+private val DAY_LABELS = listOf("월", "화", "수", "목", "금", "토", "일")
+private val WEEKDAYS = listOf(0, 1, 2, 3, 4)
+private val WEEKENDS = listOf(5, 6)
+private val EVERY_DAY = listOf(0, 1, 2, 3, 4, 5, 6)
+
+/** 알림 요일 리스트를 표시용 라벨로 변환한다 — 매일/평일/주말은 축약 표기, 그 외는 개별 나열. */
+private fun formatDaysOfWeek(daysOfWeek: List<Int>): String {
+    val sorted = daysOfWeek.sorted()
+    return when (sorted) {
+        EVERY_DAY -> "매일"
+        WEEKDAYS -> "평일"
+        WEEKENDS -> "주말"
+        else -> sorted.joinToString("·") { DAY_LABELS[it] }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun AlarmProfileItemPreview() {
@@ -81,6 +99,7 @@ private fun AlarmProfileItemPreview() {
                 stockName = "삼성전자",
                 hour = 9,
                 minute = 30,
+                daysOfWeek = listOf(0, 1, 2, 3, 4),
                 isEnabled = true,
             ),
             onToggle = {},

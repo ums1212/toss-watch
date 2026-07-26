@@ -45,7 +45,7 @@ class SettingViewModel @Inject constructor(
     override fun handleIntent(intent: SettingUiIntent) {
         when (intent) {
             is SettingUiIntent.OnAddAlarm ->
-                addAlarm(intent.stockCode, intent.hour, intent.minute)
+                addAlarm(intent.stockCode, intent.hour, intent.minute, intent.daysOfWeek)
 
             is SettingUiIntent.OnToggleAlarm ->
                 toggleAlarm(intent.alarmId, intent.enabled)
@@ -128,13 +128,13 @@ class SettingViewModel @Inject constructor(
         }
     }
 
-    private fun addAlarm(stockCode: String, hour: Int, minute: Int) {
+    private fun addAlarm(stockCode: String, hour: Int, minute: Int, daysOfWeek: List<Int>) {
         if (uiState.value.isSaving) return
 
         viewModelScope.launch(dispatcherProvider.io) {
             updateState { copy(isSaving = true, errorMessage = null) }
 
-            when (val result = addAlarmProfileUseCase(stockCode, hour, minute)) {
+            when (val result = addAlarmProfileUseCase(stockCode, hour, minute, daysOfWeek)) {
                 is NetworkResult.Success -> {
                     updateState {
                         copy(isSaving = false, configuredAlarms = configuredAlarms + result.data)

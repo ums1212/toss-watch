@@ -20,6 +20,7 @@ interface SettingRepository {
         stockCode: String,
         hour: Int,
         minute: Int,
+        daysOfWeek: List<Int>,
     ): NetworkResult<AlarmProfile>
 
     suspend fun updateAlarmProfile(

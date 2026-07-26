@@ -8,6 +8,7 @@ package dev.comon.toss_watch.feature.setting.domain.model
  * @param stockName 종목명
  * @param hour 알림 시각(0-23)
  * @param minute 알림 분(0-59)
+ * @param daysOfWeek 알림이 울릴 요일. 0(월)~6(일) (Python `date.weekday()` 기준), 오름차순
  * @param isEnabled 알림 활성 여부
  * @param disabledReason 서버가 자동 비활성화한 경우 그 사유 (예: 워치 FCM 토큰 미등록, 토스 키 미등록)
  */
@@ -17,6 +18,7 @@ data class AlarmProfile(
     val stockName: String,
     val hour: Int,
     val minute: Int,
+    val daysOfWeek: List<Int>,
     val isEnabled: Boolean,
     val disabledReason: String = "",
 )

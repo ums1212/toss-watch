@@ -25,19 +25,23 @@ import androidx.compose.ui.Modifier
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.model.CachedStock
 
+/** 알림 요일 기본 선택값 — 월(0)~토(5). */
+private val DEFAULT_SELECTED_DAYS = setOf(0, 1, 2, 3, 4, 5)
+
 /**
- * 알림 추가 다이얼로그 — 보유 종목(대시보드 캐시) 드롭다운 + 시/분 입력.
+ * 알림 추가 다이얼로그 — 보유 종목(대시보드 캐시) 드롭다운 + 시/분 입력 + 요일 선택.
  *
  * @param stocks 대시보드가 캐싱해 둔 보유 종목 선택지. 비어 있으면 안내 문구만 표시하고 '추가'를 비활성화한다.
  * @param initialStockCode 대시보드 보유종목 카드를 탭해 진입한 경우 미리 선택해 둘 종목 코드.
  *   `stocks`에서 일치하는 항목이 없으면 첫 번째 종목으로 대체된다.
- * @param onConfirm (stockCode, hour, minute) 확정 콜백 — [SettingUiIntent.OnAddAlarm]로 환원된다.
+ * @param onConfirm (stockCode, hour, minute, daysOfWeek) 확정 콜백 — [SettingUiIntent.OnAddAlarm]로 환원된다.
+ *   `daysOfWeek`는 0(월)~6(일) 오름차순 정렬된 리스트.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAlarmDialog(
     stocks: List<CachedStock>,
-    onConfirm: (stockCode: String, hour: Int, minute: Int) -> Unit,
+    onConfirm: (stockCode: String, hour: Int, minute: Int, daysOfWeek: List<Int>) -> Unit,
     onDismiss: () -> Unit,
     initialStockCode: String? = null,
 ) {
@@ -50,6 +54,7 @@ fun AddAlarmDialog(
         initialMinute = 0,
         is24Hour = true,
     )
+    var selectedDays by remember { mutableStateOf(DEFAULT_SELECTED_DAYS) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -103,6 +108,21 @@ fun AddAlarmDialog(
                     Text(text = "알림 시각")
                     Spacer(modifier = Modifier.height(TossSpacing.stackSm))
                     TimeInput(state = timePickerState)
+
+                    Spacer(modifier = Modifier.height(TossSpacing.containerMargin))
+
+                    Text(text = "알림 요일")
+                    Spacer(modifier = Modifier.height(TossSpacing.stackSm))
+                    DayOfWeekSelector(
+                        selectedDays = selectedDays,
+                        onToggleDay = { day ->
+                            selectedDays = if (selectedDays.contains(day)) {
+                                selectedDays - day
+                            } else {
+                                selectedDays + day
+                            }
+                        },
+                    )
                 }
             }
         },
@@ -110,10 +130,15 @@ fun AddAlarmDialog(
             TextButton(
                 onClick = {
                     selectedStock?.let { stock ->
-                        onConfirm(stock.stockCode, timePickerState.hour, timePickerState.minute)
+                        onConfirm(
+                            stock.stockCode,
+                            timePickerState.hour,
+                            timePickerState.minute,
+                            selectedDays.sorted(),
+                        )
                     }
                 },
-                enabled = selectedStock != null,
+                enabled = selectedStock != null && selectedDays.isNotEmpty(),
             ) {
                 Text(text = "추가")
             }

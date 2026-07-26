@@ -36,6 +36,8 @@ class FakeSettingRepository : SettingRepository {
         private set
     var lastAddedMinute: Int? = null
         private set
+    var lastAddedDaysOfWeek: List<Int>? = null
+        private set
     var lastToggledId: Long? = null
         private set
     var lastToggledEnabled: Boolean? = null
@@ -65,10 +67,12 @@ class FakeSettingRepository : SettingRepository {
         stockCode: String,
         hour: Int,
         minute: Int,
+        daysOfWeek: List<Int>,
     ): NetworkResult<AlarmProfile> {
         lastAddedStockCode = stockCode
         lastAddedHour = hour
         lastAddedMinute = minute
+        lastAddedDaysOfWeek = daysOfWeek
         if (suspendUntilReleased) gate.await()
         return addResult
     }
@@ -140,6 +144,7 @@ class FakeSettingRepository : SettingRepository {
                 stockName = "삼성전자",
                 hour = 9,
                 minute = 0,
+                daysOfWeek = listOf(0, 1, 2, 3, 4, 5, 6),
                 isEnabled = true,
             ),
             AlarmProfile(
@@ -148,6 +153,7 @@ class FakeSettingRepository : SettingRepository {
                 stockName = "NAVER",
                 hour = 15,
                 minute = 30,
+                daysOfWeek = listOf(0, 1, 2, 3, 4),
                 isEnabled = false,
             ),
         )
@@ -157,6 +163,7 @@ class FakeSettingRepository : SettingRepository {
             stockName = "SK하이닉스",
             hour = 10,
             minute = 15,
+            daysOfWeek = listOf(0, 1, 2, 3, 4, 5),
             isEnabled = true,
         )
         val DEFAULT_STOCKS = listOf(
