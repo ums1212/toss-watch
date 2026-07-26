@@ -41,6 +41,7 @@ import kotlin.math.roundToLong
 @Composable
 fun PortfolioSummaryCard(
     portfolio: Portfolio?,
+    accountNo: String?,
     modifier: Modifier = Modifier,
 ) {
     val summary = portfolio?.summary
@@ -60,6 +61,15 @@ fun PortfolioSummaryCard(
             )
             .padding(TossSpacing.stackLg),
     ) {
+        if (accountNo != null) {
+            Text(
+                text = "$accountNo 계좌",
+                style = MaterialTheme.typography.labelMedium,
+                color = onPrimary.copy(alpha = 0.7f),
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+
         Text(
             text = "총 평가 자산",
             style = MaterialTheme.typography.labelLarge,
@@ -222,6 +232,7 @@ private fun PortfolioSummaryCardPreview() {
                 ),
                 securities = emptyList(),
             ),
+            accountNo = "100012345678",
         )
     }
 }
@@ -243,6 +254,7 @@ private fun PortfolioSummaryCardKrwOnlyNegativePreview() {
                 ),
                 securities = emptyList(),
             ),
+            accountNo = "100098765432",
         )
     }
 }
@@ -251,6 +263,6 @@ private fun PortfolioSummaryCardKrwOnlyNegativePreview() {
 @Composable
 private fun PortfolioSummaryCardEmptyPreview() {
     TossWatchTheme {
-        PortfolioSummaryCard(portfolio = null)
+        PortfolioSummaryCard(portfolio = null, accountNo = null)
     }
 }

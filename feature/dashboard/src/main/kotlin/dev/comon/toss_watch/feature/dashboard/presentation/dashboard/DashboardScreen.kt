@@ -140,7 +140,13 @@ private fun DashboardContent(
                     verticalArrangement = Arrangement.spacedBy(TossSpacing.stackMd),
                 ) {
                     item(key = "account_card") {
-                        PortfolioSummaryCard(portfolio = uiState.portfolio)
+                        val selectedAccountNo = uiState.accounts
+                            .find { it.accountSeq == uiState.selectedAccountSeq }
+                            ?.accountNo
+                        PortfolioSummaryCard(
+                            portfolio = uiState.portfolio,
+                            accountNo = selectedAccountNo,
+                        )
                     }
 
                     item(key = "market_performance_header") {
