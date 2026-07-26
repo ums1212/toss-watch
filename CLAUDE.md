@@ -8,6 +8,12 @@ Gradle with Kotlin DSL, using a version catalog at `gradle/libs.versions.toml` f
 
 Run commands from repo root; use `gradlew.bat` on Windows cmd, `./gradlew` in Git Bash.
 
+**JDK:** `JAVA_HOME` on this machine defaults to Android Studio's bundled JBR (`C:\Program Files\Android\Android Studio\jbr`), which is a broken/incomplete install here — invoking `java`/`gradlew` through it fails immediately with `Error: could not open 'C:\Program Files\Android\Android Studio\jbr\lib\jvm.cfg'`. A working JDK 17 is installed at `C:\Program Files\Java\jdk-17`; point `JAVA_HOME` there before running any Gradle command:
+- PowerShell: `$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"`
+- Git Bash: `export JAVA_HOME="C:/Program Files/Java/jdk-17"`
+
+If a build ever fails with the `jvm.cfg` error again, this is the cause — re-point `JAVA_HOME`, don't debug the JBR install itself.
+
 ## 1. Project Overview & Tech Stack
 
 - **Paradigm:** Multi-module Clean Architecture + MVI Pattern.
@@ -25,14 +31,15 @@ Enforce strict decoupling between modules. Dependency direction must always flow
 
 ### 2.1. Module Specifications
 
-- `:app`: Top-level entry point. Assembles all feature modules and defines the `Navigation 3` graph.
+- `:app`: Top-level entry point. Assembles all feature modules and defines the `Navigation 3` graph. The post-login root destination is `BottomMenuRoute`, rendered by `BottomMenuScreen` (`app/.../navigation/BottomMenuScreen.kt`), which hosts the Dashboard and Alarm screens as two bottom-tab items switched via local Compose state (`selectedTab`) — this switch never touches the `Navigator`/backstack. See §4 for when a screen needs its own `AppRoute` instead of being local-state tab content.
 - `:core:model`: Pure Kotlin module. Contains domain entities, `NetworkResult`, and common DTOs (UI-free).
 - `:core:network`: Retrofit setup, common error handlers, and JWT auto-refresh via `OkHttp Authenticator`.
 - `:core:datastore`: Secure local storage for session tokens (Access/Refresh JWT). Preferences DataStore persists only ciphertext produced by Tink AEAD (AES256-GCM keyset wrapped by an Android Keystore master key). See `core/datastore/README.md` for the encryption design.
 - `:core:database`: Room-backed local cache (e.g. `PortfolioStockCache`) for offline/local data, separate in purpose from `:core:datastore` (which is auth-only).
 - `:core:designsystem`: Material 3 shared theme, design tokens, and reusable Atomic components.
 - `:core:common`: Global extensions, coroutine dispatcher helpers, logging utilities, and the shared MVI contracts (`UiState`/`UiIntent`/`UiSideEffect`) used by both `:app` features and `:watch-app`.
-- `:feature:[auth/dashboard/setting/tosskey]`: Independent business modules enclosing screen UI and UseCases.
+- `:feature:[alarm/auth/dashboard/setting/tosskey]`: Independent business modules enclosing screen UI and UseCases.
+  - `:feature:alarm`: Owns `AlarmProfile`, alarm CRUD UseCases, and both the alarm-list screen (`AlarmScreen`) and per-stock detail screen (`AlarmDetailScreen`). `AlarmRepository` holds the fetched alarm list in a single in-memory `MutableStateFlow` cache (not per-ViewModel state) — every mutation (add/toggle/delete) updates that cache on success, and both screens observe it via `ObserveAlarmProfilesUseCase`. This is why toggling/deleting in `AlarmDetailScreen` is reflected in `AlarmScreen`'s per-stock alarm counts immediately, with no refetch on navigating back. Follow this shared-cache-in-the-repository pattern for any future case where two screens need to see the same mutable list stay in sync without a shared ViewModel.
 - `:watch-app`: Standalone Wear OS application module (own `applicationId`/`namespace` `dev.comon.watch_app`, distinct from the phone app's `dev.comon.toss_watch`). Not a library consumed by `:app` — it is built and installed independently on the watch, and talks to the backend directly (via its own Retrofit/Hilt network setup, gated by an `X-Toss-Watch-Api-Key` header). Internally layered as data/domain/presentation like the feature modules, and reuses `:core:common`'s MVI base classes. Requires `tossWatch.apiBaseUrl` and `tossWatch.watchApiKey` in `local.properties` to build.
 
 ### 2.2. Feature Module Internal Layering (Feature-Centric)
@@ -55,6 +62,8 @@ Enforce a Unidirectional Data Flow (UDF) with Immutable UI States.
 
 - Type-Safe Routing: String-based route definitions are BANNED. Use @Serializable objects with Navigation 3.
 
+- Route vs. local-state tab content: give a screen its own `AppRoute` only if it must be pushed onto/popped off the `Navigator` backstack — i.e. it needs system back button/predictive-back support and/or a full-screen overlay transition (`slideOverlayTransitions()` in `TossWatchNavHost.kt`). Screens that are just alternate views within the same parent destination (e.g. the Dashboard/Alarm bottom tabs inside `BottomMenuScreen`) should switch via local Compose state instead — do not invent an `AppRoute` for a tab.
+
 ## 5. Agent Code of Conduct
 
 - Do NOT omit boilerplate wiring, such as Hilt module configurations (@Module, @InstallIn) and @Serializable annotations.
@@ -64,3 +73,5 @@ Enforce a Unidirectional Data Flow (UDF) with Immutable UI States.
 - Composable functions exceeding 300 lines must be split into sub-component files immediately.
 
 - `:watch-app` intentionally does NOT depend on `:core:network` or `:core:datastore` — it maintains its own Retrofit/Hilt network stack and local DataStore (see `di/Watch*Module.kt`). Do not "fix" this by wiring it to those modules unless explicitly asked; it is a deliberate separation, not an oversight.
+
+- When a screen with its own `Scaffold` is hosted as tab content inside another `Scaffold` (e.g. `DashboardScreen`/`AlarmScreen` inside `BottomMenuScreen`'s `bottomBar`), set `contentWindowInsets = WindowInsets(0, 0, 0, 0)` on the inner `Scaffold`. Each `Scaffold` independently reserves space for the system bottom inset by default (`ScaffoldDefaults.contentWindowInsets`); leaving the inner one at its default double-reserves that inset on top of the outer `bottomBar`'s own height, producing a visible empty gap above the bottom bar.
