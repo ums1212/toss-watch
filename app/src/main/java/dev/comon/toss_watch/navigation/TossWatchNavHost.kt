@@ -1,9 +1,15 @@
 package dev.comon.toss_watch.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntOffset
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -20,6 +26,34 @@ import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardSc
 import dev.comon.toss_watch.feature.setting.presentation.setting.SettingScreen
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairScreen
 import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
+
+private val SLIDE_OVERLAY_ANIMATION_SPEC = tween<IntOffset>(durationMillis = 300)
+
+/**
+ * 하위 화면 위에 겹쳐서 슬라이드 인/아웃하는 오버레이 전환 metadata.
+ * 가려지는 화면(initial on 진입, target on pop)은 [ExitTransition.None]/[EnterTransition.None]으로
+ * 애니메이션 없이 정적으로 유지되고, 위에 뜨는 화면만 좌우로 슬라이드된다.
+ */
+private fun slideOverlayTransitions(): Map<String, Any> =
+    NavDisplay.transitionSpec {
+        slideIntoContainer(
+            AnimatedContentTransitionScope.SlideDirection.Left,
+            animationSpec = SLIDE_OVERLAY_ANIMATION_SPEC,
+        ) togetherWith ExitTransition.None
+    } + NavDisplay.popTransitionSpec {
+        EnterTransition.None togetherWith
+            slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = SLIDE_OVERLAY_ANIMATION_SPEC,
+            )
+    } + NavDisplay.predictivePopTransitionSpec { _ ->
+        // 시스템 뒤로가기 제스처(predictive back)도 popTransitionSpec과 동일하게 동작.
+        EnterTransition.None togetherWith
+            slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = SLIDE_OVERLAY_ANIMATION_SPEC,
+            )
+    }
 
 /**
  * 최상위 Navigation 3 호스트.
@@ -93,7 +127,9 @@ fun TossWatchNavHost(
                 )
             }
 
-            entry<SettingRoute> { route ->
+            entry<SettingRoute>(
+                metadata = slideOverlayTransitions(),
+            ) { route ->
                 SettingScreen(
                     prefillStockCode = route.prefillStockCode,
                     onNavigateBack = { navigator.goBack() },
@@ -102,13 +138,17 @@ fun TossWatchNavHost(
                 )
             }
 
-            entry<TossKeyRoute> {
+            entry<TossKeyRoute>(
+                metadata = slideOverlayTransitions(),
+            ) {
                 TossKeyScreen(
                     onNavigateBack = { navigator.goBack() },
                 )
             }
 
-            entry<WatchPairRoute> {
+            entry<WatchPairRoute>(
+                metadata = slideOverlayTransitions(),
+            ) {
                 WatchPairScreen(
                     onNavigateBack = { navigator.goBack() },
                 )
