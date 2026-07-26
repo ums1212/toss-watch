@@ -15,18 +15,25 @@ sealed interface AppRoute
 @Serializable
 data object AuthRoute : AppRoute
 
-/** 자산/관심 종목 대시보드. 로그인 세션이 있을 때의 루트 목적지. */
-@Serializable
-data object DashboardRoute : AppRoute
-
 /**
- * 알림 스케줄러 설정.
- *
- * @param prefillStockCode 대시보드 보유종목 카드를 탭해 진입한 경우, 알림 추가 다이얼로그에
- *   미리 선택해 둘 종목 코드. 설정 아이콘을 통한 일반 진입 시엔 null.
+ * 하단 탭(대시보드/알림)을 감싸는 루트 목적지. 로그인 세션이 있을 때의 루트 목적지.
+ * 대시보드와 알림 탭 전환은 이 목적지 내부의 로컬 상태로 처리되며 백스택에 별도로 쌓이지 않는다.
  */
 @Serializable
-data class SettingRoute(val prefillStockCode: String? = null) : AppRoute
+data object BottomMenuRoute : AppRoute
+
+/** 토스 연동 · Wear OS 연동 · 로그아웃 설정. */
+@Serializable
+data object SettingRoute : AppRoute
+
+/**
+ * 종목별 알림 목록 — 대시보드 보유종목 카드 또는 알림 탭의 종목 항목을 탭해 진입한다.
+ *
+ * @param stockCode 알림을 조회/추가할 종목 코드.
+ * @param stockName 상단 타이틀 및 알림 추가 다이얼로그에 표시할 종목명. 알 수 없으면 null.
+ */
+@Serializable
+data class AlarmDetailRoute(val stockCode: String, val stockName: String? = null) : AppRoute
 
 /**
  * 토스증권 Open API 키(client_id/client_secret) 등록.

@@ -1,6 +1,6 @@
-package dev.comon.toss_watch.feature.setting.data.remote.dto
+package dev.comon.toss_watch.feature.alarm.data.remote.dto
 
-import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

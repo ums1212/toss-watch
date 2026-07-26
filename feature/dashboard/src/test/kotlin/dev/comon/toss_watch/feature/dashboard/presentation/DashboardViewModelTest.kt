@@ -65,7 +65,7 @@ class DashboardViewModelTest {
         }
 
     @Test
-    fun `OnSettingClicked Intent는 종목 코드 없는 NavigateToSetting 사이드이펙트를 발행한다`() =
+    fun `OnSettingClicked Intent는 NavigateToSetting 사이드이펙트를 발행한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             val viewModel = createViewModel()
             advanceUntilIdle()
@@ -75,23 +75,25 @@ class DashboardViewModelTest {
             runCurrent()
 
             assertEquals(
-                listOf<DashboardUiSideEffect>(DashboardUiSideEffect.NavigateToSetting()),
+                listOf<DashboardUiSideEffect>(DashboardUiSideEffect.NavigateToSetting),
                 effects,
             )
         }
 
     @Test
-    fun `OnHoldingClicked Intent는 해당 종목 코드를 담은 NavigateToSetting 사이드이펙트를 발행한다`() =
+    fun `OnHoldingClicked Intent는 해당 종목 정보를 담은 NavigateToAlarmDetail 사이드이펙트를 발행한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             val viewModel = createViewModel()
             advanceUntilIdle()
             val effects = collectSideEffects(viewModel)
 
-            viewModel.handleIntent(DashboardUiIntent.OnHoldingClicked("005930"))
+            viewModel.handleIntent(DashboardUiIntent.OnHoldingClicked("005930", "삼성전자"))
             runCurrent()
 
             assertEquals(
-                listOf<DashboardUiSideEffect>(DashboardUiSideEffect.NavigateToSetting("005930")),
+                listOf<DashboardUiSideEffect>(
+                    DashboardUiSideEffect.NavigateToAlarmDetail("005930", "삼성전자"),
+                ),
                 effects,
             )
         }

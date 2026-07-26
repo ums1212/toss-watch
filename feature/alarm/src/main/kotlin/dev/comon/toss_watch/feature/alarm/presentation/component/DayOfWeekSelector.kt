@@ -1,4 +1,4 @@
-package dev.comon.toss_watch.feature.setting.presentation.setting.component
+package dev.comon.toss_watch.feature.alarm.presentation.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

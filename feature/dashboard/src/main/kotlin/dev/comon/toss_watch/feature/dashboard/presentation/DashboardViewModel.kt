@@ -30,10 +30,10 @@ class DashboardViewModel @Inject constructor(
             is DashboardUiIntent.OnAccountSelected -> selectAccount(intent.accountSeq)
 
             DashboardUiIntent.OnSettingClicked ->
-                sendSideEffect(DashboardUiSideEffect.NavigateToSetting())
+                sendSideEffect(DashboardUiSideEffect.NavigateToSetting)
 
             is DashboardUiIntent.OnHoldingClicked ->
-                sendSideEffect(DashboardUiSideEffect.NavigateToSetting(intent.stockCode))
+                sendSideEffect(DashboardUiSideEffect.NavigateToAlarmDetail(intent.stockCode, intent.stockName))
 
             DashboardUiIntent.OnErrorDismissed -> updateState {
                 copy(errorMessage = null)

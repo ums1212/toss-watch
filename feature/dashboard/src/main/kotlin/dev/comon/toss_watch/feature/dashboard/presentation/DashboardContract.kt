@@ -23,11 +23,11 @@ sealed interface DashboardUiIntent : UiIntent {
     /** 계좌목록 팝업에서 다른 계좌를 선택. */
     data class OnAccountSelected(val accountSeq: Long) : DashboardUiIntent
 
-    /** 상단 앱바의 설정(알림 스케줄러) 아이콘. */
+    /** 상단 앱바의 설정 아이콘. */
     data object OnSettingClicked : DashboardUiIntent
 
-    /** 보유 종목 카드를 탭 — 해당 종목이 미리 선택된 알림 추가 다이얼로그로 이동한다. */
-    data class OnHoldingClicked(val stockCode: String) : DashboardUiIntent
+    /** 보유 종목 카드를 탭 — 해당 종목의 알림 목록(AlarmDetailScreen)으로 이동한다. */
+    data class OnHoldingClicked(val stockCode: String, val stockName: String) : DashboardUiIntent
 
     /** 에러 다이얼로그의 확인 버튼. */
     data object OnErrorDismissed : DashboardUiIntent
@@ -35,9 +35,9 @@ sealed interface DashboardUiIntent : UiIntent {
 
 sealed interface DashboardUiSideEffect : UiSideEffect {
 
-    /**
-     * :app 라우터가 수신해 SettingRoute를 백스택에 push한다.
-     * @param stockCode 지정되면 설정 화면의 알림 추가 다이얼로그를 이 종목으로 미리 채워 자동으로 연다.
-     */
-    data class NavigateToSetting(val stockCode: String? = null) : DashboardUiSideEffect
+    /** :app 라우터가 수신해 SettingRoute를 백스택에 push한다. */
+    data object NavigateToSetting : DashboardUiSideEffect
+
+    /** :app 라우터가 수신해 AlarmDetailRoute를 백스택에 push한다. */
+    data class NavigateToAlarmDetail(val stockCode: String, val stockName: String) : DashboardUiSideEffect
 }

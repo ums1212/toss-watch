@@ -1,6 +1,5 @@
 package dev.comon.toss_watch.feature.setting.presentation.setting
 
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,14 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,10 +29,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -45,25 +39,17 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
-import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
-import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
-import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
-import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiIntent
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiSideEffect
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiState
 import dev.comon.toss_watch.feature.setting.presentation.SettingViewModel
-import dev.comon.toss_watch.feature.setting.presentation.setting.component.AddAlarmDialog
-import dev.comon.toss_watch.feature.setting.presentation.setting.component.AlarmProfileItem
 
 /**
- * 알림 스케줄러 + Wear OS 연동 설정.
+ * 토스 연동 · Wear OS 연동 · 로그아웃 설정.
  *
- * @param prefillStockCode 대시보드 보유종목 카드를 탭해 진입한 경우 전달되는 종목 코드.
- *   지정되면 알림 추가 다이얼로그를 이 종목으로 미리 채운 채 자동으로 연다.
  * @param onNavigateBack [SettingUiSideEffect.NavigateBack] 수신 시 호출.
  * @param onNavigateToTossKey [SettingUiSideEffect.NavigateToTossKey] 수신 시 호출.
  * @param onNavigateToWatchPair [SettingUiSideEffect.NavigateToWatchPair] 수신 시 호출.
@@ -73,11 +59,9 @@ fun SettingScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTossKey: () -> Unit,
     onNavigateToWatchPair: () -> Unit,
-    prefillStockCode: String? = null,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(viewModel, lifecycleOwner) {
@@ -87,8 +71,6 @@ fun SettingScreen(
                     SettingUiSideEffect.NavigateBack -> onNavigateBack()
                     SettingUiSideEffect.NavigateToTossKey -> onNavigateToTossKey()
                     SettingUiSideEffect.NavigateToWatchPair -> onNavigateToWatchPair()
-                    is SettingUiSideEffect.ShowToast ->
-                        Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -97,7 +79,6 @@ fun SettingScreen(
     SettingContent(
         uiState = uiState,
         onIntent = viewModel::handleIntent,
-        prefillStockCode = prefillStockCode,
     )
 }
 
@@ -106,28 +87,15 @@ fun SettingScreen(
 private fun SettingContent(
     uiState: SettingUiState,
     onIntent: (SettingUiIntent) -> Unit,
-    prefillStockCode: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    var showAddAlarmDialog by remember { mutableStateOf(false) }
-    var alarmPendingDelete by remember { mutableStateOf<AlarmProfile?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    // prefillStockCode로 진입한 경우, 종목 목록(availableStocks)이 로드된 뒤 알림 추가
-    // 다이얼로그를 한 번만 자동으로 연다 — 재구성/재조회로 인한 재오픈을 막기 위해 플래그로 가드한다.
-    var prefillDialogHandled by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(prefillStockCode, uiState.availableStocks) {
-        if (!prefillDialogHandled && prefillStockCode != null && uiState.availableStocks.isNotEmpty()) {
-            showAddAlarmDialog = true
-            prefillDialogHandled = true
-        }
-    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "알림 설정") },
+                title = { Text(text = "설정") },
                 navigationIcon = {
                     IconButton(onClick = { onIntent(SettingUiIntent.OnBackClicked) }) {
                         Icon(
@@ -152,62 +120,6 @@ private fun SettingContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
             ) {
-                item(key = "alarm_header") {
-                    Text(
-                        text = "알림 스케줄",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = TossSpacing.stackSm),
-                    )
-                }
-
-                if (uiState.isLoading) {
-                    item(key = "alarm_loading") {
-                        TossWatchLoadingIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = TossSpacing.stackLg),
-                        )
-                    }
-                } else if (uiState.configuredAlarms.isEmpty()) {
-                    item(key = "alarm_empty") {
-                        Text(
-                            text = "등록된 알림이 없어요. 종목과 시각을 골라 추가해 보세요.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = TossSpacing.stackMd),
-                        )
-                    }
-                } else {
-                    items(
-                        items = uiState.configuredAlarms,
-                        key = { it.id },
-                    ) { alarm ->
-                        AlarmProfileItem(
-                            alarm = alarm,
-                            onToggle = { enabled ->
-                                onIntent(SettingUiIntent.OnToggleAlarm(alarm.id, enabled))
-                            },
-                            onDelete = { alarmPendingDelete = alarm },
-                            enabled = !uiState.isSaving,
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    }
-                }
-
-                item(key = "alarm_add") {
-                    OutlinedButton(
-                        onClick = { showAddAlarmDialog = true },
-                        enabled = !uiState.isSaving && !uiState.isLoading,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = TossSpacing.stackSm),
-                    ) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                        Text(text = "알림 추가")
-                    }
-                }
-
                 item(key = "toss_key_section") {
                     TossKeySection(onIntent = onIntent)
                 }
@@ -220,50 +132,7 @@ private fun SettingContent(
                     LogoutSection(onLogoutClicked = { showLogoutDialog = true })
                 }
             }
-
-            uiState.errorMessage?.let { message ->
-                TossWatchErrorDialog(
-                    message = message,
-                    onDismiss = { onIntent(SettingUiIntent.OnErrorDismissed) },
-                    title = "설정을 저장하지 못했어요",
-                )
-            }
         }
-    }
-
-    if (showAddAlarmDialog) {
-        AddAlarmDialog(
-            stocks = uiState.availableStocks,
-            initialStockCode = prefillStockCode,
-            onConfirm = { stockCode, hour, minute, daysOfWeek ->
-                showAddAlarmDialog = false
-                onIntent(SettingUiIntent.OnAddAlarm(stockCode, hour, minute, daysOfWeek))
-            },
-            onDismiss = { showAddAlarmDialog = false },
-        )
-    }
-
-    alarmPendingDelete?.let { target ->
-        AlertDialog(
-            onDismissRequest = { alarmPendingDelete = null },
-            title = { Text(text = "알림 삭제") },
-            text = { Text(text = "'${target.stockName}' 알림을 삭제할까요?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onIntent(SettingUiIntent.OnDeleteAlarm(target.id))
-                        alarmPendingDelete = null
-                    },
-                ) {
-                    Text(text = "삭제")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { alarmPendingDelete = null }) {
-                    Text(text = "취소")
-                }
-            },
-        )
     }
 
     if (showLogoutDialog) {
@@ -295,7 +164,7 @@ private fun TossKeySection(
     onIntent: (SettingUiIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.padding(top = TossSpacing.sectionPadding)) {
+    Column(modifier = modifier) {
         Text(
             text = "토스 연동",
             style = MaterialTheme.typography.titleSmall,
@@ -380,16 +249,7 @@ private fun LogoutSection(
 private fun SettingContentPreview() {
     TossWatchTheme {
         SettingContent(
-            uiState = SettingUiState(
-                configuredAlarms = listOf(
-                    AlarmProfile(1L, "005930", "삼성전자", 9, 0, listOf(0, 1, 2, 3, 4, 5, 6), true),
-                    AlarmProfile(2L, "035420", "NAVER", 15, 30, listOf(0, 1, 2, 3, 4), false),
-                ),
-                availableStocks = listOf(
-                    CachedStock("005930", "삼성전자"),
-                    CachedStock("035420", "NAVER"),
-                ),
-            ),
+            uiState = SettingUiState(),
             onIntent = {},
         )
     }

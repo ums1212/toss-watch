@@ -1,13 +1,13 @@
-package dev.comon.toss_watch.feature.setting.domain.usecase
+package dev.comon.toss_watch.feature.alarm.domain.usecase
 
 import dev.comon.toss_watch.core.model.NetworkResult
-import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
-import dev.comon.toss_watch.feature.setting.domain.repository.SettingRepository
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
+import dev.comon.toss_watch.feature.alarm.domain.repository.AlarmRepository
 import javax.inject.Inject
 
 /** 새 알림 프로필 등록 (stock_code + alarm_time + days_of_week → POST /api/v1/toss-watch/notifications/). */
 class AddAlarmProfileUseCase @Inject constructor(
-    private val settingRepository: SettingRepository,
+    private val alarmRepository: AlarmRepository,
 ) {
     suspend operator fun invoke(
         stockCode: String,
@@ -15,7 +15,7 @@ class AddAlarmProfileUseCase @Inject constructor(
         minute: Int,
         daysOfWeek: List<Int>,
     ): NetworkResult<AlarmProfile> =
-        settingRepository.addAlarmProfile(
+        alarmRepository.addAlarmProfile(
             stockCode = stockCode,
             hour = hour,
             minute = minute,

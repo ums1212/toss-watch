@@ -1,4 +1,4 @@
-package dev.comon.toss_watch.feature.setting.presentation.setting.component
+package dev.comon.toss_watch.feature.alarm.presentation.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,13 +29,13 @@ import dev.comon.toss_watch.core.model.CachedStock
 private val DEFAULT_SELECTED_DAYS = setOf(0, 1, 2, 3, 4, 5)
 
 /**
- * 알림 추가 다이얼로그 — 보유 종목(대시보드 캐시) 드롭다운 + 시/분 입력 + 요일 선택.
+ * 알림 추가 다이얼로그 — 종목 선택(드롭다운 또는 고정) + 시/분 입력 + 요일 선택.
  *
- * @param stocks 대시보드가 캐싱해 둔 보유 종목 선택지. 비어 있으면 안내 문구만 표시하고 '추가'를 비활성화한다.
- * @param initialStockCode 대시보드 보유종목 카드를 탭해 진입한 경우 미리 선택해 둘 종목 코드.
- *   `stocks`에서 일치하는 항목이 없으면 첫 번째 종목으로 대체된다.
- * @param onConfirm (stockCode, hour, minute, daysOfWeek) 확정 콜백 — [SettingUiIntent.OnAddAlarm]로 환원된다.
- *   `daysOfWeek`는 0(월)~6(일) 오름차순 정렬된 리스트.
+ * @param stocks 보유 종목 선택지. [lockedStock]이 지정되면 무시된다. 비어 있으면 안내 문구만 표시하고 '추가'를 비활성화한다.
+ * @param initialStockCode 드롭다운 모드에서 미리 선택해 둘 종목 코드. `stocks`에서 일치하는 항목이 없으면 첫 번째 종목으로 대체된다.
+ * @param lockedStock 지정되면 종목 드롭다운 대신 종목명을 정적으로 표시하고 이 종목으로 고정한다 —
+ *   AlarmDetailScreen처럼 이미 종목 문맥이 정해진 화면에서 사용한다.
+ * @param onConfirm (stockCode, hour, minute, daysOfWeek) 확정 콜백. `daysOfWeek`는 0(월)~6(일) 오름차순 정렬된 리스트.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,9 +44,12 @@ fun AddAlarmDialog(
     onConfirm: (stockCode: String, hour: Int, minute: Int, daysOfWeek: List<Int>) -> Unit,
     onDismiss: () -> Unit,
     initialStockCode: String? = null,
+    lockedStock: CachedStock? = null,
 ) {
     var selectedStock by remember {
-        mutableStateOf(stocks.firstOrNull { it.stockCode == initialStockCode } ?: stocks.firstOrNull())
+        mutableStateOf(
+            lockedStock ?: stocks.firstOrNull { it.stockCode == initialStockCode } ?: stocks.firstOrNull(),
+        )
     }
     var isTickerMenuExpanded by remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState(
@@ -61,44 +64,58 @@ fun AddAlarmDialog(
         title = { Text(text = "알림 추가") },
         text = {
             Column {
-                if (stocks.isEmpty()) {
+                if (lockedStock == null && stocks.isEmpty()) {
                     Text(
                         text = "보유 종목이 없어요. 대시보드에서 계좌를 먼저 확인해 주세요.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
-                    ExposedDropdownMenuBox(
-                        expanded = isTickerMenuExpanded,
-                        onExpandedChange = { isTickerMenuExpanded = it },
-                    ) {
-                        OutlinedTextField(
-                            value = selectedStock?.let { "${it.stockName} (${it.stockCode})" }.orEmpty(),
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("종목") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                    expanded = isTickerMenuExpanded,
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    if (lockedStock != null) {
+                        Text(
+                            text = "종목",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-
-                        ExposedDropdownMenu(
+                        Spacer(modifier = Modifier.height(TossSpacing.stackSm))
+                        Text(
+                            text = "${lockedStock.stockName} (${lockedStock.stockCode})",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    } else {
+                        ExposedDropdownMenuBox(
                             expanded = isTickerMenuExpanded,
-                            onDismissRequest = { isTickerMenuExpanded = false },
+                            onExpandedChange = { isTickerMenuExpanded = it },
                         ) {
-                            stocks.forEach { stock ->
-                                DropdownMenuItem(
-                                    text = { Text("${stock.stockName} (${stock.stockCode})") },
-                                    onClick = {
-                                        selectedStock = stock
-                                        isTickerMenuExpanded = false
-                                    },
-                                )
+                            OutlinedTextField(
+                                value = selectedStock?.let { "${it.stockName} (${it.stockCode})" }.orEmpty(),
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("종목") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                        expanded = isTickerMenuExpanded,
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = isTickerMenuExpanded,
+                                onDismissRequest = { isTickerMenuExpanded = false },
+                            ) {
+                                stocks.forEach { stock ->
+                                    DropdownMenuItem(
+                                        text = { Text("${stock.stockName} (${stock.stockCode})") },
+                                        onClick = {
+                                            selectedStock = stock
+                                            isTickerMenuExpanded = false
+                                        },
+                                    )
+                                }
                             }
                         }
                     }

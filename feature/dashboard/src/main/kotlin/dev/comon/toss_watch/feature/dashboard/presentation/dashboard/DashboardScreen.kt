@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -56,13 +57,15 @@ import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.P
 /**
  * 자산/보유 종목 대시보드.
  *
- * @param onNavigateToSetting [DashboardUiSideEffect.NavigateToSetting] 수신 시 호출 —
- *   :app의 Navigation 3 라우터가 SettingRoute push로 연결한다. 보유종목 카드를 탭해 진입한 경우
- *   해당 종목의 stockCode가 전달되며, 설정 아이콘을 통한 진입 시엔 null이다.
+ * @param onNavigateToSetting [DashboardUiSideEffect.NavigateToSetting] 수신 시 호출 — 상단 앱바의 설정 아이콘.
+ * @param onNavigateToAlarmDetail [DashboardUiSideEffect.NavigateToAlarmDetail] 수신 시 호출 —
+ *   보유종목 카드를 탭해 진입, 해당 종목의 알림 목록(AlarmDetailScreen)으로 이동한다.
  */
 @Composable
 fun DashboardScreen(
-    onNavigateToSetting: (stockCode: String?) -> Unit,
+    onNavigateToSetting: () -> Unit,
+    onNavigateToAlarmDetail: (stockCode: String, stockName: String) -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -72,7 +75,9 @@ fun DashboardScreen(
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.sideEffect.collect { effect ->
                 when (effect) {
-                    is DashboardUiSideEffect.NavigateToSetting -> onNavigateToSetting(effect.stockCode)
+                    DashboardUiSideEffect.NavigateToSetting -> onNavigateToSetting()
+                    is DashboardUiSideEffect.NavigateToAlarmDetail ->
+                        onNavigateToAlarmDetail(effect.stockCode, effect.stockName)
                 }
             }
         }
@@ -81,6 +86,7 @@ fun DashboardScreen(
     DashboardContent(
         uiState = uiState,
         onIntent = viewModel::handleIntent,
+        modifier = modifier,
     )
 }
 
@@ -95,6 +101,10 @@ private fun DashboardContent(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        // 이 화면은 항상 BottomMenuScreen의 Scaffold(bottomBar) 안에 탭 콘텐츠로 호스팅된다 —
+        // 시스템 하단 인셋은 그 바깥 Scaffold가 이미 처리하므로, 여기서 기본값(safeDrawing)을
+        // 그대로 쓰면 같은 인셋이 두 번 반영되어 탭바와 콘텐츠 사이에 불필요한 여백이 생긴다.
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = { Text(text = "내 자산") },
@@ -112,7 +122,7 @@ private fun DashboardContent(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
-                            contentDescription = "알림 설정",
+                            contentDescription = "설정",
                         )
                     }
                 },
@@ -179,7 +189,12 @@ private fun DashboardContent(
                             HoldingListItem(
                                 holding = holding,
                                 onClick = {
-                                    onIntent(DashboardUiIntent.OnHoldingClicked(holding.stockCode))
+                                    onIntent(
+                                        DashboardUiIntent.OnHoldingClicked(
+                                            stockCode = holding.stockCode,
+                                            stockName = holding.stockName,
+                                        ),
+                                    )
                                 },
                             )
                         }

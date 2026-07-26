@@ -4,55 +4,27 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
-import dev.comon.toss_watch.core.model.NetworkResult
-import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
-import dev.comon.toss_watch.feature.setting.domain.usecase.AddAlarmProfileUseCase
-import dev.comon.toss_watch.feature.setting.domain.usecase.DeleteAlarmProfileUseCase
-import dev.comon.toss_watch.feature.setting.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.LogoutUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
-import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePortfolioStocksUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
-import dev.comon.toss_watch.feature.setting.domain.usecase.ToggleAlarmProfileUseCase
 import javax.inject.Inject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SettingViewModel @Inject constructor(
-    private val fetchAlarmProfilesUseCase: FetchAlarmProfilesUseCase,
-    private val addAlarmProfileUseCase: AddAlarmProfileUseCase,
-    private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
-    private val deleteAlarmProfileUseCase: DeleteAlarmProfileUseCase,
-    private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
     private val observePairedWatchUseCase: ObservePairedWatchUseCase,
     private val syncPairedWatchUseCase: SyncPairedWatchUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
 
-    /** 알람 ID별 토글 디바운스 Job — 연타 시 이전 요청을 취소하고 마지막 값만 서버에 반영한다. */
-    private val toggleJobs = mutableMapOf<Long, Job>()
-
     init {
-        loadAlarms()
-        observePortfolioStocks()
         observePairedWatch()
         syncPairedWatch()
     }
 
     override fun handleIntent(intent: SettingUiIntent) {
         when (intent) {
-            is SettingUiIntent.OnAddAlarm ->
-                addAlarm(intent.stockCode, intent.hour, intent.minute, intent.daysOfWeek)
-
-            is SettingUiIntent.OnToggleAlarm ->
-                toggleAlarm(intent.alarmId, intent.enabled)
-
-            is SettingUiIntent.OnDeleteAlarm ->
-                deleteAlarm(intent.alarmId)
-
             SettingUiIntent.OnPairWatchClicked ->
                 sendSideEffect(SettingUiSideEffect.NavigateToWatchPair)
 
@@ -62,36 +34,7 @@ class SettingViewModel @Inject constructor(
             SettingUiIntent.OnTossKeyClicked ->
                 sendSideEffect(SettingUiSideEffect.NavigateToTossKey)
 
-            SettingUiIntent.OnErrorDismissed -> updateState {
-                copy(errorMessage = null)
-            }
-
             SettingUiIntent.OnLogoutClicked -> logout()
-        }
-    }
-
-    private fun loadAlarms() {
-        viewModelScope.launch(dispatcherProvider.io) {
-            updateState { copy(isLoading = true, errorMessage = null) }
-
-            when (val result = fetchAlarmProfilesUseCase()) {
-                is NetworkResult.Success -> updateState {
-                    copy(isLoading = false, configuredAlarms = result.data)
-                }
-
-                else -> updateState {
-                    copy(isLoading = false, errorMessage = result.toErrorMessage())
-                }
-            }
-        }
-    }
-
-    /** 대시보드가 캐싱한 보유 종목을 구독 — API 재호출 없이 알림 추가 종목 후보를 최신 상태로 유지한다. */
-    private fun observePortfolioStocks() {
-        viewModelScope.launch(dispatcherProvider.io) {
-            observePortfolioStocksUseCase().collect { stocks ->
-                updateState { copy(availableStocks = stocks) }
-            }
         }
     }
 
@@ -126,109 +69,5 @@ class SettingViewModel @Inject constructor(
         viewModelScope.launch(dispatcherProvider.io) {
             logoutUseCase()
         }
-    }
-
-    private fun addAlarm(stockCode: String, hour: Int, minute: Int, daysOfWeek: List<Int>) {
-        if (uiState.value.isSaving) return
-
-        viewModelScope.launch(dispatcherProvider.io) {
-            updateState { copy(isSaving = true, errorMessage = null) }
-
-            when (val result = addAlarmProfileUseCase(stockCode, hour, minute, daysOfWeek)) {
-                is NetworkResult.Success -> {
-                    updateState {
-                        copy(isSaving = false, configuredAlarms = configuredAlarms + result.data)
-                    }
-                    sendSideEffect(SettingUiSideEffect.ShowToast(TOAST_ALARM_ADDED))
-                }
-
-                else -> updateState {
-                    copy(isSaving = false, errorMessage = result.toErrorMessage())
-                }
-            }
-        }
-    }
-
-    /**
-     * 낙관적 업데이트: 스위치를 누르는 즉시 로컬 상태를 반영해 응답을 기다리지 않고 UI가 움직이게 한다.
-     * 동일 알람에 대한 연타는 [TOGGLE_DEBOUNCE_MS] 안에 들어오면 이전 Job을 취소하고 마지막 값만
-     * 서버에 반영해 불필요한 API 호출을 막는다. 실패 시에만 이전 값으로 되돌린다.
-     */
-    private fun toggleAlarm(alarmId: Long, enabled: Boolean) {
-        val previousEnabled = uiState.value.configuredAlarms
-            .firstOrNull { it.id == alarmId }
-            ?.isEnabled
-            ?: return
-
-        updateState {
-            copy(
-                errorMessage = null,
-                configuredAlarms = configuredAlarms.replaceEnabledById(alarmId, enabled),
-            )
-        }
-
-        toggleJobs[alarmId]?.cancel()
-        toggleJobs[alarmId] = viewModelScope.launch(dispatcherProvider.io) {
-            delay(TOGGLE_DEBOUNCE_MS)
-
-            when (val result = toggleAlarmProfileUseCase(alarmId, enabled)) {
-                is NetworkResult.Success -> updateState {
-                    copy(configuredAlarms = configuredAlarms.replaceById(result.data))
-                }
-
-                else -> updateState {
-                    copy(
-                        errorMessage = result.toErrorMessage(),
-                        configuredAlarms = configuredAlarms.replaceEnabledById(alarmId, previousEnabled),
-                    )
-                }
-            }
-
-            toggleJobs.remove(alarmId)
-        }
-    }
-
-    private fun deleteAlarm(alarmId: Long) {
-        if (uiState.value.isSaving) return
-
-        viewModelScope.launch(dispatcherProvider.io) {
-            updateState { copy(isSaving = true, errorMessage = null) }
-
-            when (val result = deleteAlarmProfileUseCase(alarmId)) {
-                is NetworkResult.Success -> {
-                    updateState {
-                        copy(isSaving = false, configuredAlarms = configuredAlarms.removeById(alarmId))
-                    }
-                    sendSideEffect(SettingUiSideEffect.ShowToast(TOAST_ALARM_DELETED))
-                }
-
-                else -> updateState {
-                    copy(isSaving = false, errorMessage = result.toErrorMessage())
-                }
-            }
-        }
-    }
-
-    private fun List<AlarmProfile>.replaceById(updated: AlarmProfile): List<AlarmProfile> =
-        map { if (it.id == updated.id) updated else it }
-
-    private fun List<AlarmProfile>.replaceEnabledById(alarmId: Long, isEnabled: Boolean): List<AlarmProfile> =
-        map { if (it.id == alarmId) it.copy(isEnabled = isEnabled) else it }
-
-    private fun List<AlarmProfile>.removeById(alarmId: Long): List<AlarmProfile> =
-        filterNot { it.id == alarmId }
-
-    private fun NetworkResult<*>.toErrorMessage(): String? = when (this) {
-        is NetworkResult.Success -> null
-        is NetworkResult.ApiError -> message ?: DEFAULT_API_ERROR
-        is NetworkResult.NetworkError -> DEFAULT_NETWORK_ERROR
-    }
-
-    companion object {
-        const val DEFAULT_API_ERROR = "설정을 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
-        const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
-        const val TOAST_ALARM_ADDED = "알림이 추가됐어요."
-        const val TOAST_ALARM_DELETED = "알림이 삭제됐어요."
-        const val TOGGLE_DEBOUNCE_MS = 500L
     }
 }

@@ -30,7 +30,7 @@ import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
 /**
  * 보유 종목 1행(카드) — 심볼 아바타, 종목명/코드/보유수량, 평가금액, 등락 Pill.
  *
- * @param onClick 카드 탭 — 해당 종목의 알림 추가 다이얼로그로 이동시키는 용도로 쓰인다.
+ * @param onClick 카드 탭 — 해당 종목의 알림 목록(AlarmDetailScreen)으로 이동시키는 용도로 쓰인다.
  */
 @Composable
 fun HoldingListItem(

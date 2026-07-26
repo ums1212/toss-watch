@@ -3,42 +3,14 @@ package dev.comon.toss_watch.feature.setting.presentation
 import dev.comon.toss_watch.core.common.mvi.UiIntent
 import dev.comon.toss_watch.core.common.mvi.UiSideEffect
 import dev.comon.toss_watch.core.common.mvi.UiState
-import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
-import dev.comon.toss_watch.feature.setting.domain.model.AlarmProfile
 
 data class SettingUiState(
-    val configuredAlarms: List<AlarmProfile> = emptyList(),
-    /** 대시보드가 캐싱해 둔 보유 종목 — 알림 추가 다이얼로그의 종목 선택지로 쓰인다. */
-    val availableStocks: List<CachedStock> = emptyList(),
     /** 연동 완료된 워치(기기명+UUID). `null`이면 미연동 — "QR로 워치 연동" 버튼을 노출한다. */
     val pairedWatch: PairedWatchInfo? = null,
-    val isSaving: Boolean = false,
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
 ) : UiState
 
 sealed interface SettingUiIntent : UiIntent {
-
-    /** 알람 추가 다이얼로그 확정 — 종목/시각/요일 조합으로 프로필을 생성한다. */
-    data class OnAddAlarm(
-        val stockCode: String,
-        val hour: Int,
-        val minute: Int,
-        /** 알림을 울릴 요일. 0(월)~6(일), 오름차순. */
-        val daysOfWeek: List<Int>,
-    ) : SettingUiIntent
-
-    /** 알람 행의 활성 스위치 토글. */
-    data class OnToggleAlarm(
-        val alarmId: Long,
-        val enabled: Boolean,
-    ) : SettingUiIntent
-
-    /** 알람 행의 삭제 버튼 — 확인 다이얼로그에서 확정된 후 전달된다. */
-    data class OnDeleteAlarm(
-        val alarmId: Long,
-    ) : SettingUiIntent
 
     /** "QR로 워치 연동" 버튼 — WatchPairRoute로 이동해 QR 스캔을 시작한다. */
     data object OnPairWatchClicked : SettingUiIntent
@@ -48,9 +20,6 @@ sealed interface SettingUiIntent : UiIntent {
 
     /** 토스 API 키 재설정 버튼. */
     data object OnTossKeyClicked : SettingUiIntent
-
-    /** 에러 다이얼로그의 확인 버튼. */
-    data object OnErrorDismissed : SettingUiIntent
 
     /** 설정 화면 맨 아래 로그아웃 버튼. */
     data object OnLogoutClicked : SettingUiIntent
@@ -66,6 +35,4 @@ sealed interface SettingUiSideEffect : UiSideEffect {
 
     /** :app 라우터가 수신해 Wear OS QR 페어링 화면으로 이동한다. */
     data object NavigateToWatchPair : SettingUiSideEffect
-
-    data class ShowToast(val message: String) : SettingUiSideEffect
 }

@@ -16,13 +16,14 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import dev.comon.toss_watch.core.model.navigation.AlarmDetailRoute
 import dev.comon.toss_watch.core.model.navigation.AuthRoute
-import dev.comon.toss_watch.core.model.navigation.DashboardRoute
+import dev.comon.toss_watch.core.model.navigation.BottomMenuRoute
 import dev.comon.toss_watch.core.model.navigation.SettingRoute
 import dev.comon.toss_watch.core.model.navigation.TossKeyRoute
 import dev.comon.toss_watch.core.model.navigation.WatchPairRoute
+import dev.comon.toss_watch.feature.alarm.presentation.alarmdetail.AlarmDetailScreen
 import dev.comon.toss_watch.feature.auth.presentation.login.LoginScreen
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardScreen
 import dev.comon.toss_watch.feature.setting.presentation.setting.SettingScreen
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairScreen
 import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
@@ -73,11 +74,11 @@ fun TossWatchNavHost(
 
     LaunchedEffect(sessionState) {
         when (sessionState) {
-            // 로그인 감지: 인증 플로우 위에 있을 때만 대시보드로 루트 교체
+            // 로그인 감지: 인증 플로우 위에 있을 때만 하단 탭 화면으로 루트 교체
             // (구성 변경 후 재구독 시 Setting 백스택을 초기화하지 않도록 가드).
             SessionState.LOGGED_IN ->
-                if (navigator.backStack.none { it is DashboardRoute }) {
-                    navigator.setRoot(DashboardRoute)
+                if (navigator.backStack.none { it is BottomMenuRoute }) {
+                    navigator.setRoot(BottomMenuRoute)
                 }
 
             // 세션은 있으나 토스 키 미등록: 온보딩 화면 위에 있을 때만 루트 교체
@@ -121,17 +122,29 @@ fun TossWatchNavHost(
                 LoginScreen()
             }
 
-            entry<DashboardRoute> {
-                DashboardScreen(
-                    onNavigateToSetting = { stockCode -> navigator.goTo(SettingRoute(stockCode)) },
+            entry<BottomMenuRoute> {
+                BottomMenuScreen(
+                    onNavigateToSetting = { navigator.goTo(SettingRoute) },
+                    onNavigateToAlarmDetail = { stockCode, stockName ->
+                        navigator.goTo(AlarmDetailRoute(stockCode, stockName))
+                    },
+                )
+            }
+
+            entry<AlarmDetailRoute>(
+                metadata = slideOverlayTransitions(),
+            ) { route ->
+                AlarmDetailScreen(
+                    stockCode = route.stockCode,
+                    stockName = route.stockName,
+                    onNavigateBack = { navigator.goBack() },
                 )
             }
 
             entry<SettingRoute>(
                 metadata = slideOverlayTransitions(),
-            ) { route ->
+            ) {
                 SettingScreen(
-                    prefillStockCode = route.prefillStockCode,
                     onNavigateBack = { navigator.goBack() },
                     onNavigateToTossKey = { navigator.goTo(TossKeyRoute) },
                     onNavigateToWatchPair = { navigator.goTo(WatchPairRoute) },
