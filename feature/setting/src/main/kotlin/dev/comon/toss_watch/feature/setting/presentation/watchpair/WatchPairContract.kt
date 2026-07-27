@@ -6,14 +6,23 @@ import dev.comon.toss_watch.core.common.mvi.UiState
 
 data class WatchPairUiState(
     val hasCameraPermission: Boolean = false,
+    /** true면 사용자가 권한을 영구 거부(또는 2회 거부)한 상태 — 재요청 대신 앱 설정 화면으로 안내해야 한다. */
+    val isPermissionPermanentlyDenied: Boolean = false,
     val isRegistering: Boolean = false,
     val errorMessage: String? = null,
 ) : UiState
 
 sealed interface WatchPairUiIntent : UiIntent {
 
-    /** 카메라 권한 요청 결과. */
-    data class OnPermissionResult(val granted: Boolean) : WatchPairUiIntent
+    /**
+     * 카메라 권한 요청 결과.
+     * @param permanentlyDenied 거부됐고 `shouldShowRequestPermissionRationale`이 false인 경우
+     * (영구 거부) true — 시스템이 더 이상 요청 다이얼로그를 보여주지 않는다는 뜻이다.
+     */
+    data class OnPermissionResult(
+        val granted: Boolean,
+        val permanentlyDenied: Boolean = false,
+    ) : WatchPairUiIntent
 
     /**
      * 카메라 프리뷰가 QR 원문을 인식했을 때.

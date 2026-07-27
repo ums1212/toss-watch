@@ -28,7 +28,10 @@ class WatchPairViewModel @Inject constructor(
     override fun handleIntent(intent: WatchPairUiIntent) {
         when (intent) {
             is WatchPairUiIntent.OnPermissionResult -> updateState {
-                copy(hasCameraPermission = intent.granted)
+                copy(
+                    hasCameraPermission = intent.granted,
+                    isPermissionPermanentlyDenied = !intent.granted && intent.permanentlyDenied,
+                )
             }
 
             is WatchPairUiIntent.OnQrScanned -> handleQrScanned(intent.rawPayload)

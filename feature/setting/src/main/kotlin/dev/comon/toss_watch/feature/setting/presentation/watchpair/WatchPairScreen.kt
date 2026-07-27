@@ -1,7 +1,13 @@
 package dev.comon.toss_watch.feature.setting.presentation.watchpair
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +27,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,9 +35,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
@@ -58,20 +67,33 @@ fun WatchPairScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
-        viewModel.handleIntent(WatchPairUiIntent.OnPermissionResult(granted))
+        // shouldShowRequestPermissionRationale이 false인데 이미 한 번 이상 요청한 뒤라면
+        // 사용자가 영구 거부(또는 2회 거부)한 것 — 시스템이 다시는 요청 다이얼로그를 띄우지 않는다.
+        val permanentlyDenied = !granted && context.isCameraPermissionPermanentlyDenied()
+        viewModel.handleIntent(WatchPairUiIntent.OnPermissionResult(granted, permanentlyDenied))
     }
 
     LaunchedEffect(Unit) {
-        val granted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.CAMERA,
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (granted) {
+        if (context.isCameraPermissionGranted()) {
             viewModel.handleIntent(WatchPairUiIntent.OnPermissionResult(true))
         } else {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    // 앱 설정(권한 화면)에 다녀온 뒤 화면이 다시 보일 때(ON_RESUME) 권한 상태를 재확인한다.
+    // 이 화면은 :app의 단일 Activity 내 Navigation 3 목적지라서, 같은 화면 안에서 이동할 때는
+    // ON_RESUME이 재발생하지 않고 Activity가 백그라운드(설정 화면 등)에서 돌아올 때만 발생한다.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val granted = context.isCameraPermissionGranted()
+                val permanentlyDenied = !granted && context.isCameraPermissionPermanentlyDenied()
+                viewModel.handleIntent(WatchPairUiIntent.OnPermissionResult(granted, permanentlyDenied))
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     LaunchedEffect(viewModel, lifecycleOwner) {
@@ -90,8 +112,28 @@ fun WatchPairScreen(
         uiState = uiState,
         onIntent = viewModel::handleIntent,
         onRequestPermission = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+        onOpenAppSettings = {
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    .setData(Uri.fromParts("package", context.packageName, null)),
+            )
+        },
     )
 }
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+private fun Context.isCameraPermissionGranted(): Boolean =
+    ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+
+private fun Context.isCameraPermissionPermanentlyDenied(): Boolean =
+    findActivity()?.let { activity ->
+        !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA)
+    } == true
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,6 +141,7 @@ private fun WatchPairContent(
     uiState: WatchPairUiState,
     onIntent: (WatchPairUiIntent) -> Unit,
     onRequestPermission: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -161,14 +204,18 @@ private fun WatchPairContent(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = "QR 코드를 스캔하려면\n카메라 권한이 필요해요.",
+                        text = if (uiState.isPermissionPermanentlyDenied) {
+                            "카메라 권한이 거부되어 있어요.\n앱 설정에서 권한을 허용해 주세요."
+                        } else {
+                            "QR 코드를 스캔하려면\n카메라 권한이 필요해요."
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     TossWatchButton(
-                        text = "카메라 권한 허용",
-                        onClick = onRequestPermission,
+                        text = if (uiState.isPermissionPermanentlyDenied) "앱 설정으로 이동" else "카메라 권한 허용",
+                        onClick = if (uiState.isPermissionPermanentlyDenied) onOpenAppSettings else onRequestPermission,
                         modifier = Modifier.padding(top = TossSpacing.containerMargin),
                     )
                 }
@@ -193,6 +240,23 @@ private fun WatchPairContentPermissionDeniedPreview() {
             uiState = WatchPairUiState(hasCameraPermission = false),
             onIntent = {},
             onRequestPermission = {},
+            onOpenAppSettings = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WatchPairContentPermissionPermanentlyDeniedPreview() {
+    TossWatchTheme {
+        WatchPairContent(
+            uiState = WatchPairUiState(
+                hasCameraPermission = false,
+                isPermissionPermanentlyDenied = true,
+            ),
+            onIntent = {},
+            onRequestPermission = {},
+            onOpenAppSettings = {},
         )
     }
 }
