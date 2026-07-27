@@ -35,13 +35,13 @@ private val DEFAULT_SELECTED_DAYS = setOf(0, 1, 2, 3, 4, 5)
  * @param initialStockCode 드롭다운 모드에서 미리 선택해 둘 종목 코드. `stocks`에서 일치하는 항목이 없으면 첫 번째 종목으로 대체된다.
  * @param lockedStock 지정되면 종목 드롭다운 대신 종목명을 정적으로 표시하고 이 종목으로 고정한다 —
  *   AlarmDetailScreen처럼 이미 종목 문맥이 정해진 화면에서 사용한다.
- * @param onConfirm (stockCode, hour, minute, daysOfWeek) 확정 콜백. `daysOfWeek`는 0(월)~6(일) 오름차순 정렬된 리스트.
+ * @param onConfirm (stockCode, stockName, hour, minute, daysOfWeek) 확정 콜백. `daysOfWeek`는 0(월)~6(일) 오름차순 정렬된 리스트.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAlarmDialog(
     stocks: List<CachedStock>,
-    onConfirm: (stockCode: String, hour: Int, minute: Int, daysOfWeek: List<Int>) -> Unit,
+    onConfirm: (stockCode: String, stockName: String, hour: Int, minute: Int, daysOfWeek: List<Int>) -> Unit,
     onDismiss: () -> Unit,
     initialStockCode: String? = null,
     lockedStock: CachedStock? = null,
@@ -149,6 +149,7 @@ fun AddAlarmDialog(
                     selectedStock?.let { stock ->
                         onConfirm(
                             stock.stockCode,
+                            stock.stockName,
                             timePickerState.hour,
                             timePickerState.minute,
                             selectedDays.sorted(),

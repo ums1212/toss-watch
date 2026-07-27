@@ -38,7 +38,7 @@ class AlarmDetailViewModel @Inject constructor(
     override fun handleIntent(intent: AlarmDetailUiIntent) {
         when (intent) {
             is AlarmDetailUiIntent.OnAddAlarm ->
-                addAlarm(intent.stockCode, intent.hour, intent.minute, intent.daysOfWeek)
+                addAlarm(intent.stockCode, intent.stockName, intent.hour, intent.minute, intent.daysOfWeek)
 
             is AlarmDetailUiIntent.OnToggleAlarm ->
                 toggleAlarm(intent.alarmId, intent.enabled)
@@ -75,13 +75,13 @@ class AlarmDetailViewModel @Inject constructor(
         }
     }
 
-    private fun addAlarm(stockCode: String, hour: Int, minute: Int, daysOfWeek: List<Int>) {
+    private fun addAlarm(stockCode: String, stockName: String, hour: Int, minute: Int, daysOfWeek: List<Int>) {
         if (uiState.value.isSaving) return
 
         viewModelScope.launch(dispatcherProvider.io) {
             updateState { copy(isSaving = true, errorMessage = null) }
 
-            when (val result = addAlarmProfileUseCase(stockCode, hour, minute, daysOfWeek)) {
+            when (val result = addAlarmProfileUseCase(stockCode, stockName, hour, minute, daysOfWeek)) {
                 is NetworkResult.Success -> {
                     updateState { copy(isSaving = false) }
                     sendSideEffect(AlarmDetailUiSideEffect.ShowToast(TOAST_ALARM_ADDED))

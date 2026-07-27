@@ -71,11 +71,14 @@ class AlarmDetailViewModelTest {
             advanceUntilIdle()
             val effects = collectSideEffects(viewModel)
 
-            viewModel.handleIntent(AlarmDetailUiIntent.OnAddAlarm("000660", 10, 15, listOf(0, 1, 2, 3, 4, 5)))
+            viewModel.handleIntent(
+                AlarmDetailUiIntent.OnAddAlarm("000660", "SK하이닉스", 10, 15, listOf(0, 1, 2, 3, 4, 5)),
+            )
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertEquals("000660", fakeRepository.lastAddedStockCode)
+            assertEquals("SK하이닉스", fakeRepository.lastAddedStockName)
             assertEquals(10, fakeRepository.lastAddedHour)
             assertEquals(15, fakeRepository.lastAddedMinute)
             assertEquals(listOf(0, 1, 2, 3, 4, 5), fakeRepository.lastAddedDaysOfWeek)

@@ -303,6 +303,7 @@ GET /api/v1/toss-watch/notifications/
   {
     "id": 1,
     "stock_code": "005930",
+    "stock_name": "삼성전자",
     "alarm_time": "09:00:00",
     "days_of_week": [0, 1, 2, 3, 4],
     "is_active": true,
@@ -313,6 +314,7 @@ GET /api/v1/toss-watch/notifications/
 ]
 ```
 
+- `stock_name`: 등록/수정 시 클라이언트가 전달한 종목명을 그대로 저장했다가 반환하는 값. 서버가 별도로 조회/검증하지 않으며, 전달하지 않으면 빈 문자열(`""`)
 - `days_of_week`: 알림이 울릴 요일 목록. `0`=월요일 ~ `6`=일요일 (Python `date.weekday()` 기준), 오름차순 정렬되어 반환됨
 - `disabled_reason`: 서버가 자동 비활성화한 경우 그 사유
   (예: 워치 FCM 토큰 무효/미등록, 토스 키 미등록). 유저가 다시 `is_active: true`로 켜면(`PUT` or `PATCH`) `disabled_reason`은 빈 문자열(`""`)로 자동 초기화된다.
@@ -330,6 +332,7 @@ POST /api/v1/toss-watch/notifications/
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
 | `stock_code` | string | ✅ | 종목 코드 (예: `005930`, `AAPL`). 비워둘 수 없음 |
+| `stock_name` | string | — | 종목명 (예: `삼성전자`). 서버는 별도 조회하지 않고 전달값을 그대로 저장. 미전달 시 빈 문자열 |
 | `alarm_time` | string | ✅ | `HH:MM` — 지정된 요일마다 이 시각(Asia/Seoul)에 발송. 초 단위는 무시(0으로 정규화)됨 |
 | `days_of_week` | array[int] | — | 알림을 울릴 요일. `0`=월요일 ~ `6`=일요일 (Python `date.weekday()` 기준). 미전달 시 기본값 `[0,1,2,3,4,5,6]`(매일) |
 | `is_active` | boolean | — | 기본 `true` |

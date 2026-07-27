@@ -201,9 +201,9 @@ private fun AlarmDetailContent(
         AddAlarmDialog(
             stocks = emptyList(),
             lockedStock = CachedStock(stockCode = stockCode, stockName = resolvedStockName),
-            onConfirm = { code, hour, minute, daysOfWeek ->
+            onConfirm = { code, name, hour, minute, daysOfWeek ->
                 showAddAlarmDialog = false
-                onIntent(AlarmDetailUiIntent.OnAddAlarm(code, hour, minute, daysOfWeek))
+                onIntent(AlarmDetailUiIntent.OnAddAlarm(code, name, hour, minute, daysOfWeek))
             },
             onDismiss = { showAddAlarmDialog = false },
         )

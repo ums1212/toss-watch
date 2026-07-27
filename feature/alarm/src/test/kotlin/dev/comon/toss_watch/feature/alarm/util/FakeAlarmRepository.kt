@@ -34,6 +34,8 @@ class FakeAlarmRepository : AlarmRepository {
         private set
     var lastAddedStockCode: String? = null
         private set
+    var lastAddedStockName: String? = null
+        private set
     var lastAddedHour: Int? = null
         private set
     var lastAddedMinute: Int? = null
@@ -66,11 +68,13 @@ class FakeAlarmRepository : AlarmRepository {
 
     override suspend fun addAlarmProfile(
         stockCode: String,
+        stockName: String,
         hour: Int,
         minute: Int,
         daysOfWeek: List<Int>,
     ): NetworkResult<AlarmProfile> {
         lastAddedStockCode = stockCode
+        lastAddedStockName = stockName
         lastAddedHour = hour
         lastAddedMinute = minute
         lastAddedDaysOfWeek = daysOfWeek

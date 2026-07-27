@@ -25,6 +25,7 @@ interface AlarmRepository {
 
     suspend fun addAlarmProfile(
         stockCode: String,
+        stockName: String,
         hour: Int,
         minute: Int,
         daysOfWeek: List<Int>,

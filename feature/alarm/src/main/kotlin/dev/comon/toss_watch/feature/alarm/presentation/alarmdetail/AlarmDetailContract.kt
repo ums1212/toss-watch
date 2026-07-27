@@ -21,6 +21,7 @@ sealed interface AlarmDetailUiIntent : UiIntent {
     /** 알람 추가 다이얼로그 확정 — 시각/요일 조합으로 프로필을 생성한다. */
     data class OnAddAlarm(
         val stockCode: String,
+        val stockName: String,
         val hour: Int,
         val minute: Int,
         /** 알림을 울릴 요일. 0(월)~6(일), 오름차순. */

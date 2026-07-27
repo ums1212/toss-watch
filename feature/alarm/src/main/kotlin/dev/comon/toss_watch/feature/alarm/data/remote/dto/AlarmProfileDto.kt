@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AlarmProfileRequest(
     @SerialName("stock_code") val stockCode: String,
+    @SerialName("stock_name") val stockName: String,
     @SerialName("alarm_time") val alarmTime: String,
     @SerialName("days_of_week") val daysOfWeek: List<Int>,
 )

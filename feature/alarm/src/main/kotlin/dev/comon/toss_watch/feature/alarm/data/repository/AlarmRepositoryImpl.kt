@@ -46,6 +46,7 @@ class AlarmRepositoryImpl @Inject constructor(
 
     override suspend fun addAlarmProfile(
         stockCode: String,
+        stockName: String,
         hour: Int,
         minute: Int,
         daysOfWeek: List<Int>,
@@ -54,6 +55,7 @@ class AlarmRepositoryImpl @Inject constructor(
             alarmApi.createAlarmProfile(
                 AlarmProfileRequest(
                     stockCode = stockCode,
+                    stockName = stockName,
                     alarmTime = formatAlarmTime(hour, minute),
                     daysOfWeek = daysOfWeek,
                 ),

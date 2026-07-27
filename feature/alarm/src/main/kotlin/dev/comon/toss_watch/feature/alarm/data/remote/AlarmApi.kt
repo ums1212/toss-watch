@@ -16,7 +16,7 @@ interface AlarmApi {
     @GET("v1/toss-watch/notifications/")
     suspend fun getAlarmProfiles(): Response<List<AlarmProfileResponse>>
 
-    /** 새 알림 프로필 등록 (stock_code, alarm_time). */
+    /** 새 알림 프로필 등록 (stock_code, stock_name, alarm_time). */
     @POST("v1/toss-watch/notifications/")
     suspend fun createAlarmProfile(
         @Body body: AlarmProfileRequest,
