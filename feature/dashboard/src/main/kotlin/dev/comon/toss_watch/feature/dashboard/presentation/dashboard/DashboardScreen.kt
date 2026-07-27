@@ -29,8 +29,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -60,12 +64,19 @@ import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.P
  * @param onNavigateToSetting [DashboardUiSideEffect.NavigateToSetting] 수신 시 호출 — 상단 앱바의 설정 아이콘.
  * @param onNavigateToAlarmDetail [DashboardUiSideEffect.NavigateToAlarmDetail] 수신 시 호출 —
  *   보유종목 카드를 탭해 진입, 해당 종목의 알림 목록(AlarmDetailScreen)으로 이동한다.
+ * @param bottomContentPadding 이 화면 위에 겹쳐 떠 있는 플로팅 하단 네비게이션 바가 차지하는
+ *   높이 — 리스트 마지막 항목이 바에 가려지지 않도록 [LazyColumn]의 하단 contentPadding에 더한다.
+ * @param listNestedScrollConnection [BottomMenuScreen]이 리스트 스크롤 여부를 관찰해 플로팅
+ *   하단 바의 슬라이드 아웃/인을 제어하기 위해 전달하는 커넥션. `PullToRefreshBox`보다 반드시
+ *   [LazyColumn]에 더 가깝게(먼저) 붙어야 풀투리프레시 당김과 실제 스크롤을 구분할 수 있다.
  */
 @Composable
 fun DashboardScreen(
     onNavigateToSetting: () -> Unit,
     onNavigateToAlarmDetail: (stockCode: String, stockName: String) -> Unit,
     modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 0.dp,
+    listNestedScrollConnection: NestedScrollConnection = object : NestedScrollConnection {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -87,6 +98,8 @@ fun DashboardScreen(
         uiState = uiState,
         onIntent = viewModel::handleIntent,
         modifier = modifier,
+        bottomContentPadding = bottomContentPadding,
+        listNestedScrollConnection = listNestedScrollConnection,
     )
 }
 
@@ -96,6 +109,8 @@ private fun DashboardContent(
     uiState: DashboardUiState,
     onIntent: (DashboardUiIntent) -> Unit,
     modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 0.dp,
+    listNestedScrollConnection: NestedScrollConnection = object : NestedScrollConnection {},
 ) {
     var isAccountDialogVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -104,6 +119,8 @@ private fun DashboardContent(
         // 이 화면은 항상 BottomMenuScreen의 Scaffold(bottomBar) 안에 탭 콘텐츠로 호스팅된다 —
         // 시스템 하단 인셋은 그 바깥 Scaffold가 이미 처리하므로, 여기서 기본값(safeDrawing)을
         // 그대로 쓰면 같은 인셋이 두 번 반영되어 탭바와 콘텐츠 사이에 불필요한 여백이 생긴다.
+        // 플로팅 하단 바는 콘텐츠 위에 겹쳐 떠 있으므로(하드 클리핑 아님) 그 높이는
+        // bottomContentPadding으로 받아 LazyColumn의 contentPadding에 반영한다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
@@ -142,10 +159,17 @@ private fun DashboardContent(
                 val securities = uiState.portfolio?.securities.orEmpty()
 
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    // PullToRefreshBox의 자체 nestedScroll 커넥션보다 이 LazyColumn에 더 가깝게
+                    // 붙어야 풀투리프레시 당김(리스트가 못 움직여 consumed = 0)과 실제 스크롤을
+                    // 구분할 수 있다 — 자세한 설명은 BottomMenuScreen 문서 참고.
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(listNestedScrollConnection),
                     contentPadding = PaddingValues(
-                        horizontal = TossSpacing.containerMargin,
-                        vertical = TossSpacing.stackMd,
+                        start = TossSpacing.containerMargin,
+                        end = TossSpacing.containerMargin,
+                        top = TossSpacing.stackMd,
+                        bottom = TossSpacing.stackMd + bottomContentPadding,
                     ),
                     verticalArrangement = Arrangement.spacedBy(TossSpacing.stackMd),
                 ) {
