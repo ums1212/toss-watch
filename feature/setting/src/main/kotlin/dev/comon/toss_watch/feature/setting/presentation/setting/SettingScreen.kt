@@ -173,12 +173,10 @@ private fun TossKeySection(
 
         Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
-        OutlinedButton(
+        TossWatchButton(
+            text = "토스 API 키 재설정",
             onClick = { onIntent(SettingUiIntent.OnTossKeyClicked) },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(text = "토스 API 키 재설정")
-        }
+        )
     }
 }
 
