@@ -46,6 +46,7 @@ import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.presentation.component.AddAlarmDialog
 import dev.comon.toss_watch.feature.alarm.presentation.component.AlarmProfileItem
+import dev.comon.toss_watch.feature.alarm.presentation.component.formatDaysOfWeek
 
 /**
  * 종목별 알림 목록 — 등록/토글/삭제. 알림 추가는 하단 버튼으로만 진입한다.
@@ -213,7 +214,12 @@ private fun AlarmDetailContent(
         AlertDialog(
             onDismissRequest = { alarmPendingDelete = null },
             title = { Text(text = "알림 삭제") },
-            text = { Text(text = "'${target.stockName}' 알림을 삭제할까요?") },
+            text = {
+                Text(
+                    text = "'${formatDaysOfWeek(target.daysOfWeek)} " +
+                        "%02d:%02d".format(target.hour, target.minute) + "'\n알림을 삭제할까요?",
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {

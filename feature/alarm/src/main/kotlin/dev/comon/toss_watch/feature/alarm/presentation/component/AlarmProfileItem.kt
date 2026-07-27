@@ -36,15 +36,10 @@ fun AlarmProfileItem(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = alarm.stockName,
+                text = "${formatDaysOfWeek(alarm.daysOfWeek)} " +
+                    "%02d:%02d".format(alarm.hour, alarm.minute),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = "${alarm.stockCode} · ${formatDaysOfWeek(alarm.daysOfWeek)} " +
-                    "%02d:%02d".format(alarm.hour, alarm.minute),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (alarm.disabledReason.isNotBlank()) {
                 Text(
@@ -78,7 +73,7 @@ private val WEEKENDS = listOf(5, 6)
 private val EVERY_DAY = listOf(0, 1, 2, 3, 4, 5, 6)
 
 /** 알림 요일 리스트를 표시용 라벨로 변환한다 — 매일/평일/주말은 축약 표기, 그 외는 개별 나열. */
-private fun formatDaysOfWeek(daysOfWeek: List<Int>): String {
+internal fun formatDaysOfWeek(daysOfWeek: List<Int>): String {
     val sorted = daysOfWeek.sorted()
     return when (sorted) {
         EVERY_DAY -> "매일"
