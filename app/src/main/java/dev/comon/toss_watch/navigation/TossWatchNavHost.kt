@@ -1,5 +1,9 @@
 package dev.comon.toss_watch.navigation
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -8,7 +12,11 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +37,13 @@ import dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairScre
 import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
 
 private val SLIDE_OVERLAY_ANIMATION_SPEC = tween<IntOffset>(durationMillis = 300)
+
+/** [Context]를 감싸는 Wrapper 체인을 따라 올라가 실제 [Activity]를 찾는다. */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
 
 /**
  * 하위 화면 위에 겹쳐서 슬라이드 인/아웃하는 오버레이 전환 metadata.
@@ -98,6 +113,31 @@ fun TossWatchNavHost(
 
             SessionState.LOADING -> Unit
         }
+    }
+
+    // 백스택에 항목이 하나뿐인 최상단 화면(로그인/토스키 등록/메인 등 세션 상태별 루트)에서만 활성화 —
+    // 그 외(백스택에 화면이 더 쌓인 상태)에는 Navigator.goBack()의 pop이 그대로 처리한다.
+    var showExitDialog by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val topRoute = navigator.backStack.singleOrNull()
+    BackHandler(enabled = topRoute != null) {
+        if (topRoute == TossKeyRoute) {
+            // 토스키 등록은 로그인 완료를 전제로 한 온보딩 단계라, 뒤로가기는 앱 종료가 아니라
+            // 등록을 취소하고 로그인 화면으로 되돌아가는 것으로 처리한다.
+            navigator.setRoot(AuthRoute)
+        } else {
+            showExitDialog = true
+        }
+    }
+
+    if (showExitDialog) {
+        ExitAppDialog(
+            onConfirm = {
+                showExitDialog = false
+                context.findActivity()?.finish()
+            },
+            onDismiss = { showExitDialog = false },
+        )
     }
 
     // 세션 판별 전(LOADING)이거나, 판별은 끝났지만 위 LaunchedEffect가 아직
