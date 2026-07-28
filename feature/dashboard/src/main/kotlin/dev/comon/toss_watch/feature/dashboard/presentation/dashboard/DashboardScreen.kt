@@ -1,13 +1,18 @@
 package dev.comon.toss_watch.feature.dashboard.presentation.dashboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -31,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -44,6 +51,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.dashboard.R
 import dev.comon.toss_watch.feature.dashboard.domain.model.Account
 import dev.comon.toss_watch.feature.dashboard.domain.model.Currency
 import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
@@ -124,7 +132,25 @@ private fun DashboardContent(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text(text = "내 자산") },
+                title = {
+                    // 로고(25:28 원본 비율) + 타이틀 텍스트. 기본 TopAppBar 높이(64dp)를 넘지
+                    // 않도록 로고는 24dp 높이로, 텍스트는 titleLarge(22sp) 이하로 제한한다.
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.toss_watch_logo),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(24.dp)
+                                .aspectRatio(25f / 28f),
+                        )
+                        Spacer(modifier = Modifier.width(TossSpacing.stackSm))
+                        Text(
+                            text = stringResource(id = R.string.dashboard_top_bar_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            maxLines = 1,
+                        )
+                    }
+                },
                 actions = {
                     IconButton(
                         onClick = { isAccountDialogVisible = true },
