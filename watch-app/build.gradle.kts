@@ -28,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.comon.watch_app"
+        applicationId = "dev.comon.toss_watch"
         minSdk = 30
         targetSdk = 37
         versionCode = 1
