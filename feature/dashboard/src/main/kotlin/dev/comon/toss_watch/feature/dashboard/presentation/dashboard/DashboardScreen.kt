@@ -64,6 +64,9 @@ import dev.comon.toss_watch.feature.dashboard.presentation.DashboardViewModel
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.AccountSelectDialog
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.HoldingListItem
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioBubbleChart
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartFullScreenDialog
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartType
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartTypeSelector
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioSummaryCard
 
 /**
@@ -121,6 +124,8 @@ private fun DashboardContent(
     listNestedScrollConnection: NestedScrollConnection = object : NestedScrollConnection {},
 ) {
     var isAccountDialogVisible by rememberSaveable { mutableStateOf(false) }
+    var isChartDialogVisible by rememberSaveable { mutableStateOf(false) }
+    var chartType by rememberSaveable { mutableStateOf(PortfolioChartType.BUBBLE) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -177,13 +182,13 @@ private fun DashboardContent(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
+            val securities = uiState.portfolio?.securities.orEmpty()
+
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,
                 onRefresh = { onIntent(DashboardUiIntent.OnRefreshTriggered) },
                 modifier = Modifier.fillMaxSize(),
             ) {
-                val securities = uiState.portfolio?.securities.orEmpty()
-
                 LazyColumn(
                     // PullToRefreshBox의 자체 nestedScroll 커넥션보다 이 LazyColumn에 더 가깝게
                     // 붙어야 풀투리프레시 당김(리스트가 못 움직여 consumed = 0)과 실제 스크롤을
@@ -210,12 +215,22 @@ private fun DashboardContent(
                     }
 
                     item(key = "market_performance_header") {
-                        SectionHeader(title = "보유 종목")
+                        SectionHeader(title = "보유 종목") {
+                            if (securities.isNotEmpty()) {
+                                PortfolioChartTypeSelector(
+                                    selected = chartType,
+                                    onSelect = { chartType = it },
+                                )
+                            }
+                        }
                     }
 
                     if (securities.isNotEmpty()) {
                         item(key = "market_performance_chart") {
-                            PortfolioBubbleChart(holdings = securities)
+                            PortfolioBubbleChart(
+                                holdings = securities,
+                                onClick = { isChartDialogVisible = true },
+                            )
                         }
                     }
 
@@ -275,13 +290,24 @@ private fun DashboardContent(
                     onDismiss = { isAccountDialogVisible = false },
                 )
             }
+
+            if (isChartDialogVisible && securities.isNotEmpty()) {
+                PortfolioChartFullScreenDialog(
+                    holdings = securities,
+                    chartType = chartType,
+                    onDismiss = { isChartDialogVisible = false },
+                )
+            }
         }
     }
 }
 
-/** 섹션 제목. */
+/** 섹션 제목. [trailingContent]는 제목 오른쪽에 놓이는 선택적 액션 영역(예: 차트 종류 선택기). */
 @Composable
-private fun SectionHeader(title: String) {
+private fun SectionHeader(
+    title: String,
+    trailingContent: @Composable () -> Unit = {},
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -294,6 +320,7 @@ private fun SectionHeader(title: String) {
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
         )
+        trailingContent()
     }
 }
 

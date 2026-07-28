@@ -43,6 +43,9 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.core)
+    // 버블/트리맵 차트 전환용 아이콘(BubbleChart, GridView)이 core 세트에 없어 extended를 추가한다 —
+    // 참조하는 아이콘 외에는 R8이 릴리스 빌드에서 제거한다.
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.animation.core)
