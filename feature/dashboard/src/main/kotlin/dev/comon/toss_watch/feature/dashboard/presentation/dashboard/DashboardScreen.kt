@@ -63,7 +63,7 @@ import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiState
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardViewModel
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.AccountSelectDialog
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.HoldingListItem
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioBubbleChart
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartCard
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartFullScreenDialog
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartType
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartTypeSelector
@@ -227,8 +227,9 @@ private fun DashboardContent(
 
                     if (securities.isNotEmpty()) {
                         item(key = "market_performance_chart") {
-                            PortfolioBubbleChart(
+                            PortfolioChartCard(
                                 holdings = securities,
+                                chartType = chartType,
                                 onClick = { isChartDialogVisible = true },
                             )
                         }

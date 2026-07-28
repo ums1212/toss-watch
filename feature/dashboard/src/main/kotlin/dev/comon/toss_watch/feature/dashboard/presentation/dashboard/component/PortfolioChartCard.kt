@@ -16,15 +16,21 @@ import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
 
 /**
- * 보유 종목의 평가금액 비중을 원 크기로 보여주는 버블 차트 카드("Market Performance").
+ * 보유 종목의 평가금액 비중을 보여주는 차트 카드("Market Performance").
+ *
+ * [chartType]에 따라 버블/트리맵 캔버스를 전환해 그린다 — [DashboardScreen]의 "보유 종목"
+ * 섹션 헤더에 놓인 [PortfolioChartTypeSelector]가 이 값을 결정하며, 카드를 탭했을 때 열리는
+ * 전체화면 팝업([PortfolioChartFullScreenDialog])도 같은 [chartType]을 받아 미리보기와
+ * 항상 같은 차트 종류를 보여준다.
  *
  * 카드 전체가 탭 가능하며, 탭하면 [onClick]을 통해 더 많은 종목을 더 자세히 볼 수 있는
- * 전체화면 팝업([PortfolioChartFullScreenDialog])으로 확대하는 진입점 역할만 한다 —
- * 실제 그리기 로직은 [PortfolioBubbleChartCanvas]가 카드/전체화면 뷰 사이에서 공유된다.
+ * 전체화면 팝업으로 확대하는 진입점 역할만 한다 — 실제 그리기 로직은
+ * [PortfolioBubbleChartCanvas]/[PortfolioTreemapChartCanvas]가 카드/전체화면 뷰 사이에서 공유된다.
  */
 @Composable
-fun PortfolioBubbleChart(
+internal fun PortfolioChartCard(
     holdings: List<HoldingStock>,
+    chartType: PortfolioChartType,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -39,15 +45,24 @@ fun PortfolioBubbleChart(
         shape = MaterialTheme.shapes.large,
     ) {
         Column(modifier = Modifier.padding(TossSpacing.stackMd)) {
-            PortfolioBubbleChartCanvas(
-                holdings = holdings,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1.4f),
-            )
+            val canvasModifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.4f)
+
+            when (chartType) {
+                PortfolioChartType.BUBBLE -> PortfolioBubbleChartCanvas(
+                    holdings = holdings,
+                    modifier = canvasModifier,
+                )
+
+                PortfolioChartType.TREEMAP -> PortfolioTreemapChartCanvas(
+                    holdings = holdings,
+                    modifier = canvasModifier,
+                )
+            }
 
             Text(
-                text = "원 크기는 포트폴리오 내 평가금액 비중을 나타내요",
+                text = chartType.weightCaption,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = TossSpacing.stackSm),
@@ -58,10 +73,11 @@ fun PortfolioBubbleChart(
 
 @Preview(showBackground = true)
 @Composable
-private fun PortfolioBubbleChartPreview() {
+private fun PortfolioChartCardBubblePreview() {
     TossWatchTheme {
-        PortfolioBubbleChart(
+        PortfolioChartCard(
             holdings = sampleHoldings(),
+            chartType = PortfolioChartType.BUBBLE,
             onClick = {},
         )
     }
@@ -69,10 +85,23 @@ private fun PortfolioBubbleChartPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun PortfolioBubbleChartSingleHoldingPreview() {
+private fun PortfolioChartCardTreemapPreview() {
     TossWatchTheme {
-        PortfolioBubbleChart(
+        PortfolioChartCard(
+            holdings = sampleHoldings(),
+            chartType = PortfolioChartType.TREEMAP,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PortfolioChartCardSingleHoldingPreview() {
+    TossWatchTheme {
+        PortfolioChartCard(
             holdings = sampleSingleHolding(),
+            chartType = PortfolioChartType.BUBBLE,
             onClick = {},
         )
     }

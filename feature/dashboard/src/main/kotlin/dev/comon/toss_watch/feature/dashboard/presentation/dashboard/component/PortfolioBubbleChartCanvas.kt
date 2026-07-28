@@ -28,11 +28,14 @@ import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-/** 카드 안에 작게 표시할 때 가져갈 최대 버블 수. */
-internal const val CARD_MAX_BUBBLES = 7
+/** 카드 안에 작게 표시할 때 가져갈 최대 종목 수 — 버블/트리맵 캔버스가 공유한다. */
+internal const val CARD_MAX_CHART_ITEMS = 7
 
-/** 전체화면 팝업에서 표시할 최대 버블 수 — 더 넓은 캔버스라 더 많은 종목을 담을 수 있다. */
-internal const val EXPANDED_MAX_BUBBLES = 12
+/**
+ * 전체화면 팝업에서 표시할 최대 종목 수 — 더 넓은 캔버스라 더 많은 종목을 담을 수 있다.
+ * 버블/트리맵 캔버스가 공유한다.
+ */
+internal const val EXPANDED_MAX_CHART_ITEMS = 12
 
 private const val MIN_RADIUS = 0.16f
 private const val MAX_RADIUS = 0.42f
@@ -78,8 +81,8 @@ private data class Bubble(
  * 계좌에 KRW/USD 종목이 섞여 있으면 환율 환산 없이 평가금액을 그대로 합산해 비중을
  * 계산하므로 다소 왜곡될 수 있다. 대부분 계좌가 단일 통화라 실용상 허용한다.
  *
- * @param maxBubbles 상위 몇 종목까지 표시할지 — 카드에서는 [CARD_MAX_BUBBLES], 전체화면에서는
- *   [EXPANDED_MAX_BUBBLES]를 쓴다.
+ * @param maxBubbles 상위 몇 종목까지 표시할지 — 카드에서는 [CARD_MAX_CHART_ITEMS], 전체화면에서는
+ *   [EXPANDED_MAX_CHART_ITEMS]를 쓴다.
  * @param showWeightLabel true면 충분히 큰 버블에 티커/수익률 아래로 비중(%) 한 줄을 더 그린다 —
  *   전체화면처럼 캔버스가 넓어 정보 밀도를 더 가져갈 수 있을 때만 켠다.
  */
@@ -87,7 +90,7 @@ private data class Bubble(
 internal fun PortfolioBubbleChartCanvas(
     holdings: List<HoldingStock>,
     modifier: Modifier = Modifier,
-    maxBubbles: Int = CARD_MAX_BUBBLES,
+    maxBubbles: Int = CARD_MAX_CHART_ITEMS,
     showWeightLabel: Boolean = false,
 ) {
     if (holdings.isEmpty()) return

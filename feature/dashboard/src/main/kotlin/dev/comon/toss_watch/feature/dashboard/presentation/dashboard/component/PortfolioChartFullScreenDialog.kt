@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -32,7 +31,7 @@ import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
 /**
  * 보유 종목 비중 차트(버블/트리맵)를 전체화면으로 보여주는 팝업.
  *
- * [DashboardScreen]에서 [PortfolioBubbleChart] 카드를 탭하면 뜬다. 차트 종류 전환은 이 팝업이
+ * [DashboardScreen]에서 [PortfolioChartCard] 카드를 탭하면 뜬다. 차트 종류 전환은 이 팝업이
  * 아니라 대시보드의 "보유 종목" 섹션 헤더에 놓인 [PortfolioChartTypeSelector]가 담당하고,
  * 이 팝업은 [chartType]을 그대로 받아 보여주기만 한다 — 팝업을 열고 닫는 사이에도 선택된
  * 차트 종류가 유지되도록 상태를 [DashboardScreen] 쪽에 단일 소스로 둔 것이다.
@@ -113,32 +112,26 @@ private fun PortfolioChartFullScreenContent(
                 PortfolioChartType.BUBBLE -> PortfolioBubbleChartCanvas(
                     holdings = holdings,
                     modifier = Modifier.fillMaxSize(),
-                    maxBubbles = EXPANDED_MAX_BUBBLES,
+                    maxBubbles = EXPANDED_MAX_CHART_ITEMS,
                     showWeightLabel = true,
                 )
 
-                PortfolioChartType.TREEMAP -> ChartPlaceholder(text = "트리맵 차트는 준비 중이에요")
+                PortfolioChartType.TREEMAP -> PortfolioTreemapChartCanvas(
+                    holdings = holdings,
+                    modifier = Modifier.fillMaxSize(),
+                    maxItems = EXPANDED_MAX_CHART_ITEMS,
+                    showWeightLabel = true,
+                )
             }
         }
 
         Text(
-            text = "원 크기는 포트폴리오 내 평가금액 비중을 나타내요",
+            text = chartType.weightCaption,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = TossSpacing.stackMd),
         )
     }
-}
-
-@Composable
-private fun ChartPlaceholder(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = modifier,
-    )
 }
 
 @Preview(showBackground = true, heightDp = 700)
