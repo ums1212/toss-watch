@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -35,6 +36,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.tosskey.R
 import dev.comon.toss_watch.feature.tosskey.presentation.TossKeyUiIntent
 import dev.comon.toss_watch.feature.tosskey.presentation.TossKeyUiSideEffect
 import dev.comon.toss_watch.feature.tosskey.presentation.TossKeyUiState
@@ -88,12 +90,12 @@ private fun TossKeyContent(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "토스 API 키 등록") },
+                title = { Text(text = stringResource(id = R.string.tosskey_top_bar_title)) },
                 navigationIcon = {
                     IconButton(onClick = { onIntent(TossKeyUiIntent.OnBackClicked) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기",
+                            contentDescription = stringResource(id = R.string.tosskey_back_desc),
                         )
                     }
                 },
@@ -112,7 +114,7 @@ private fun TossKeyContent(
                 verticalArrangement = Arrangement.Top,
             ) {
                 Text(
-                    text = "토스증권 계좌 연동을 위해\n발급받은 Open API 키를 입력해 주세요.",
+                    text = stringResource(id = R.string.tosskey_description),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -122,8 +124,8 @@ private fun TossKeyContent(
                 OutlinedTextField(
                     value = uiState.clientId,
                     onValueChange = { onIntent(TossKeyUiIntent.OnClientIdChanged(it)) },
-                    label = { Text("클라이언트 ID") },
-                    supportingText = { Text("예: tsck_live_...") },
+                    label = { Text(stringResource(id = R.string.tosskey_client_id_label)) },
+                    supportingText = { Text(stringResource(id = R.string.tosskey_client_id_hint)) },
                     singleLine = true,
                     enabled = !uiState.isSaving,
                     modifier = Modifier.fillMaxWidth(),
@@ -134,8 +136,8 @@ private fun TossKeyContent(
                 OutlinedTextField(
                     value = uiState.clientSecret,
                     onValueChange = { onIntent(TossKeyUiIntent.OnClientSecretChanged(it)) },
-                    label = { Text("클라이언트 시크릿") },
-                    supportingText = { Text("예: tssk_live_...") },
+                    label = { Text(stringResource(id = R.string.tosskey_client_secret_label)) },
+                    supportingText = { Text(stringResource(id = R.string.tosskey_client_secret_hint)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     enabled = !uiState.isSaving,
@@ -145,7 +147,9 @@ private fun TossKeyContent(
                 Spacer(modifier = Modifier.height(TossSpacing.stackLg))
 
                 TossWatchButton(
-                    text = if (uiState.isSaving) "등록 중이에요…" else "토스 API 키 등록",
+                    text = stringResource(
+                        id = if (uiState.isSaving) R.string.tosskey_submit_saving else R.string.tosskey_submit_button,
+                    ),
                     onClick = { onIntent(TossKeyUiIntent.OnSubmit) },
                     enabled = !uiState.isSaving,
                 )
@@ -155,7 +159,7 @@ private fun TossKeyContent(
                 TossWatchErrorDialog(
                     message = message,
                     onDismiss = { onIntent(TossKeyUiIntent.OnErrorDismissed) },
-                    title = "등록에 실패했어요",
+                    title = stringResource(id = R.string.tosskey_error_dialog_title),
                 )
             }
         }

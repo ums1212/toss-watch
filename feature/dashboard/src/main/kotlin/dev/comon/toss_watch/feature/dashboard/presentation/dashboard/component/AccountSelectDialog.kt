@@ -16,9 +16,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.dashboard.R
 import dev.comon.toss_watch.feature.dashboard.domain.model.Account
 
 /** 계좌목록 팝업 — 계좌를 선택하면 [onSelect]를 발행하고 다이얼로그를 닫는다. */
@@ -35,7 +37,7 @@ fun AccountSelectDialog(
         modifier = modifier,
         title = {
             Text(
-                text = "계좌 선택",
+                text = stringResource(id = R.string.account_select_dialog_title),
                 style = MaterialTheme.typography.titleLarge,
             )
         },
@@ -43,7 +45,7 @@ fun AccountSelectDialog(
             Column {
                 if (accounts.isEmpty()) {
                     Text(
-                        text = "등록된 계좌가 없어요.",
+                        text = stringResource(id = R.string.account_select_dialog_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = TossSpacing.stackSm),
@@ -62,7 +64,7 @@ fun AccountSelectDialog(
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(
-                    text = "닫기",
+                    text = stringResource(id = R.string.account_select_dialog_close),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -105,7 +107,7 @@ private fun AccountRow(
         if (isSelected) {
             Icon(
                 imageVector = Icons.Filled.Check,
-                contentDescription = "선택된 계좌",
+                contentDescription = stringResource(id = R.string.account_select_dialog_selected_desc),
                 tint = MaterialTheme.colorScheme.inversePrimary,
             )
         }

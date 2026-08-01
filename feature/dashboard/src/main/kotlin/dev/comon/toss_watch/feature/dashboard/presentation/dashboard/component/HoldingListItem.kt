@@ -18,12 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.comon.toss_watch.core.designsystem.theme.TossNumericStyle
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.dashboard.R
 import dev.comon.toss_watch.feature.dashboard.domain.model.Currency
 import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
 
@@ -63,7 +65,7 @@ fun HoldingListItem(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = "${formatQuantity(holding.quantity)}주",
+                    text = stringResource(id = R.string.holding_quantity_format, formatQuantity(holding.quantity)),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -128,6 +130,7 @@ private fun formatQuantity(quantity: Double): String =
         "%.4f".format(quantity).trimEnd('0').trimEnd('.')
     }
 
+@Composable
 private fun Double.formatAmount(currency: Currency): String =
     when (currency) {
         Currency.KRW -> toKrw()

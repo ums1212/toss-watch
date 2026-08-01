@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -43,6 +44,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicato
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.core.model.CachedStock
+import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.presentation.component.AddAlarmDialog
 import dev.comon.toss_watch.feature.alarm.presentation.component.AlarmProfileItem
@@ -113,7 +115,7 @@ private fun AlarmDetailContent(
                     IconButton(onClick = onBackClicked) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기",
+                            contentDescription = stringResource(id = R.string.alarm_detail_back_desc),
                         )
                     }
                 },
@@ -128,7 +130,7 @@ private fun AlarmDetailContent(
                     .padding(TossSpacing.containerMargin),
             ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                Text(text = "알림 추가")
+                Text(text = stringResource(id = R.string.alarm_detail_add_button))
             }
         },
     ) { innerPadding ->
@@ -148,7 +150,7 @@ private fun AlarmDetailContent(
 
                 stockAlarms.isEmpty() -> {
                     Text(
-                        text = "등록된 알림이 없어요. 아래 버튼으로 추가해 보세요.",
+                        text = stringResource(id = R.string.alarm_detail_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -192,7 +194,7 @@ private fun AlarmDetailContent(
                 TossWatchErrorDialog(
                     message = message,
                     onDismiss = { onIntent(AlarmDetailUiIntent.OnErrorDismissed) },
-                    title = "설정을 저장하지 못했어요",
+                    title = stringResource(id = R.string.alarm_detail_error_dialog_title),
                 )
             }
         }
@@ -211,14 +213,13 @@ private fun AlarmDetailContent(
     }
 
     alarmPendingDelete?.let { target ->
+        val scheduleLabel = "${formatDaysOfWeek(target.daysOfWeek)} " +
+            "%02d:%02d".format(target.hour, target.minute)
         AlertDialog(
             onDismissRequest = { alarmPendingDelete = null },
-            title = { Text(text = "알림 삭제") },
+            title = { Text(text = stringResource(id = R.string.alarm_delete_dialog_title)) },
             text = {
-                Text(
-                    text = "'${formatDaysOfWeek(target.daysOfWeek)} " +
-                        "%02d:%02d".format(target.hour, target.minute) + "'\n알림을 삭제할까요?",
-                )
+                Text(text = stringResource(id = R.string.alarm_delete_dialog_message, scheduleLabel))
             },
             confirmButton = {
                 TextButton(
@@ -227,12 +228,12 @@ private fun AlarmDetailContent(
                         alarmPendingDelete = null
                     },
                 ) {
-                    Text(text = "삭제")
+                    Text(text = stringResource(id = R.string.alarm_delete_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { alarmPendingDelete = null }) {
-                    Text(text = "취소")
+                    Text(text = stringResource(id = R.string.alarm_delete_cancel))
                 }
             },
         )

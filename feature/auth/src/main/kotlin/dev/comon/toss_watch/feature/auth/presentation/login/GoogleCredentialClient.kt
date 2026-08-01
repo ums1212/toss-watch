@@ -11,6 +11,7 @@ import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import dev.comon.toss_watch.feature.auth.R
 
 /** Credential Manager 요청의 3가지 종결 상태. */
 sealed interface GoogleCredentialResult {
@@ -53,16 +54,16 @@ class GoogleCredentialClient(private val activityContext: Context) {
                 val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
                 GoogleCredentialResult.Success(idToken)
             } else {
-                GoogleCredentialResult.Failure("지원하지 않는 자격 증명 유형이에요.")
+                GoogleCredentialResult.Failure(activityContext.getString(R.string.auth_error_unsupported_credential))
             }
         } catch (e: GetCredentialCancellationException) {
             GoogleCredentialResult.Cancelled
         } catch (e: NoCredentialException) {
             Log.e(TAG, "NoCredentialException: type=${e.type}, message=${e.message}", e)
-            GoogleCredentialResult.Failure("기기에서 사용할 수 있는 구글 계정이 없어요.")
+            GoogleCredentialResult.Failure(activityContext.getString(R.string.auth_error_no_google_account))
         } catch (e: GoogleIdTokenParsingException) {
             Log.e(TAG, "GoogleIdTokenParsingException: ${e.message}", e)
-            GoogleCredentialResult.Failure("구글 응답을 해석하지 못했어요.")
+            GoogleCredentialResult.Failure(activityContext.getString(R.string.auth_error_credential_parsing))
         } catch (e: GetCredentialException) {
             Log.e(TAG, "GetCredentialException: type=${e.type}, message=${e.message}", e)
             GoogleCredentialResult.Failure(e.message)

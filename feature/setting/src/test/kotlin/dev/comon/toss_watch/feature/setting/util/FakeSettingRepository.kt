@@ -11,6 +11,7 @@ class FakeSettingRepository : SettingRepository {
 
     var tokenResult: NetworkResult<Unit> = NetworkResult.Success(Unit)
     val pairedWatch: MutableStateFlow<PairedWatchInfo?> = MutableStateFlow(null)
+    val guestMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     /** [syncPairedWatch] 호출 결과. 성공 시 [syncedWatch] 값을 [pairedWatch]에 반영한다(서버 복원 시나리오 검증용). */
     var syncResult: NetworkResult<Unit> = NetworkResult.Success(Unit)
@@ -65,7 +66,10 @@ class FakeSettingRepository : SettingRepository {
 
     override fun logout() {
         logoutInvocationCount++
+        guestMode.value = false
     }
+
+    override fun observeGuestMode(): Flow<Boolean> = guestMode
 
     fun release() {
         gate.complete(Unit)

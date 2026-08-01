@@ -20,12 +20,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.dashboard.R
 import dev.comon.toss_watch.feature.dashboard.domain.model.HoldingStock
 
 /**
@@ -88,7 +90,7 @@ private fun PortfolioChartFullScreenContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "보유 종목 비중",
+                text = stringResource(id = R.string.chart_fullscreen_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
@@ -96,7 +98,7 @@ private fun PortfolioChartFullScreenContent(
             IconButton(onClick = onDismiss) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "닫기",
+                    contentDescription = stringResource(id = R.string.chart_fullscreen_close_desc),
                 )
             }
         }
@@ -126,7 +128,7 @@ private fun PortfolioChartFullScreenContent(
         }
 
         Text(
-            text = chartType.weightCaption,
+            text = stringResource(id = chartType.captionRes),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = TossSpacing.stackMd),

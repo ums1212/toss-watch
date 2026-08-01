@@ -1,5 +1,6 @@
 package dev.comon.toss_watch.feature.auth.data
 
+import dev.comon.toss_watch.core.datastore.GuestModeStore
 import dev.comon.toss_watch.core.datastore.TokenStore
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.auth.data.remote.AuthApi
@@ -19,12 +20,14 @@ import retrofit2.Response
 class AuthRepositoryImplTest {
 
     private val fakeTokenStore = FakeTokenStore()
+    private val fakeGuestModeStore = FakeGuestModeStore()
 
     @Test
     fun `로그인 성공 시 UserSession으로 매핑되고 토큰이 저장소에 커밋된다`() = runTest {
         val repository = AuthRepositoryImpl(
             authApi = FakeAuthApi { Response.success(SUCCESS_RESPONSE) },
             tokenStore = fakeTokenStore,
+            guestModeStore = fakeGuestModeStore,
         )
 
         val result = repository.loginWithGoogle("id-token")
@@ -49,6 +52,7 @@ class AuthRepositoryImplTest {
                 )
             },
             tokenStore = fakeTokenStore,
+            guestModeStore = fakeGuestModeStore,
         )
 
         val result = repository.loginWithGoogle("id-token")
@@ -63,12 +67,26 @@ class AuthRepositoryImplTest {
         val repository = AuthRepositoryImpl(
             authApi = FakeAuthApi { throw IOException("no route to host") },
             tokenStore = fakeTokenStore,
+            guestModeStore = fakeGuestModeStore,
         )
 
         val result = repository.loginWithGoogle("id-token")
 
         assertTrue(result is NetworkResult.NetworkError)
         assertNull(fakeTokenStore.getAccessToken())
+    }
+
+    @Test
+    fun `enterGuestMode는 GuestModeStore로 그대로 위임된다`() = runTest {
+        val repository = AuthRepositoryImpl(
+            authApi = FakeAuthApi { Response.success(SUCCESS_RESPONSE) },
+            tokenStore = fakeTokenStore,
+            guestModeStore = fakeGuestModeStore,
+        )
+
+        repository.enterGuestMode()
+
+        assertTrue(fakeGuestModeStore.isGuestMode())
     }
 
     private class FakeAuthApi(
@@ -124,6 +142,28 @@ class AuthRepositoryImplTest {
             accessToken = null
             refreshToken = null
             tossKeyRegistered = false
+        }
+    }
+
+    private class FakeGuestModeStore : GuestModeStore {
+        private var guestMode = false
+        private var sessionCounter = 0L
+
+        override fun observeGuestMode(): kotlinx.coroutines.flow.Flow<Boolean> =
+            kotlinx.coroutines.flow.flowOf(guestMode)
+
+        override fun isGuestMode(): Boolean = guestMode
+
+        override val guestSessionId: Long
+            get() = sessionCounter
+
+        override fun enterGuestMode() {
+            sessionCounter++
+            guestMode = true
+        }
+
+        override fun exitGuestMode() {
+            guestMode = false
         }
     }
 

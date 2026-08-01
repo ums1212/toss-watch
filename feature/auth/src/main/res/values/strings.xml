@@ -1,0 +1,18 @@
+<resources>
+    <string name="auth_login_tagline">Stock alerts on your wrist.\nStart instantly with your Google account.</string>
+    <string name="auth_google_sign_in">Sign in with Google</string>
+    <string name="auth_guest_login">Continue as guest</string>
+    <string name="auth_guest_login_caption">Try the app with sample data — no real account required.</string>
+    <string name="auth_loading_message">Signing in…</string>
+    <string name="auth_error_dialog_title">Sign-in failed</string>
+    <string name="auth_footer_terms">Terms of Service</string>
+    <string name="auth_footer_privacy">Privacy Policy</string>
+    <string name="auth_footer_copyright">© 2026 toss-watch. All rights reserved.</string>
+
+    <string name="auth_error_credential">We couldn\'t retrieve your Google account info. Please try again.</string>
+    <string name="auth_error_unsupported_credential">Unsupported credential type.</string>
+    <string name="auth_error_no_google_account">No Google account is available on this device.</string>
+    <string name="auth_error_credential_parsing">Couldn\'t read the response from Google.</string>
+    <string name="auth_error_api">Sign-in failed. Please try again in a moment.</string>
+    <string name="auth_error_network">Please check your network connection and try again.</string>
+</resources>

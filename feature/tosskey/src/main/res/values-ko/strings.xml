@@ -1,0 +1,17 @@
+<resources>
+    <string name="tosskey_top_bar_title">토스 API 키 등록</string>
+    <string name="tosskey_back_desc">뒤로가기</string>
+    <string name="tosskey_description">토스증권 계좌 연동을 위해\n발급받은 Open API 키를 입력해 주세요.</string>
+    <string name="tosskey_client_id_label">클라이언트 ID</string>
+    <string name="tosskey_client_id_hint">예: tsck_live_...</string>
+    <string name="tosskey_client_secret_label">클라이언트 시크릿</string>
+    <string name="tosskey_client_secret_hint">예: tssk_live_...</string>
+    <string name="tosskey_submit_saving">등록 중이에요…</string>
+    <string name="tosskey_submit_button">토스 API 키 등록</string>
+    <string name="tosskey_error_dialog_title">등록에 실패했어요</string>
+
+    <string name="tosskey_error_api">토스 API 키를 등록하지 못했어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="tosskey_error_network">네트워크 연결을 확인한 뒤 다시 시도해 주세요.</string>
+    <string name="tosskey_error_empty_field">클라이언트 ID와 시크릿을 모두 입력해 주세요.</string>
+    <string name="tosskey_toast_registered">토스 API 키가 등록되었어요.</string>
+</resources>

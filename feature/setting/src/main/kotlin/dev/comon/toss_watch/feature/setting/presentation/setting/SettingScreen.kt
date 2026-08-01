@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -42,6 +43,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
+import dev.comon.toss_watch.feature.setting.R
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiIntent
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiSideEffect
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiState
@@ -95,12 +97,12 @@ private fun SettingContent(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "설정") },
+                title = { Text(text = stringResource(id = R.string.setting_top_bar_title)) },
                 navigationIcon = {
                     IconButton(onClick = { onIntent(SettingUiIntent.OnBackClicked) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기",
+                            contentDescription = stringResource(id = R.string.setting_back_desc),
                         )
                     }
                 },
@@ -129,7 +131,10 @@ private fun SettingContent(
                 }
 
                 item(key = "logout_section") {
-                    LogoutSection(onLogoutClicked = { showLogoutDialog = true })
+                    LogoutSection(
+                        isGuest = uiState.isGuest,
+                        onLogoutClicked = { showLogoutDialog = true },
+                    )
                 }
             }
         }
@@ -138,8 +143,20 @@ private fun SettingContent(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text(text = "로그아웃") },
-            text = { Text(text = "로그아웃하시겠습니까?") },
+            title = {
+                Text(
+                    text = stringResource(
+                        id = if (uiState.isGuest) R.string.setting_login_dialog_title else R.string.setting_logout_dialog_title,
+                    ),
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(
+                        id = if (uiState.isGuest) R.string.setting_login_dialog_message else R.string.setting_logout_dialog_message,
+                    ),
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -147,12 +164,12 @@ private fun SettingContent(
                         onIntent(SettingUiIntent.OnLogoutClicked)
                     },
                 ) {
-                    Text(text = "예")
+                    Text(text = stringResource(id = R.string.setting_dialog_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text(text = "아니오")
+                    Text(text = stringResource(id = R.string.setting_dialog_dismiss))
                 }
             },
         )
@@ -166,7 +183,7 @@ private fun TossKeySection(
 ) {
     Column(modifier = modifier) {
         Text(
-            text = "토스 연동",
+            text = stringResource(id = R.string.setting_toss_section_title),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -174,7 +191,7 @@ private fun TossKeySection(
         Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
         TossWatchButton(
-            text = "토스 API 키 재설정",
+            text = stringResource(id = R.string.setting_toss_key_reset_button),
             onClick = { onIntent(SettingUiIntent.OnTossKeyClicked) },
         )
     }
@@ -188,7 +205,7 @@ private fun WatchTokenSection(
 ) {
     Column(modifier = modifier.padding(top = TossSpacing.sectionPadding)) {
         Text(
-            text = "Wear OS 연동",
+            text = stringResource(id = R.string.setting_watch_section_title),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -197,18 +214,21 @@ private fun WatchTokenSection(
 
         if (pairedWatch != null) {
             Text(
-                text = "연동된 워치: ${pairedWatch.modelName ?: "이름 미확인 워치"}",
+                text = stringResource(
+                    id = R.string.setting_watch_paired_format,
+                    pairedWatch.modelName ?: stringResource(id = R.string.setting_watch_unknown_model),
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "UUID: ${pairedWatch.uuid}",
+                text = stringResource(id = R.string.setting_watch_uuid_format, pairedWatch.uuid),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
             Text(
-                text = "워치 앱 페어링 화면에 표시된 QR 코드를 스캔해 연동해요.",
+                text = stringResource(id = R.string.setting_watch_unpaired_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -217,27 +237,39 @@ private fun WatchTokenSection(
         Spacer(modifier = Modifier.height(TossSpacing.stackMd))
 
         TossWatchButton(
-            text = if (pairedWatch != null) "재연동" else "QR로 워치 연동",
+            text = stringResource(
+                id = if (pairedWatch != null) R.string.setting_watch_repair_button else R.string.setting_watch_pair_button,
+            ),
             onClick = { onIntent(SettingUiIntent.OnPairWatchClicked) },
         )
     }
 }
 
+/**
+ * 로그아웃/게스트 로그인 전환 버튼.
+ *
+ * @param isGuest true면 게스트(더미 데이터 체험) 모드 — 위험을 뜻하는 error 색상 대신
+ *   primary 색상으로 "로그인하기"를 노출한다. 실 로그인 상태에서는 기존 로그아웃 그대로.
+ */
 @Composable
 private fun LogoutSection(
+    isGuest: Boolean,
     onLogoutClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.padding(top = TossSpacing.sectionPadding)) {
+        val color = if (isGuest) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
         OutlinedButton(
             onClick = onLogoutClicked,
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.error,
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
+            border = BorderStroke(1.dp, color),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(text = "로그아웃")
+            Text(
+                text = stringResource(
+                    id = if (isGuest) R.string.setting_login_button else R.string.setting_logout_button,
+                ),
+            )
         }
     }
 }
@@ -248,6 +280,17 @@ private fun SettingContentPreview() {
     TossWatchTheme {
         SettingContent(
             uiState = SettingUiState(),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingContentGuestPreview() {
+    TossWatchTheme {
+        SettingContent(
+            uiState = SettingUiState(isGuest = true),
             onIntent = {},
         )
     }

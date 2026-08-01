@@ -4,7 +4,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
+import dev.comon.toss_watch.core.common.resources.StringProvider
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.tosskey.R
 import dev.comon.toss_watch.feature.tosskey.domain.usecase.RegisterTossKeyUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -12,6 +14,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class TossKeyViewModel @Inject constructor(
     private val registerTossKeyUseCase: RegisterTossKeyUseCase,
+    private val stringProvider: StringProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<TossKeyUiState, TossKeyUiIntent, TossKeyUiSideEffect>(TossKeyUiState()) {
 
@@ -40,7 +43,7 @@ class TossKeyViewModel @Inject constructor(
         val clientId = uiState.value.clientId.trim()
         val clientSecret = uiState.value.clientSecret.trim()
         if (clientId.isEmpty() || clientSecret.isEmpty()) {
-            updateState { copy(errorMessage = ERROR_EMPTY_FIELD) }
+            updateState { copy(errorMessage = stringProvider.getString(R.string.tosskey_error_empty_field)) }
             return
         }
         if (uiState.value.isSaving) return
@@ -51,7 +54,9 @@ class TossKeyViewModel @Inject constructor(
             when (val result = registerTossKeyUseCase(clientId, clientSecret)) {
                 is NetworkResult.Success -> {
                     updateState { copy(isSaving = false) }
-                    sendSideEffect(TossKeyUiSideEffect.ShowToast(TOAST_REGISTERED))
+                    sendSideEffect(
+                        TossKeyUiSideEffect.ShowToast(stringProvider.getString(R.string.tosskey_toast_registered)),
+                    )
                     sendSideEffect(TossKeyUiSideEffect.NavigateBack)
                 }
 
@@ -64,14 +69,7 @@ class TossKeyViewModel @Inject constructor(
 
     private fun NetworkResult<*>.toErrorMessage(): String? = when (this) {
         is NetworkResult.Success -> null
-        is NetworkResult.ApiError -> message ?: DEFAULT_API_ERROR
-        is NetworkResult.NetworkError -> DEFAULT_NETWORK_ERROR
-    }
-
-    companion object {
-        const val DEFAULT_API_ERROR = "토스 API 키를 등록하지 못했어요. 잠시 후 다시 시도해 주세요."
-        const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
-        const val ERROR_EMPTY_FIELD = "클라이언트 ID와 시크릿을 모두 입력해 주세요."
-        const val TOAST_REGISTERED = "토스 API 키가 등록되었어요."
+        is NetworkResult.ApiError -> message ?: stringProvider.getString(R.string.tosskey_error_api)
+        is NetworkResult.NetworkError -> stringProvider.getString(R.string.tosskey_error_network)
     }
 }

@@ -1,5 +1,6 @@
 package dev.comon.toss_watch.feature.auth.data.repository
 
+import dev.comon.toss_watch.core.datastore.GuestModeStore
 import dev.comon.toss_watch.core.datastore.TokenStore
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.map
@@ -17,6 +18,7 @@ import javax.inject.Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val tokenStore: TokenStore,
+    private val guestModeStore: GuestModeStore,
 ) : AuthRepository {
 
     override suspend fun loginWithGoogle(idToken: String): NetworkResult<UserSession> =
@@ -34,4 +36,6 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             }
             .map { it.toUserSession() }
+
+    override fun enterGuestMode() = guestModeStore.enterGuestMode()
 }

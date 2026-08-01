@@ -6,7 +6,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import dev.comon.toss_watch.core.designsystem.R
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 
 /**
@@ -19,8 +21,8 @@ fun TossWatchErrorDialog(
     message: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    title: String = "문제가 발생했어요",
-    confirmText: String = "확인",
+    title: String = stringResource(id = R.string.error_dialog_default_title),
+    confirmText: String = stringResource(id = R.string.error_dialog_confirm),
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,

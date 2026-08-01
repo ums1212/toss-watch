@@ -1,8 +1,11 @@
 package dev.comon.toss_watch.feature.auth.presentation
 
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.auth.R
+import dev.comon.toss_watch.feature.auth.domain.usecase.EnterGuestModeUseCase
 import dev.comon.toss_watch.feature.auth.domain.usecase.LoginWithGoogleUseCase
 import dev.comon.toss_watch.feature.auth.util.FakeAuthRepository
+import dev.comon.toss_watch.feature.auth.util.FakeStringProvider
 import dev.comon.toss_watch.feature.auth.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.auth.util.TestDispatcherProvider
 import java.io.IOException
@@ -28,10 +31,13 @@ class AuthViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val fakeRepository = FakeAuthRepository()
+    private val fakeStringProvider = FakeStringProvider()
 
     private fun createViewModel(): AuthViewModel =
         AuthViewModel(
             loginWithGoogleUseCase = LoginWithGoogleUseCase(fakeRepository),
+            enterGuestModeUseCase = EnterGuestModeUseCase(fakeRepository),
+            stringProvider = fakeStringProvider,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -127,7 +133,10 @@ class AuthViewModelTest {
             viewModel.handleIntent(AuthUiIntent.OnGoogleLoginClicked(ID_TOKEN))
             advanceUntilIdle()
 
-            assertEquals(AuthViewModel.DEFAULT_API_ERROR, viewModel.uiState.value.errorMessage)
+            assertEquals(
+                fakeStringProvider.getString(R.string.auth_error_api),
+                viewModel.uiState.value.errorMessage,
+            )
         }
 
     @Test
@@ -142,7 +151,7 @@ class AuthViewModelTest {
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
             assertFalse(state.isLoggedIn)
-            assertEquals(AuthViewModel.DEFAULT_NETWORK_ERROR, state.errorMessage)
+            assertEquals(fakeStringProvider.getString(R.string.auth_error_network), state.errorMessage)
         }
 
     @Test
@@ -170,10 +179,30 @@ class AuthViewModelTest {
             runCurrent()
 
             assertEquals(
-                AuthViewModel.DEFAULT_CREDENTIAL_ERROR,
+                fakeStringProvider.getString(R.string.auth_error_credential),
                 viewModel.uiState.value.errorMessage,
             )
             assertEquals(0, fakeRepository.invocationCount)
+        }
+
+    @Test
+    fun `게스트로 둘러보기 Intent 처리 시 게스트모드 UseCase가 호출되고 로딩 로그인 상태로 전환된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            val effects = collectSideEffects(viewModel)
+
+            viewModel.handleIntent(AuthUiIntent.OnGuestLoginClicked)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            // 실 로그인과 동일하게 네비게이션은 :app의 MainViewModel.sessionState(GUEST)가
+            // 트리거하므로, 이 ViewModel은 화면 전환이 반영될 때까지 로딩 오버레이를 유지한다.
+            assertTrue(state.isLoading)
+            assertTrue(state.isLoggedIn)
+            assertNull(state.errorMessage)
+            assertEquals(1, fakeRepository.enterGuestModeInvocationCount)
+            assertEquals(0, fakeRepository.invocationCount)
+            assertTrue(effects.isEmpty())
         }
 
     companion object {

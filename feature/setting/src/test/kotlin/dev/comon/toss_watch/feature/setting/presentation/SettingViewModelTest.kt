@@ -2,6 +2,7 @@ package dev.comon.toss_watch.feature.setting.presentation
 
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.usecase.LogoutUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.ObserveGuestModeUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.util.FakeSettingRepository
@@ -16,6 +17,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,6 +33,7 @@ class SettingViewModelTest {
         SettingViewModel(
             observePairedWatchUseCase = ObservePairedWatchUseCase(fakeRepository),
             syncPairedWatchUseCase = SyncPairedWatchUseCase(fakeRepository),
+            observeGuestModeUseCase = ObserveGuestModeUseCase(fakeRepository),
             logoutUseCase = LogoutUseCase(fakeRepository),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
@@ -111,6 +114,30 @@ class SettingViewModelTest {
     @Test
     fun `OnLogoutClicked는 저장소의 logout을 호출한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(SettingUiIntent.OnLogoutClicked)
+            advanceUntilIdle()
+
+            assertEquals(1, fakeRepository.logoutInvocationCount)
+        }
+
+    @Test
+    fun `게스트 모드 스트림이 uiState isGuest에 반영된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.guestMode.value = true
+
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.isGuest)
+        }
+
+    @Test
+    fun `게스트 모드에서도 OnLogoutClicked는 동일하게 저장소의 logout을 호출한다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.guestMode.value = true
             val viewModel = createViewModel()
             advanceUntilIdle()
 

@@ -4,4 +4,11 @@
     <string name="splash_title">toss-watch</string>
     <string name="splash_subtitle">HIGH VELOCITY INTELLIGENCE</string>
     <string name="splash_tagline">Precise. Trusted. Fast.</string>
+
+    <string name="exit_dialog_title">Exit the app?</string>
+    <string name="exit_dialog_confirm">Exit</string>
+    <string name="exit_dialog_cancel">Cancel</string>
+
+    <string name="bottom_nav_dashboard">Dashboard</string>
+    <string name="bottom_nav_alarm">Alerts</string>
 </resources>

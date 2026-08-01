@@ -1,0 +1,38 @@
+<resources>
+    <string name="setting_top_bar_title">Settings</string>
+    <string name="setting_back_desc">Back</string>
+    <string name="setting_logout_dialog_title">Log out</string>
+    <string name="setting_login_dialog_title">Log in</string>
+    <string name="setting_logout_dialog_message">Log out of your account?</string>
+    <string name="setting_login_dialog_message">Go to the login screen? Alerts added during guest preview will be lost.</string>
+    <string name="setting_dialog_confirm">Yes</string>
+    <string name="setting_dialog_dismiss">No</string>
+
+    <string name="setting_toss_section_title">Toss integration</string>
+    <string name="setting_toss_key_reset_button">Reset Toss API key</string>
+
+    <string name="setting_watch_section_title">Wear OS pairing</string>
+    <string name="setting_watch_paired_format">Paired watch: %1$s</string>
+    <string name="setting_watch_unknown_model">Unknown watch</string>
+    <string name="setting_watch_uuid_format">UUID: %1$s</string>
+    <string name="setting_watch_unpaired_hint">Scan the QR code shown on the watch pairing screen to connect.</string>
+    <string name="setting_watch_repair_button">Re-pair</string>
+    <string name="setting_watch_pair_button">Pair via QR code</string>
+
+    <string name="setting_logout_button">Log out</string>
+    <string name="setting_login_button">Log in</string>
+
+    <string name="watchpair_top_bar_title">Scan watch QR code</string>
+    <string name="watchpair_back_desc">Back</string>
+    <string name="watchpair_scan_hint">Point your camera at the QR code on your watch.</string>
+    <string name="watchpair_registering">Pairing your watch…</string>
+    <string name="watchpair_permission_denied_permanent">Camera access is denied.\nPlease enable it in app settings.</string>
+    <string name="watchpair_permission_needed">Camera access is required\nto scan the QR code.</string>
+    <string name="watchpair_open_settings_button">Open app settings</string>
+    <string name="watchpair_grant_permission_button">Grant camera access</string>
+    <string name="watchpair_error_dialog_title">Couldn\'t pair your watch</string>
+    <string name="watchpair_error_api">Couldn\'t pair your watch. Please try again in a moment.</string>
+    <string name="watchpair_error_network">Please check your network connection and try again.</string>
+    <string name="watchpair_error_invalid_qr">Couldn\'t recognize the QR code. Please scan the code on your watch again.</string>
+    <string name="watchpair_toast_registered">Your watch has been registered for alerts.</string>
+</resources>

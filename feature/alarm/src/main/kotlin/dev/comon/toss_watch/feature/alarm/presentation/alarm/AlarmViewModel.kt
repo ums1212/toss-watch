@@ -4,7 +4,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
+import dev.comon.toss_watch.core.common.resources.StringProvider
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ObserveAlarmProfilesUseCase
@@ -15,6 +17,7 @@ import kotlinx.coroutines.launch
 class AlarmViewModel @Inject constructor(
     private val fetchAlarmProfilesUseCase: FetchAlarmProfilesUseCase,
     private val observeAlarmProfilesUseCase: ObserveAlarmProfilesUseCase,
+    private val stringProvider: StringProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<AlarmUiState, AlarmUiIntent, AlarmUiSideEffect>(AlarmUiState()) {
 
@@ -68,12 +71,7 @@ class AlarmViewModel @Inject constructor(
 
     private fun NetworkResult<*>.toErrorMessage(): String? = when (this) {
         is NetworkResult.Success -> null
-        is NetworkResult.ApiError -> message ?: DEFAULT_API_ERROR
-        is NetworkResult.NetworkError -> DEFAULT_NETWORK_ERROR
-    }
-
-    companion object {
-        const val DEFAULT_API_ERROR = "알림 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
-        const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
+        is NetworkResult.ApiError -> message ?: stringProvider.getString(R.string.alarm_error_api)
+        is NetworkResult.NetworkError -> stringProvider.getString(R.string.alarm_error_network)
     }
 }

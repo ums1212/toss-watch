@@ -4,7 +4,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
+import dev.comon.toss_watch.core.common.resources.StringProvider
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.auth.R
+import dev.comon.toss_watch.feature.auth.domain.usecase.EnterGuestModeUseCase
 import dev.comon.toss_watch.feature.auth.domain.usecase.LoginWithGoogleUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -12,6 +15,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
+    private val enterGuestModeUseCase: EnterGuestModeUseCase,
+    private val stringProvider: StringProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<AuthUiState, AuthUiIntent, AuthUiSideEffect>(AuthUiState()) {
 
@@ -20,12 +25,30 @@ class AuthViewModel @Inject constructor(
             is AuthUiIntent.OnGoogleLoginClicked -> loginWithGoogle(intent.idToken)
 
             is AuthUiIntent.OnGoogleCredentialFailed -> updateState {
-                copy(errorMessage = intent.message ?: DEFAULT_CREDENTIAL_ERROR)
+                copy(errorMessage = intent.message ?: stringProvider.getString(R.string.auth_error_credential))
             }
+
+            AuthUiIntent.OnGuestLoginClicked -> enterGuestMode()
 
             AuthUiIntent.OnAuthErrorDismissed -> updateState {
                 copy(errorMessage = null)
             }
+        }
+    }
+
+    /**
+     * 실 로그인과 동일하게 isLoading을 true로 유지한 채 반환한다 — 게스트 진입도 :app의
+     * MainViewModel.sessionState(GUEST)가 감지해 루트를 교체하는 단일 소스 오브 트루스를
+     * 그대로 따르므로, 여기서 직접 네비게이션하지 않고 전환이 반영될 때까지 로딩 오버레이로
+     * 로그인 화면 재노출을 막는다.
+     */
+    private fun enterGuestMode() {
+        if (uiState.value.isLoading) return
+
+        viewModelScope.launch(dispatcherProvider.io) {
+            updateState { copy(isLoading = true, errorMessage = null) }
+            enterGuestModeUseCase()
+            updateState { copy(isLoggedIn = true) }
         }
     }
 
@@ -48,20 +71,14 @@ class AuthViewModel @Inject constructor(
                 is NetworkResult.ApiError -> updateState {
                     copy(
                         isLoading = false,
-                        errorMessage = result.message ?: DEFAULT_API_ERROR,
+                        errorMessage = result.message ?: stringProvider.getString(R.string.auth_error_api),
                     )
                 }
 
                 is NetworkResult.NetworkError -> updateState {
-                    copy(isLoading = false, errorMessage = DEFAULT_NETWORK_ERROR)
+                    copy(isLoading = false, errorMessage = stringProvider.getString(R.string.auth_error_network))
                 }
             }
         }
-    }
-
-    companion object {
-        const val DEFAULT_CREDENTIAL_ERROR = "구글 계정 정보를 가져오지 못했어요. 다시 시도해 주세요."
-        const val DEFAULT_API_ERROR = "로그인에 실패했어요. 잠시 후 다시 시도해 주세요."
-        const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
     }
 }

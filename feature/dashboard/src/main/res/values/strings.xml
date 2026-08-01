@@ -1,3 +1,32 @@
 <resources>
     <string name="dashboard_top_bar_title">toss-watch</string>
+
+    <string name="dashboard_account_list_desc">Account list</string>
+    <string name="dashboard_setting_desc">Settings</string>
+    <string name="dashboard_section_holdings">Holdings</string>
+    <string name="dashboard_holdings_empty">You don\'t have any holdings yet.</string>
+    <string name="dashboard_loading_message">Loading your portfolio…</string>
+    <string name="dashboard_error_dialog_title">Couldn\'t load data</string>
+    <string name="dashboard_error_api">Couldn\'t load your dashboard. Please try again in a moment.</string>
+    <string name="dashboard_error_network">Please check your network connection and try again.</string>
+
+    <string name="account_select_dialog_title">Select account</string>
+    <string name="account_select_dialog_empty">You don\'t have any accounts yet.</string>
+    <string name="account_select_dialog_close">Close</string>
+    <string name="account_select_dialog_selected_desc">Selected account</string>
+
+    <string name="chart_type_bubble">Bubble</string>
+    <string name="chart_type_treemap">Treemap</string>
+    <string name="chart_weight_caption_bubble">Circle size reflects each holding\'s share of your portfolio value</string>
+    <string name="chart_weight_caption_treemap">Tile size reflects each holding\'s share of your portfolio value</string>
+    <string name="chart_fullscreen_title">Portfolio breakdown</string>
+    <string name="chart_fullscreen_close_desc">Close</string>
+
+    <string name="portfolio_summary_account_suffix">%1$s Account</string>
+    <string name="portfolio_summary_total_valuation">Total valuation</string>
+    <string name="portfolio_summary_profit_loss">Profit / loss</string>
+    <string name="portfolio_summary_total_return">Total return</string>
+
+    <string name="holding_quantity_format">%1$s shares</string>
+    <string name="dashboard_krw_amount_format">₩%1$s</string>
 </resources>

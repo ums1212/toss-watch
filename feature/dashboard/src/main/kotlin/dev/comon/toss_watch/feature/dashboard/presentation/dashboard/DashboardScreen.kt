@@ -162,7 +162,7 @@ private fun DashboardContent(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.List,
-                            contentDescription = "계좌 목록",
+                            contentDescription = stringResource(id = R.string.dashboard_account_list_desc),
                         )
                     }
                     IconButton(
@@ -170,7 +170,7 @@ private fun DashboardContent(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
-                            contentDescription = "설정",
+                            contentDescription = stringResource(id = R.string.dashboard_setting_desc),
                         )
                     }
                 },
@@ -215,7 +215,7 @@ private fun DashboardContent(
                     }
 
                     item(key = "market_performance_header") {
-                        SectionHeader(title = "보유 종목") {
+                        SectionHeader(title = stringResource(id = R.string.dashboard_section_holdings)) {
                             if (securities.isNotEmpty()) {
                                 PortfolioChartTypeSelector(
                                     selected = chartType,
@@ -238,7 +238,7 @@ private fun DashboardContent(
                     if (securities.isEmpty() && !uiState.isLoading) {
                         item(key = "holding_empty") {
                             Text(
-                                text = "보유 중인 종목이 없어요.",
+                                text = stringResource(id = R.string.dashboard_holdings_empty),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
@@ -269,14 +269,14 @@ private fun DashboardContent(
             }
 
             if (uiState.isLoading) {
-                TossWatchLoadingOverlay(message = "자산 정보를 불러오는 중이에요…")
+                TossWatchLoadingOverlay(message = stringResource(id = R.string.dashboard_loading_message))
             }
 
             uiState.errorMessage?.let { message ->
                 TossWatchErrorDialog(
                     message = message,
                     onDismiss = { onIntent(DashboardUiIntent.OnErrorDismissed) },
-                    title = "불러오기에 실패했어요",
+                    title = stringResource(id = R.string.dashboard_error_dialog_title),
                 )
             }
 

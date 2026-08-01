@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -33,6 +34,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.presentation.alarm.component.StockAlarmSummaryItem
 
 /**
@@ -93,7 +95,7 @@ private fun AlarmContent(
         // bottomContentPadding으로 받아 LazyColumn의 contentPadding에 반영한다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(title = { Text(text = "알림") })
+            TopAppBar(title = { Text(text = stringResource(id = R.string.alarm_tab_title)) })
         },
     ) { innerPadding ->
         Box(
@@ -112,7 +114,7 @@ private fun AlarmContent(
 
                 uiState.stockAlarms.isEmpty() -> {
                     Text(
-                        text = "등록된 알림이 없어요.\n보유 종목 카드를 눌러 알림을 추가해 보세요.",
+                        text = stringResource(id = R.string.alarm_list_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -157,7 +159,7 @@ private fun AlarmContent(
                 TossWatchErrorDialog(
                     message = message,
                     onDismiss = { onIntent(AlarmUiIntent.OnErrorDismissed) },
-                    title = "불러오기에 실패했어요",
+                    title = stringResource(id = R.string.alarm_error_dialog_title),
                 )
             }
         }

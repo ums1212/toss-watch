@@ -22,8 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.model.CachedStock
+import dev.comon.toss_watch.feature.alarm.R
 
 /** 알림 요일 기본 선택값 — 월(0)~토(5). */
 private val DEFAULT_SELECTED_DAYS = setOf(0, 1, 2, 3, 4, 5)
@@ -61,25 +63,31 @@ fun AddAlarmDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "알림 추가") },
+        title = { Text(text = stringResource(id = R.string.add_alarm_dialog_title)) },
         text = {
             Column {
                 if (lockedStock == null && stocks.isEmpty()) {
                     Text(
-                        text = "보유 종목이 없어요. 대시보드에서 계좌를 먼저 확인해 주세요.",
+                        text = stringResource(id = R.string.add_alarm_no_stocks),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
+                    val stockLabel = stringResource(id = R.string.add_alarm_stock_label)
+
                     if (lockedStock != null) {
                         Text(
-                            text = "종목",
+                            text = stockLabel,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(modifier = Modifier.height(TossSpacing.stackSm))
                         Text(
-                            text = "${lockedStock.stockName} (${lockedStock.stockCode})",
+                            text = stringResource(
+                                id = R.string.stock_display_format,
+                                lockedStock.stockName,
+                                lockedStock.stockCode,
+                            ),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
@@ -89,10 +97,12 @@ fun AddAlarmDialog(
                             onExpandedChange = { isTickerMenuExpanded = it },
                         ) {
                             OutlinedTextField(
-                                value = selectedStock?.let { "${it.stockName} (${it.stockCode})" }.orEmpty(),
+                                value = selectedStock?.let {
+                                    stringResource(id = R.string.stock_display_format, it.stockName, it.stockCode)
+                                }.orEmpty(),
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("종목") },
+                                label = { Text(stockLabel) },
                                 trailingIcon = {
                                     ExposedDropdownMenuDefaults.TrailingIcon(
                                         expanded = isTickerMenuExpanded,
@@ -109,7 +119,15 @@ fun AddAlarmDialog(
                             ) {
                                 stocks.forEach { stock ->
                                     DropdownMenuItem(
-                                        text = { Text("${stock.stockName} (${stock.stockCode})") },
+                                        text = {
+                                            Text(
+                                                stringResource(
+                                                    id = R.string.stock_display_format,
+                                                    stock.stockName,
+                                                    stock.stockCode,
+                                                ),
+                                            )
+                                        },
                                         onClick = {
                                             selectedStock = stock
                                             isTickerMenuExpanded = false
@@ -122,13 +140,13 @@ fun AddAlarmDialog(
 
                     Spacer(modifier = Modifier.height(TossSpacing.containerMargin))
 
-                    Text(text = "알림 시각")
+                    Text(text = stringResource(id = R.string.add_alarm_time_label))
                     Spacer(modifier = Modifier.height(TossSpacing.stackSm))
                     TimeInput(state = timePickerState)
 
                     Spacer(modifier = Modifier.height(TossSpacing.containerMargin))
 
-                    Text(text = "알림 요일")
+                    Text(text = stringResource(id = R.string.add_alarm_days_label))
                     Spacer(modifier = Modifier.height(TossSpacing.stackSm))
                     DayOfWeekSelector(
                         selectedDays = selectedDays,
@@ -158,12 +176,12 @@ fun AddAlarmDialog(
                 },
                 enabled = selectedStock != null && selectedDays.isNotEmpty(),
             ) {
-                Text(text = "추가")
+                Text(text = stringResource(id = R.string.add_alarm_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "취소")
+                Text(text = stringResource(id = R.string.add_alarm_cancel))
             }
         },
     )

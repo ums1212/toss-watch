@@ -23,8 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.comon.toss_watch.R
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 
@@ -66,14 +68,14 @@ fun FloatingBottomNavigationBar(
         ) {
             FloatingNavItem(
                 icon = Icons.Filled.Home,
-                label = "대시보드",
+                label = stringResource(id = R.string.bottom_nav_dashboard),
                 selected = selectedIndex == TAB_DASHBOARD,
                 onClick = onDashboardClick,
                 shape = pillShape,
             )
             FloatingNavItem(
                 icon = Icons.Filled.Notifications,
-                label = "알림",
+                label = stringResource(id = R.string.bottom_nav_alarm),
                 selected = selectedIndex == TAB_ALARM,
                 onClick = onAlarmClick,
                 shape = pillShape,

@@ -1,0 +1,46 @@
+<resources>
+    <string name="alarm_tab_title">Alerts</string>
+    <string name="alarm_list_empty">No alerts yet.\nTap a holding to add one.</string>
+    <string name="alarm_error_dialog_title">Couldn\'t load alerts</string>
+    <string name="alarm_error_api">Couldn\'t load your alerts. Please try again in a moment.</string>
+    <string name="alarm_error_network">Please check your network connection and try again.</string>
+
+    <string name="alarm_detail_back_desc">Back</string>
+    <string name="alarm_detail_add_button">Add alert</string>
+    <string name="alarm_detail_empty">No alerts yet. Use the button below to add one.</string>
+    <string name="alarm_detail_error_dialog_title">Couldn\'t save your alert</string>
+    <string name="alarm_detail_error_api">Couldn\'t save your alert. Please try again in a moment.</string>
+    <string name="alarm_toast_added">Alert added.</string>
+    <string name="alarm_toast_deleted">Alert deleted.</string>
+
+    <string name="alarm_delete_desc">Delete alert</string>
+    <string name="alarm_delete_dialog_title">Delete alert</string>
+    <string name="alarm_delete_dialog_message">Delete the alert at \'%1$s\'?</string>
+    <string name="alarm_delete_confirm">Delete</string>
+    <string name="alarm_delete_cancel">Cancel</string>
+
+    <string name="add_alarm_dialog_title">Add alert</string>
+    <string name="add_alarm_no_stocks">You don\'t have any holdings yet. Check your account on the dashboard first.</string>
+    <string name="add_alarm_stock_label">Stock</string>
+    <string name="add_alarm_time_label">Alert time</string>
+    <string name="add_alarm_days_label">Alert days</string>
+    <string name="add_alarm_confirm">Add</string>
+    <string name="add_alarm_cancel">Cancel</string>
+    <string name="stock_display_format">%1$s (%2$s)</string>
+
+    <string name="stock_alarm_count_format">%1$d alerts</string>
+
+    <string name="alarm_days_everyday">Every day</string>
+    <string name="alarm_days_weekdays">Weekdays</string>
+    <string name="alarm_days_weekend">Weekend</string>
+
+    <string-array name="alarm_day_labels">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
+</resources>

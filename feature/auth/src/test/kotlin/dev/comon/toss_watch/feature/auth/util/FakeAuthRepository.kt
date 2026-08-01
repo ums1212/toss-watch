@@ -19,6 +19,8 @@ class FakeAuthRepository : AuthRepository {
         private set
     var lastIdToken: String? = null
         private set
+    var enterGuestModeInvocationCount: Int = 0
+        private set
 
     private val gate = CompletableDeferred<Unit>()
 
@@ -27,6 +29,10 @@ class FakeAuthRepository : AuthRepository {
         lastIdToken = idToken
         if (suspendUntilReleased) gate.await()
         return result
+    }
+
+    override fun enterGuestMode() {
+        enterGuestModeInvocationCount++
     }
 
     fun release() {

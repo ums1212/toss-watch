@@ -1,5 +1,6 @@
 package dev.comon.toss_watch.feature.setting.data.repository
 
+import dev.comon.toss_watch.core.datastore.GuestModeStore
 import dev.comon.toss_watch.core.datastore.TokenStore
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.map
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 class SettingRepositoryImpl @Inject constructor(
     private val settingApi: SettingApi,
     private val tokenStore: TokenStore,
+    private val guestModeStore: GuestModeStore,
 ) : SettingRepository {
 
     override suspend fun registerWatchToken(
@@ -45,5 +47,12 @@ class SettingRepositoryImpl @Inject constructor(
             }
             .map { }
 
-    override fun logout() = tokenStore.clear()
+    override fun logout() {
+        tokenStore.clear()
+        // 게스트로 진입했을 수도 있으니 잔여 플래그를 함께 정리한다 — 실 로그아웃이었다면 이미
+        // false 상태라 no-op이다.
+        guestModeStore.exitGuestMode()
+    }
+
+    override fun observeGuestMode() = guestModeStore.observeGuestMode()
 }

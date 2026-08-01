@@ -8,6 +8,9 @@ import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 data class SettingUiState(
     /** 연동 완료된 워치(기기명+UUID). `null`이면 미연동 — "QR로 워치 연동" 버튼을 노출한다. */
     val pairedWatch: PairedWatchInfo? = null,
+
+    /** 게스트(더미 데이터 체험) 모드 여부 — true면 하단 버튼이 "로그인하기"로 바뀐다. */
+    val isGuest: Boolean = false,
 ) : UiState
 
 sealed interface SettingUiIntent : UiIntent {

@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -48,6 +49,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.setting.R
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.component.QrCameraPreview
 
 /**
@@ -148,12 +150,12 @@ private fun WatchPairContent(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(text = "워치 QR 스캔") },
+                title = { Text(text = stringResource(id = R.string.watchpair_top_bar_title)) },
                 navigationIcon = {
                     IconButton(onClick = { onIntent(WatchPairUiIntent.OnBackClicked) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기",
+                            contentDescription = stringResource(id = R.string.watchpair_back_desc),
                         )
                     }
                 },
@@ -175,7 +177,7 @@ private fun WatchPairContent(
                 )
 
                 Text(
-                    text = "워치 화면에 표시된 QR 코드를 비춰 주세요.",
+                    text = stringResource(id = R.string.watchpair_scan_hint),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White,
                     modifier = Modifier
@@ -190,7 +192,7 @@ private fun WatchPairContent(
                             .background(Color.Black.copy(alpha = 0.5f)),
                     ) {
                         TossWatchLoadingIndicator(
-                            message = "워치를 연동하고 있어요…",
+                            message = stringResource(id = R.string.watchpair_registering),
                             modifier = Modifier.align(Alignment.Center),
                         )
                     }
@@ -204,17 +206,25 @@ private fun WatchPairContent(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = if (uiState.isPermissionPermanentlyDenied) {
-                            "카메라 권한이 거부되어 있어요.\n앱 설정에서 권한을 허용해 주세요."
-                        } else {
-                            "QR 코드를 스캔하려면\n카메라 권한이 필요해요."
-                        },
+                        text = stringResource(
+                            id = if (uiState.isPermissionPermanentlyDenied) {
+                                R.string.watchpair_permission_denied_permanent
+                            } else {
+                                R.string.watchpair_permission_needed
+                            },
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     TossWatchButton(
-                        text = if (uiState.isPermissionPermanentlyDenied) "앱 설정으로 이동" else "카메라 권한 허용",
+                        text = stringResource(
+                            id = if (uiState.isPermissionPermanentlyDenied) {
+                                R.string.watchpair_open_settings_button
+                            } else {
+                                R.string.watchpair_grant_permission_button
+                            },
+                        ),
                         onClick = if (uiState.isPermissionPermanentlyDenied) onOpenAppSettings else onRequestPermission,
                         modifier = Modifier.padding(top = TossSpacing.containerMargin),
                     )
@@ -225,7 +235,7 @@ private fun WatchPairContent(
                 TossWatchErrorDialog(
                     message = message,
                     onDismiss = { onIntent(WatchPairUiIntent.OnRetry) },
-                    title = "워치 연동에 실패했어요",
+                    title = stringResource(id = R.string.watchpair_error_dialog_title),
                 )
             }
         }

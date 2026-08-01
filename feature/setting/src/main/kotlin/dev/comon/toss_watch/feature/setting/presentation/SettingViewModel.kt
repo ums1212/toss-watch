@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
 import dev.comon.toss_watch.feature.setting.domain.usecase.LogoutUseCase
+import dev.comon.toss_watch.feature.setting.domain.usecase.ObserveGuestModeUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.ObservePairedWatchUseCase
 import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
 import javax.inject.Inject
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 class SettingViewModel @Inject constructor(
     private val observePairedWatchUseCase: ObservePairedWatchUseCase,
     private val syncPairedWatchUseCase: SyncPairedWatchUseCase,
+    private val observeGuestModeUseCase: ObserveGuestModeUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<SettingUiState, SettingUiIntent, SettingUiSideEffect>(SettingUiState()) {
@@ -21,6 +23,7 @@ class SettingViewModel @Inject constructor(
     init {
         observePairedWatch()
         syncPairedWatch()
+        observeGuestMode()
     }
 
     override fun handleIntent(intent: SettingUiIntent) {
@@ -61,9 +64,20 @@ class SettingViewModel @Inject constructor(
         }
     }
 
+    /** 게스트(더미 데이터 체험) 모드 여부를 구독해 로그아웃/로그인 전환 버튼 문구를 고른다. */
+    private fun observeGuestMode() {
+        viewModelScope.launch(dispatcherProvider.io) {
+            observeGuestModeUseCase().collect { isGuest ->
+                updateState { copy(isGuest = isGuest) }
+            }
+        }
+    }
+
     /**
-     * 로그아웃 — 로컬 세션 토큰을 제거한다. :app 최상위 라우터가 [dev.comon.toss_watch.core.datastore.TokenStore.observeHasSession]
-     * 변화를 감지해 로그인 화면으로 자동 전환하므로 이 화면에서 별도 네비게이션을 발생시키지 않는다.
+     * 로그아웃 — 로컬 세션 토큰(및 게스트 모드였다면 게스트 플래그)을 제거한다. :app 최상위 라우터가
+     * [dev.comon.toss_watch.core.datastore.TokenStore.observeHasSession] 변화를 감지해 로그인 화면으로
+     * 자동 전환하므로 이 화면에서 별도 네비게이션을 발생시키지 않는다. 게스트 모드의 "로그인하기"도
+     * 동일한 인텐트([SettingUiIntent.OnLogoutClicked])와 동일한 로직을 그대로 재사용한다.
      */
     private fun logout() {
         viewModelScope.launch(dispatcherProvider.io) {

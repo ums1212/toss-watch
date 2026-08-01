@@ -4,8 +4,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
+import dev.comon.toss_watch.core.common.resources.StringProvider
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.WatchPairingPayload
+import dev.comon.toss_watch.feature.setting.R
 import dev.comon.toss_watch.feature.setting.domain.usecase.RegisterWatchTokenUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -20,6 +22,7 @@ import kotlinx.serialization.json.Json
 @HiltViewModel
 class WatchPairViewModel @Inject constructor(
     private val registerWatchTokenUseCase: RegisterWatchTokenUseCase,
+    private val stringProvider: StringProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<WatchPairUiState, WatchPairUiIntent, WatchPairUiSideEffect>(WatchPairUiState()) {
 
@@ -53,7 +56,7 @@ class WatchPairViewModel @Inject constructor(
             json.decodeFromString(WatchPairingPayload.serializer(), rawPayload.trim())
         }.getOrElse {
             if (it is SerializationException || it is IllegalArgumentException) {
-                updateState { copy(errorMessage = DEFAULT_INVALID_QR_ERROR) }
+                updateState { copy(errorMessage = stringProvider.getString(R.string.watchpair_error_invalid_qr)) }
                 return
             }
             throw it
@@ -75,7 +78,9 @@ class WatchPairViewModel @Inject constructor(
             ) {
                 is NetworkResult.Success -> {
                     updateState { copy(isRegistering = false) }
-                    sendSideEffect(WatchPairUiSideEffect.ShowToast(TOAST_TOKEN_REGISTERED))
+                    sendSideEffect(
+                        WatchPairUiSideEffect.ShowToast(stringProvider.getString(R.string.watchpair_toast_registered)),
+                    )
                     sendSideEffect(WatchPairUiSideEffect.NavigateBack)
                 }
 
@@ -88,14 +93,7 @@ class WatchPairViewModel @Inject constructor(
 
     private fun NetworkResult<*>.toErrorMessage(): String? = when (this) {
         is NetworkResult.Success -> null
-        is NetworkResult.ApiError -> message ?: DEFAULT_API_ERROR
-        is NetworkResult.NetworkError -> DEFAULT_NETWORK_ERROR
-    }
-
-    companion object {
-        const val DEFAULT_API_ERROR = "워치 연동에 실패했어요. 잠시 후 다시 시도해 주세요."
-        const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
-        const val DEFAULT_INVALID_QR_ERROR = "인식할 수 없는 QR이에요. 워치 화면의 QR을 다시 스캔해 주세요."
-        const val TOAST_TOKEN_REGISTERED = "워치 알림 토큰이 등록됐어요."
+        is NetworkResult.ApiError -> message ?: stringProvider.getString(R.string.watchpair_error_api)
+        is NetworkResult.NetworkError -> stringProvider.getString(R.string.watchpair_error_network)
     }
 }

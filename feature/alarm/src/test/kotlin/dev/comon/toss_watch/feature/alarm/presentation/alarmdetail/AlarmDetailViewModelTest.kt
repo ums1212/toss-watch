@@ -1,6 +1,7 @@
 package dev.comon.toss_watch.feature.alarm.presentation.alarmdetail
 
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.DeleteAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
@@ -8,6 +9,7 @@ import dev.comon.toss_watch.feature.alarm.domain.usecase.ObserveAlarmProfilesUse
 import dev.comon.toss_watch.feature.alarm.domain.usecase.SetAlarmEnabledInCacheUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ToggleAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.util.FakeAlarmRepository
+import dev.comon.toss_watch.feature.alarm.util.FakeStringProvider
 import dev.comon.toss_watch.feature.alarm.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.alarm.util.TestDispatcherProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +33,7 @@ class AlarmDetailViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val fakeRepository = FakeAlarmRepository()
+    private val fakeStringProvider = FakeStringProvider()
 
     private fun createViewModel(): AlarmDetailViewModel =
         AlarmDetailViewModel(
@@ -40,6 +43,7 @@ class AlarmDetailViewModelTest {
             toggleAlarmProfileUseCase = ToggleAlarmProfileUseCase(fakeRepository),
             setAlarmEnabledInCacheUseCase = SetAlarmEnabledInCacheUseCase(fakeRepository),
             deleteAlarmProfileUseCase = DeleteAlarmProfileUseCase(fakeRepository),
+            stringProvider = fakeStringProvider,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -88,7 +92,7 @@ class AlarmDetailViewModelTest {
             )
             assertEquals(
                 listOf<AlarmDetailUiSideEffect>(
-                    AlarmDetailUiSideEffect.ShowToast(AlarmDetailViewModel.TOAST_ALARM_ADDED),
+                    AlarmDetailUiSideEffect.ShowToast(fakeStringProvider.getString(R.string.alarm_toast_added)),
                 ),
                 effects,
             )
@@ -113,7 +117,7 @@ class AlarmDetailViewModelTest {
             )
             assertEquals(
                 listOf<AlarmDetailUiSideEffect>(
-                    AlarmDetailUiSideEffect.ShowToast(AlarmDetailViewModel.TOAST_ALARM_DELETED),
+                    AlarmDetailUiSideEffect.ShowToast(fakeStringProvider.getString(R.string.alarm_toast_deleted)),
                 ),
                 effects,
             )

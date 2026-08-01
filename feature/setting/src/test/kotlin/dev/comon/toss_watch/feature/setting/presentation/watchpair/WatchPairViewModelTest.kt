@@ -2,8 +2,10 @@ package dev.comon.toss_watch.feature.setting.presentation.watchpair
 
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.WatchPairingPayload
+import dev.comon.toss_watch.feature.setting.R
 import dev.comon.toss_watch.feature.setting.domain.usecase.RegisterWatchTokenUseCase
 import dev.comon.toss_watch.feature.setting.util.FakeSettingRepository
+import dev.comon.toss_watch.feature.setting.util.FakeStringProvider
 import dev.comon.toss_watch.feature.setting.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.setting.util.TestDispatcherProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,10 +30,12 @@ class WatchPairViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val fakeRepository = FakeSettingRepository()
+    private val fakeStringProvider = FakeStringProvider()
 
     private fun createViewModel(): WatchPairViewModel =
         WatchPairViewModel(
             registerWatchTokenUseCase = RegisterWatchTokenUseCase(fakeRepository),
+            stringProvider = fakeStringProvider,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -80,7 +84,7 @@ class WatchPairViewModelTest {
             assertEquals("Galaxy Watch7", fakeRepository.lastRegisteredModelName)
             assertEquals(
                 listOf<WatchPairUiSideEffect>(
-                    WatchPairUiSideEffect.ShowToast(WatchPairViewModel.TOAST_TOKEN_REGISTERED),
+                    WatchPairUiSideEffect.ShowToast(fakeStringProvider.getString(R.string.watchpair_toast_registered)),
                     WatchPairUiSideEffect.NavigateBack,
                 ),
                 effects,
@@ -143,7 +147,10 @@ class WatchPairViewModelTest {
             advanceUntilIdle()
 
             assertEquals(0, fakeRepository.registerInvocationCount)
-            assertEquals(WatchPairViewModel.DEFAULT_INVALID_QR_ERROR, viewModel.uiState.value.errorMessage)
+            assertEquals(
+                fakeStringProvider.getString(R.string.watchpair_error_invalid_qr),
+                viewModel.uiState.value.errorMessage,
+            )
         }
 
     @Test

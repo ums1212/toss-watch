@@ -4,7 +4,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
+import dev.comon.toss_watch.core.common.resources.StringProvider
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.DeleteAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
@@ -24,6 +26,7 @@ class AlarmDetailViewModel @Inject constructor(
     private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
     private val setAlarmEnabledInCacheUseCase: SetAlarmEnabledInCacheUseCase,
     private val deleteAlarmProfileUseCase: DeleteAlarmProfileUseCase,
+    private val stringProvider: StringProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<AlarmDetailUiState, AlarmDetailUiIntent, AlarmDetailUiSideEffect>(AlarmDetailUiState()) {
 
@@ -84,7 +87,7 @@ class AlarmDetailViewModel @Inject constructor(
             when (val result = addAlarmProfileUseCase(stockCode, stockName, hour, minute, daysOfWeek)) {
                 is NetworkResult.Success -> {
                     updateState { copy(isSaving = false) }
-                    sendSideEffect(AlarmDetailUiSideEffect.ShowToast(TOAST_ALARM_ADDED))
+                    sendSideEffect(AlarmDetailUiSideEffect.ShowToast(stringProvider.getString(R.string.alarm_toast_added)))
                 }
 
                 else -> updateState {
@@ -133,7 +136,7 @@ class AlarmDetailViewModel @Inject constructor(
             when (val result = deleteAlarmProfileUseCase(alarmId)) {
                 is NetworkResult.Success -> {
                     updateState { copy(isSaving = false) }
-                    sendSideEffect(AlarmDetailUiSideEffect.ShowToast(TOAST_ALARM_DELETED))
+                    sendSideEffect(AlarmDetailUiSideEffect.ShowToast(stringProvider.getString(R.string.alarm_toast_deleted)))
                 }
 
                 else -> updateState {
@@ -145,15 +148,11 @@ class AlarmDetailViewModel @Inject constructor(
 
     private fun NetworkResult<*>.toErrorMessage(): String? = when (this) {
         is NetworkResult.Success -> null
-        is NetworkResult.ApiError -> message ?: DEFAULT_API_ERROR
-        is NetworkResult.NetworkError -> DEFAULT_NETWORK_ERROR
+        is NetworkResult.ApiError -> message ?: stringProvider.getString(R.string.alarm_detail_error_api)
+        is NetworkResult.NetworkError -> stringProvider.getString(R.string.alarm_error_network)
     }
 
     companion object {
-        const val DEFAULT_API_ERROR = "설정을 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
-        const val DEFAULT_NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해 주세요."
-        const val TOAST_ALARM_ADDED = "알림이 추가됐어요."
-        const val TOAST_ALARM_DELETED = "알림이 삭제됐어요."
         const val TOGGLE_DEBOUNCE_MS = 500L
     }
 }

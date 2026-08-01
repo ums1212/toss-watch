@@ -1,0 +1,18 @@
+<resources>
+    <string name="auth_login_tagline">내 손목 위의 주식 알림,\n구글 계정으로 바로 시작하세요.</string>
+    <string name="auth_google_sign_in">Google 계정으로 로그인</string>
+    <string name="auth_guest_login">게스트로 둘러보기</string>
+    <string name="auth_guest_login_caption">실제 계좌 연동 없이 샘플 데이터로 앱을 체험할 수 있어요.</string>
+    <string name="auth_loading_message">로그인 중이에요…</string>
+    <string name="auth_error_dialog_title">로그인에 실패했어요</string>
+    <string name="auth_footer_terms">이용약관</string>
+    <string name="auth_footer_privacy">개인정보처리방침</string>
+    <string name="auth_footer_copyright">© 2026 toss-watch. All rights reserved.</string>
+
+    <string name="auth_error_credential">구글 계정 정보를 가져오지 못했어요. 다시 시도해 주세요.</string>
+    <string name="auth_error_unsupported_credential">지원하지 않는 자격 증명 유형이에요.</string>
+    <string name="auth_error_no_google_account">기기에서 사용할 수 있는 구글 계정이 없어요.</string>
+    <string name="auth_error_credential_parsing">구글 응답을 해석하지 못했어요.</string>
+    <string name="auth_error_api">로그인에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="auth_error_network">네트워크 연결을 확인한 뒤 다시 시도해 주세요.</string>
+</resources>

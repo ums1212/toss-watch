@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">toss-watch</string>
+
+    <string name="splash_title">toss-watch</string>
+    <string name="splash_subtitle">HIGH VELOCITY INTELLIGENCE</string>
+    <string name="splash_tagline">Precise. Trusted. Fast.</string>
+
+    <string name="exit_dialog_title">앱을 종료하시겠습니까?</string>
+    <string name="exit_dialog_confirm">종료</string>
+    <string name="exit_dialog_cancel">취소</string>
+
+    <string name="bottom_nav_dashboard">대시보드</string>
+    <string name="bottom_nav_alarm">알림</string>
+</resources>

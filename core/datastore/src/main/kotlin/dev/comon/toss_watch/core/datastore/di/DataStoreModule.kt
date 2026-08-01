@@ -16,7 +16,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.comon.toss_watch.core.datastore.DataStoreGuestModeStore
 import dev.comon.toss_watch.core.datastore.DataStoreTokenStore
+import dev.comon.toss_watch.core.datastore.GuestModeStore
 import dev.comon.toss_watch.core.datastore.TokenStore
 import javax.inject.Singleton
 
@@ -27,6 +29,10 @@ internal abstract class DataStoreModule {
     @Binds
     @Singleton
     abstract fun bindTokenStore(impl: DataStoreTokenStore): TokenStore
+
+    @Binds
+    @Singleton
+    abstract fun bindGuestModeStore(impl: DataStoreGuestModeStore): GuestModeStore
 
     companion object {
 

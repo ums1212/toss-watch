@@ -10,4 +10,10 @@ interface AuthRepository {
      * 성공 시 토큰 저장까지 완료된 상태의 [UserSession]을 반환한다.
      */
     suspend fun loginWithGoogle(idToken: String): NetworkResult<UserSession>
+
+    /**
+     * 로그인 화면의 "게스트로 둘러보기" — 실 API를 호출하지 않고 게스트(더미 데이터 체험) 모드로
+     * 진입한다. :app 최상위 라우터가 이를 감지해 토스 키 등록 검사 없이 곧바로 대시보드로 보낸다.
+     */
+    fun enterGuestMode()
 }

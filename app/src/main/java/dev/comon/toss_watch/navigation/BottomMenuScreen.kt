@@ -4,10 +4,15 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +28,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import dev.comon.toss_watch.core.designsystem.component.GuestModeBanner
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.feature.alarm.presentation.alarm.AlarmScreen
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardScreen
@@ -53,6 +59,7 @@ private val HIDE_OVERSHOOT = 48.dp
  * 실제로는 전혀 스크롤되지 않고(consumed = 0) 남은 델타를 PullToRefreshBox가 가져가는 구조라서
  * 이 기준으로 자연히 걸러진다.
  *
+ * @param isGuest 게스트(더미 데이터 체험) 모드 여부 — true면 탭 콘텐츠 상단에 [GuestModeBanner]를 노출한다.
  * @param onNavigateToSetting 설정 아이콘 탭 시 호출 — SettingRoute로 이동.
  * @param onNavigateToAlarmDetail 종목 항목(보유종목 카드 또는 알림 탭 항목) 탭 시 호출 —
  *   해당 종목의 AlarmDetailRoute로 이동한다. 상세 화면은 이 목적지 위에 전체화면으로 오버레이되므로
@@ -60,6 +67,7 @@ private val HIDE_OVERSHOOT = 48.dp
  */
 @Composable
 fun BottomMenuScreen(
+    isGuest: Boolean,
     onNavigateToSetting: () -> Unit,
     onNavigateToAlarmDetail: (stockCode: String, stockName: String) -> Unit,
     modifier: Modifier = Modifier,
@@ -115,22 +123,37 @@ fun BottomMenuScreen(
             )
         },
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (selectedTab) {
-                BottomTab.DASHBOARD ->
-                    DashboardScreen(
-                        onNavigateToSetting = onNavigateToSetting,
-                        onNavigateToAlarmDetail = onNavigateToAlarmDetail,
-                        bottomContentPadding = innerPadding.calculateBottomPadding(),
-                        listNestedScrollConnection = nestedScrollConnection,
-                    )
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (isGuest) {
+                // 배너가 상태바 인셋을 직접 반영해 상태바 아래로 내려온다.
+                GuestModeBanner(modifier = Modifier.statusBarsPadding())
+            }
 
-                BottomTab.ALARM ->
-                    AlarmScreen(
-                        onNavigateToAlarmDetail = onNavigateToAlarmDetail,
-                        bottomContentPadding = innerPadding.calculateBottomPadding(),
-                        listNestedScrollConnection = nestedScrollConnection,
-                    )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    // 배너가 이미 상태바 인셋을 반영했으므로, 아래 탭 화면의 TopAppBar가
+                    // 같은 인셋을 또 반영해 배너와 타이틀 사이에 불필요한 여백이 생기지 않도록
+                    // 이 서브트리에서는 상태바 인셋을 소비 처리한다. 게스트가 아닐 때는 배너가
+                    // 없으므로 소비하지 않아야 TopAppBar가 정상적으로 상태바를 피해 그려진다.
+                    .let { if (isGuest) it.consumeWindowInsets(WindowInsets.statusBars) else it },
+            ) {
+                when (selectedTab) {
+                    BottomTab.DASHBOARD ->
+                        DashboardScreen(
+                            onNavigateToSetting = onNavigateToSetting,
+                            onNavigateToAlarmDetail = onNavigateToAlarmDetail,
+                            bottomContentPadding = innerPadding.calculateBottomPadding(),
+                            listNestedScrollConnection = nestedScrollConnection,
+                        )
+
+                    BottomTab.ALARM ->
+                        AlarmScreen(
+                            onNavigateToAlarmDetail = onNavigateToAlarmDetail,
+                            bottomContentPadding = innerPadding.calculateBottomPadding(),
+                            listNestedScrollConnection = nestedScrollConnection,
+                        )
+                }
             }
         }
     }

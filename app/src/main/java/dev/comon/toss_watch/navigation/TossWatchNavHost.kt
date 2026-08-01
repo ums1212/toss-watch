@@ -89,9 +89,10 @@ fun TossWatchNavHost(
 
     LaunchedEffect(sessionState) {
         when (sessionState) {
-            // 로그인 감지: 인증 플로우 위에 있을 때만 하단 탭 화면으로 루트 교체
+            // 로그인/게스트 감지: 인증 플로우 위에 있을 때만 하단 탭 화면으로 루트 교체
             // (구성 변경 후 재구독 시 Setting 백스택을 초기화하지 않도록 가드).
-            SessionState.LOGGED_IN ->
+            // 게스트는 토스 키 등록 여부와 무관하게 곧바로 대시보드로 보낸다.
+            SessionState.LOGGED_IN, SessionState.GUEST ->
                 if (navigator.backStack.none { it is BottomMenuRoute }) {
                     navigator.setRoot(BottomMenuRoute)
                 }
@@ -164,6 +165,7 @@ fun TossWatchNavHost(
 
             entry<BottomMenuRoute> {
                 BottomMenuScreen(
+                    isGuest = sessionState == SessionState.GUEST,
                     onNavigateToSetting = { navigator.goTo(SettingRoute) },
                     onNavigateToAlarmDetail = { stockCode, stockName ->
                         navigator.goTo(AlarmDetailRoute(stockCode, stockName))

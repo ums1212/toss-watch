@@ -14,12 +14,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.tooling.preview.Preview
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
-
-/** 요일 라벨 — index가 곧 서버 계약의 요일 값(0=월 ~ 6=일, Python `date.weekday()` 기준). */
-private val DAY_LABELS = listOf("월", "화", "수", "목", "금", "토", "일")
+import dev.comon.toss_watch.feature.alarm.R
 
 /**
  * 알림 요일 선택 — 월~일 7개 원형 토글을 가로로 나열한다.
@@ -34,11 +33,14 @@ fun DayOfWeekSelector(
     onToggleDay: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // index가 곧 서버 계약의 요일 값(0=월 ~ 6=일, Python `date.weekday()` 기준).
+    val dayLabels = stringArrayResource(id = R.array.alarm_day_labels)
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
     ) {
-        DAY_LABELS.forEachIndexed { day, label ->
+        dayLabels.forEachIndexed { day, label ->
             val isSelected = selectedDays.contains(day)
             Box(
                 modifier = Modifier

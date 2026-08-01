@@ -4,6 +4,7 @@ import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ObserveAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.util.FakeAlarmRepository
+import dev.comon.toss_watch.feature.alarm.util.FakeStringProvider
 import dev.comon.toss_watch.feature.alarm.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.alarm.util.TestDispatcherProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +32,7 @@ class AlarmViewModelTest {
         AlarmViewModel(
             fetchAlarmProfilesUseCase = FetchAlarmProfilesUseCase(fakeRepository),
             observeAlarmProfilesUseCase = ObserveAlarmProfilesUseCase(fakeRepository),
+            stringProvider = FakeStringProvider(),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 

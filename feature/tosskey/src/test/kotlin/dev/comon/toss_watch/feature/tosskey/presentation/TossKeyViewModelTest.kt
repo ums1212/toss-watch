@@ -1,7 +1,9 @@
 package dev.comon.toss_watch.feature.tosskey.presentation
 
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.tosskey.R
 import dev.comon.toss_watch.feature.tosskey.domain.usecase.RegisterTossKeyUseCase
+import dev.comon.toss_watch.feature.tosskey.util.FakeStringProvider
 import dev.comon.toss_watch.feature.tosskey.util.FakeTossKeyRepository
 import dev.comon.toss_watch.feature.tosskey.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.tosskey.util.TestDispatcherProvider
@@ -27,10 +29,12 @@ class TossKeyViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val fakeRepository = FakeTossKeyRepository()
+    private val fakeStringProvider = FakeStringProvider()
 
     private fun createViewModel(): TossKeyViewModel =
         TossKeyViewModel(
             registerTossKeyUseCase = RegisterTossKeyUseCase(fakeRepository),
+            stringProvider = fakeStringProvider,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -63,7 +67,7 @@ class TossKeyViewModelTest {
             assertEquals("tssk_live_def", fakeRepository.lastClientSecret)
             assertEquals(
                 listOf<TossKeyUiSideEffect>(
-                    TossKeyUiSideEffect.ShowToast(TossKeyViewModel.TOAST_REGISTERED),
+                    TossKeyUiSideEffect.ShowToast(fakeStringProvider.getString(R.string.tosskey_toast_registered)),
                     TossKeyUiSideEffect.NavigateBack,
                 ),
                 effects,
@@ -100,7 +104,7 @@ class TossKeyViewModelTest {
             runCurrent()
 
             assertEquals(
-                TossKeyViewModel.ERROR_EMPTY_FIELD,
+                fakeStringProvider.getString(R.string.tosskey_error_empty_field),
                 viewModel.uiState.value.errorMessage,
             )
             assertEquals(0, fakeRepository.invocationCount)
@@ -147,7 +151,10 @@ class TossKeyViewModelTest {
 
             viewModel.handleIntent(TossKeyUiIntent.OnSubmit)
             runCurrent()
-            assertEquals(TossKeyViewModel.ERROR_EMPTY_FIELD, viewModel.uiState.value.errorMessage)
+            assertEquals(
+                fakeStringProvider.getString(R.string.tosskey_error_empty_field),
+                viewModel.uiState.value.errorMessage,
+            )
 
             viewModel.handleIntent(TossKeyUiIntent.OnErrorDismissed)
             runCurrent()

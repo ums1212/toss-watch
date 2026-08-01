@@ -10,9 +10,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.comon.toss_watch.R
 import dev.comon.toss_watch.core.designsystem.component.BrandLogoCard
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
@@ -32,7 +34,7 @@ fun ExitAppDialog(
         modifier = modifier,
         title = {
             Text(
-                text = "앱을 종료하시겠습니까?",
+                text = stringResource(id = R.string.exit_dialog_title),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
@@ -52,7 +54,7 @@ fun ExitAppDialog(
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
-                    text = "종료",
+                    text = stringResource(id = R.string.exit_dialog_confirm),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -61,7 +63,7 @@ fun ExitAppDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(
-                    text = "취소",
+                    text = stringResource(id = R.string.exit_dialog_cancel),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

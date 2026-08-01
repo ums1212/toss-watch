@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.coroutine.DispatcherProvider
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
+import dev.comon.toss_watch.core.common.resources.StringProvider
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.WatchPairingPayload
+import dev.comon.watch_app.R
 import dev.comon.watch_app.domain.usecase.CheckFcmTokenRegisteredUseCase
 import dev.comon.watch_app.domain.usecase.GetFcmTokenUseCase
 import dev.comon.watch_app.domain.usecase.GetOrCreateDeviceUuidUseCase
@@ -27,6 +29,7 @@ class WatchOnboardingViewModel @Inject constructor(
     private val isPairedUseCase: IsPairedUseCase,
     private val savePairedStateUseCase: SavePairedStateUseCase,
     private val qrCodeGenerator: QrCodeGenerator,
+    private val stringProvider: StringProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<WatchOnboardingUiState, WatchOnboardingUiIntent, WatchOnboardingUiSideEffect>(
     WatchOnboardingUiState(),
@@ -73,7 +76,8 @@ class WatchOnboardingViewModel @Inject constructor(
             getFcmTokenUseCase(forceRefresh = forceRefreshToken)
                 .onSuccess { token -> resolvePairingState(token, uuid, modelName) }
                 .onFailure {
-                    updateState { copy(phase = WatchOnboardingPhase.Error(DEFAULT_TOKEN_ERROR)) }
+                    val message = stringProvider.getString(R.string.onboarding_error_token)
+                    updateState { copy(phase = WatchOnboardingPhase.Error(message)) }
                 }
         }
     }
@@ -91,7 +95,10 @@ class WatchOnboardingViewModel @Inject constructor(
 
             is NetworkResult.ApiError,
             is NetworkResult.NetworkError,
-            -> updateState { copy(phase = WatchOnboardingPhase.Error(DEFAULT_CHECK_ERROR)) }
+            -> {
+                val message = stringProvider.getString(R.string.onboarding_error_check)
+                updateState { copy(phase = WatchOnboardingPhase.Error(message)) }
+            }
         }
     }
 
@@ -124,7 +131,8 @@ class WatchOnboardingViewModel @Inject constructor(
                     startPolling()
                 }
                 .onFailure {
-                    updateState { copy(phase = WatchOnboardingPhase.Error(DEFAULT_TOKEN_ERROR)) }
+                    val message = stringProvider.getString(R.string.onboarding_error_token)
+                    updateState { copy(phase = WatchOnboardingPhase.Error(message)) }
                 }
         }
     }
@@ -157,12 +165,20 @@ class WatchOnboardingViewModel @Inject constructor(
 
                 PairingCheckOutcome.NotPaired -> {
                     updateState { copy(isCheckingNow = false) }
-                    sendSideEffect(WatchOnboardingUiSideEffect.ShowToast(CHECK_NOW_NOT_PAIRED_MESSAGE))
+                    sendSideEffect(
+                        WatchOnboardingUiSideEffect.ShowToast(
+                            stringProvider.getString(R.string.onboarding_check_now_not_paired),
+                        ),
+                    )
                 }
 
                 PairingCheckOutcome.Failed -> {
                     updateState { copy(isCheckingNow = false) }
-                    sendSideEffect(WatchOnboardingUiSideEffect.ShowToast(CHECK_NOW_FAILED_MESSAGE))
+                    sendSideEffect(
+                        WatchOnboardingUiSideEffect.ShowToast(
+                            stringProvider.getString(R.string.onboarding_check_now_failed),
+                        ),
+                    )
                 }
             }
         }
@@ -208,9 +224,5 @@ class WatchOnboardingViewModel @Inject constructor(
         // 화면 표시 크기가 커진 만큼(OnboardingScreen fillMaxWidth 0.9f) 확대해도 흐려지지 않도록 해상도를 높인다.
         private const val QR_SIZE_PX = 480
         private const val POLL_INTERVAL_MS = 5_000L
-        const val DEFAULT_TOKEN_ERROR = "토큰을 불러오지 못했어요. 다시 시도해 주세요."
-        const val DEFAULT_CHECK_ERROR = "연동 상태를 확인하지 못했어요. 다시 시도해 주세요."
-        const val CHECK_NOW_NOT_PAIRED_MESSAGE = "아직 연동되지 않았어요. 폰에서 QR을 스캔해 주세요."
-        const val CHECK_NOW_FAILED_MESSAGE = "확인에 실패했어요. 잠시 후 다시 시도해 주세요."
     }
 }

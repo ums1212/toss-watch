@@ -1,9 +1,11 @@
 package dev.comon.toss_watch.feature.dashboard.presentation
 
 import dev.comon.toss_watch.core.model.NetworkResult
+import dev.comon.toss_watch.feature.dashboard.R
 import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchAccountsUseCase
 import dev.comon.toss_watch.feature.dashboard.domain.usecase.FetchPortfolioUseCase
 import dev.comon.toss_watch.feature.dashboard.util.FakeDashboardRepository
+import dev.comon.toss_watch.feature.dashboard.util.FakeStringProvider
 import dev.comon.toss_watch.feature.dashboard.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.dashboard.util.TestDispatcherProvider
 import java.io.IOException
@@ -29,11 +31,13 @@ class DashboardViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val fakeRepository = FakeDashboardRepository()
+    private val fakeStringProvider = FakeStringProvider()
 
     private fun createViewModel(): DashboardViewModel =
         DashboardViewModel(
             fetchAccountsUseCase = FetchAccountsUseCase(fakeRepository),
             fetchPortfolioUseCase = FetchPortfolioUseCase(fakeRepository),
+            stringProvider = fakeStringProvider,
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
 
@@ -148,7 +152,7 @@ class DashboardViewModelTest {
             advanceUntilIdle()
 
             assertEquals(
-                DashboardViewModel.DEFAULT_API_ERROR,
+                fakeStringProvider.getString(R.string.dashboard_error_api),
                 viewModel.uiState.value.errorMessage,
             )
         }
@@ -163,7 +167,7 @@ class DashboardViewModelTest {
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
-            assertEquals(DashboardViewModel.DEFAULT_NETWORK_ERROR, state.errorMessage)
+            assertEquals(fakeStringProvider.getString(R.string.dashboard_error_network), state.errorMessage)
             assertNull(state.portfolio)
         }
 

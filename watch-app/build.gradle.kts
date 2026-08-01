@@ -32,7 +32,7 @@ android {
         minSdk = 30
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "TOSS_WATCH_APP_API_KEY", "\"$watchApiKey\"")

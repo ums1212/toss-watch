@@ -16,11 +16,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.presentation.alarm.StockAlarmSummary
 
 /** 알림이 등록된 종목 1행 — 심볼 아바타, 종목명/코드, 등록된 알림 개수. */
@@ -72,7 +74,7 @@ fun StockAlarmSummaryItem(
             }
 
             Text(
-                text = "알림 ${summary.alarmCount}개",
+                text = stringResource(id = R.string.stock_alarm_count_format, summary.alarmCount),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -13,6 +13,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dev.comon.watch_app.R
 import dev.comon.watch_app.presentation.alarm.StockAlarmActivity
 
 class WatchNotificationService : FirebaseMessagingService() {
@@ -90,7 +91,8 @@ class WatchNotificationService : FirebaseMessagingService() {
     }
 
     private fun ensureNotificationChannel() {
-        val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH).apply {
+        val channelName = getString(R.string.notification_channel_stock_alarm)
+        val channel = NotificationChannel(CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
             enableVibration(true)
             vibrationPattern = VIBRATION_PATTERN
         }
@@ -106,7 +108,6 @@ class WatchNotificationService : FirebaseMessagingService() {
         // NotificationChannel 설정(진동 등)은 최초 생성 후 불변이므로, 채널 설정 변경 시
         // ID를 새로 바꿔야 기존 설치 기기에도 새 설정이 반영된다.
         private const val CHANNEL_ID = "stock_alarm_channel_v2"
-        private const val CHANNEL_NAME = "주식 알림"
 
         // fullScreenIntent가 설정된 알림은 Wear OS 플랫폼이 자체적으로 진동/사운드를
         // 억제하는 것으로 확인돼(로그: WearServices StreamManagerCollectorListener가

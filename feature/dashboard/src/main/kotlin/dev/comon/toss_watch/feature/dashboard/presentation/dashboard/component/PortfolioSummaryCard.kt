@@ -18,11 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.core.designsystem.theme.toss
+import dev.comon.toss_watch.feature.dashboard.R
 import dev.comon.toss_watch.feature.dashboard.domain.model.Portfolio
 import dev.comon.toss_watch.feature.dashboard.domain.model.PortfolioSummary
 import java.text.NumberFormat
@@ -63,7 +65,7 @@ fun PortfolioSummaryCard(
     ) {
         if (accountNo != null) {
             Text(
-                text = "$accountNo 계좌",
+                text = stringResource(id = R.string.portfolio_summary_account_suffix, accountNo),
                 style = MaterialTheme.typography.labelMedium,
                 color = onPrimary.copy(alpha = 0.7f),
             )
@@ -71,7 +73,7 @@ fun PortfolioSummaryCard(
         }
 
         Text(
-            text = "총 평가 자산",
+            text = stringResource(id = R.string.portfolio_summary_total_valuation),
             style = MaterialTheme.typography.labelLarge,
             color = onPrimary.copy(alpha = 0.8f),
         )
@@ -111,7 +113,7 @@ fun PortfolioSummaryCard(
             Row(modifier = Modifier.fillMaxWidth()) {
                 SummaryStat(
                     modifier = Modifier.weight(1f),
-                    label = "평가 손익",
+                    label = stringResource(id = R.string.portfolio_summary_profit_loss),
                     valueKrw = buildProfitLabel(summary.totalProfitLossKrw, isUsd = false),
                     valueUsd = if (summary.hasUsdHoldings()) {
                         buildProfitLabel(summary.totalProfitLossUsd, isUsd = true)
@@ -123,7 +125,7 @@ fun PortfolioSummaryCard(
                 )
                 SummaryStat(
                     modifier = Modifier.weight(1f),
-                    label = "총 수익률",
+                    label = stringResource(id = R.string.portfolio_summary_total_return),
                     valueKrw = formatRatePercent(summary.totalReturnRate),
                     valueUsd = null,
                     isPositive = summary.totalReturnRate >= 0,
@@ -183,6 +185,7 @@ private fun SummaryStat(
 private fun PortfolioSummary.hasUsdHoldings(): Boolean =
     totalEvaluationUsd != 0.0 || totalInvestmentUsd != 0.0
 
+@Composable
 private fun buildProfitLabel(amount: Double, isUsd: Boolean): String {
     val sign = if (amount >= 0) "+" else "-"
     val formatted = if (isUsd) abs(amount).toUsd() else abs(amount).toKrw()
@@ -195,8 +198,12 @@ private fun formatRatePercent(rate: Double): String {
 }
 
 /** 원화 금액 포맷 — 소수점은 반올림해 정수 단위로 표시한다. */
+@Composable
 internal fun Double.toKrw(): String =
-    NumberFormat.getNumberInstance(Locale.KOREA).format(this.roundToLong()) + "원"
+    stringResource(
+        id = R.string.dashboard_krw_amount_format,
+        NumberFormat.getNumberInstance(Locale.KOREA).format(this.roundToLong()),
+    )
 
 /** 달러 금액 포맷 — 소수 2자리 고정. */
 internal fun Double.toUsd(): String {

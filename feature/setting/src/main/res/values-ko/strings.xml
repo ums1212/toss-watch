@@ -1,0 +1,38 @@
+<resources>
+    <string name="setting_top_bar_title">설정</string>
+    <string name="setting_back_desc">뒤로가기</string>
+    <string name="setting_logout_dialog_title">로그아웃</string>
+    <string name="setting_login_dialog_title">로그인하기</string>
+    <string name="setting_logout_dialog_message">로그아웃하시겠습니까?</string>
+    <string name="setting_login_dialog_message">로그인 화면으로 이동할까요? 체험 중 추가한 알림은 사라져요.</string>
+    <string name="setting_dialog_confirm">예</string>
+    <string name="setting_dialog_dismiss">아니오</string>
+
+    <string name="setting_toss_section_title">토스 연동</string>
+    <string name="setting_toss_key_reset_button">토스 API 키 재설정</string>
+
+    <string name="setting_watch_section_title">Wear OS 연동</string>
+    <string name="setting_watch_paired_format">연동된 워치: %1$s</string>
+    <string name="setting_watch_unknown_model">이름 미확인 워치</string>
+    <string name="setting_watch_uuid_format">UUID: %1$s</string>
+    <string name="setting_watch_unpaired_hint">워치 앱 페어링 화면에 표시된 QR 코드를 스캔해 연동해요.</string>
+    <string name="setting_watch_repair_button">재연동</string>
+    <string name="setting_watch_pair_button">QR로 워치 연동</string>
+
+    <string name="setting_logout_button">로그아웃</string>
+    <string name="setting_login_button">로그인하기</string>
+
+    <string name="watchpair_top_bar_title">워치 QR 스캔</string>
+    <string name="watchpair_back_desc">뒤로가기</string>
+    <string name="watchpair_scan_hint">워치 화면에 표시된 QR 코드를 비춰 주세요.</string>
+    <string name="watchpair_registering">워치를 연동하고 있어요…</string>
+    <string name="watchpair_permission_denied_permanent">카메라 권한이 거부되어 있어요.\n앱 설정에서 권한을 허용해 주세요.</string>
+    <string name="watchpair_permission_needed">QR 코드를 스캔하려면\n카메라 권한이 필요해요.</string>
+    <string name="watchpair_open_settings_button">앱 설정으로 이동</string>
+    <string name="watchpair_grant_permission_button">카메라 권한 허용</string>
+    <string name="watchpair_error_dialog_title">워치 연동에 실패했어요</string>
+    <string name="watchpair_error_api">워치 연동에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="watchpair_error_network">네트워크 연결을 확인한 뒤 다시 시도해 주세요.</string>
+    <string name="watchpair_error_invalid_qr">인식할 수 없는 QR이에요. 워치 화면의 QR을 다시 스캔해 주세요.</string>
+    <string name="watchpair_toast_registered">워치 알림 토큰이 등록됐어요.</string>
+</resources>

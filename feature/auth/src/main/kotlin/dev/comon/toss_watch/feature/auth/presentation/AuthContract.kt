@@ -18,6 +18,9 @@ sealed interface AuthUiIntent : UiIntent {
     /** Credential Manager 단계에서 실패했을 때 (유저 취소는 제외하고 발행). */
     data class OnGoogleCredentialFailed(val message: String?) : AuthUiIntent
 
+    /** "게스트로 둘러보기" — 실 API 호출 없이 더미 데이터 체험 모드로 진입한다. */
+    data object OnGuestLoginClicked : AuthUiIntent
+
     /** 에러 다이얼로그의 확인 버튼. */
     data object OnAuthErrorDismissed : AuthUiIntent
 }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -36,6 +38,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.auth.BuildConfig
+import dev.comon.toss_watch.feature.auth.R
 import dev.comon.toss_watch.feature.auth.presentation.AuthUiIntent
 import dev.comon.toss_watch.feature.auth.presentation.AuthUiSideEffect
 import dev.comon.toss_watch.feature.auth.presentation.AuthUiState
@@ -87,6 +90,7 @@ fun LoginScreen(
                 }
             }
         },
+        onGuestLoginClick = { viewModel.handleIntent(AuthUiIntent.OnGuestLoginClicked) },
         onErrorDismiss = { viewModel.handleIntent(AuthUiIntent.OnAuthErrorDismissed) },
     )
 }
@@ -95,6 +99,7 @@ fun LoginScreen(
 private fun LoginContent(
     uiState: AuthUiState,
     onGoogleLoginClick: () -> Unit,
+    onGuestLoginClick: () -> Unit,
     onErrorDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -116,7 +121,7 @@ private fun LoginContent(
             Spacer(modifier = Modifier.height(TossSpacing.stackLg))
 
             Text(
-                text = "내 손목 위의 주식 알림,\n구글 계정으로 바로 시작하세요.",
+                text = stringResource(id = R.string.auth_login_tagline),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -125,9 +130,25 @@ private fun LoginContent(
             Spacer(modifier = Modifier.weight(1f))
 
             GoogleSignInButton(
-                text = "Google 계정으로 로그인",
+                text = stringResource(id = R.string.auth_google_sign_in),
                 onClick = onGoogleLoginClick,
                 enabled = !uiState.isLoading,
+            )
+
+            Spacer(modifier = Modifier.height(TossSpacing.stackMd))
+
+            TextButton(onClick = onGuestLoginClick, enabled = !uiState.isLoading) {
+                Text(
+                    text = stringResource(id = R.string.auth_guest_login),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+
+            Text(
+                text = stringResource(id = R.string.auth_guest_login_caption),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
 
             Spacer(modifier = Modifier.height(TossSpacing.sectionPadding))
@@ -138,14 +159,14 @@ private fun LoginContent(
         }
 
         if (uiState.isLoading) {
-            TossWatchLoadingOverlay(message = "로그인 중이에요…")
+            TossWatchLoadingOverlay(message = stringResource(id = R.string.auth_loading_message))
         }
 
         uiState.errorMessage?.let { message ->
             TossWatchErrorDialog(
                 message = message,
                 onDismiss = onErrorDismiss,
-                title = "로그인에 실패했어요",
+                title = stringResource(id = R.string.auth_error_dialog_title),
             )
         }
     }
@@ -160,13 +181,13 @@ private fun LoginFooter(modifier: Modifier = Modifier) {
     ) {
         Row(horizontalArrangement = Arrangement.Center) {
             Text(
-                text = "이용약관",
+                text = stringResource(id = R.string.auth_footer_terms),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.width(TossSpacing.stackMd))
             Text(
-                text = "개인정보처리방침",
+                text = stringResource(id = R.string.auth_footer_privacy),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -175,7 +196,7 @@ private fun LoginFooter(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(TossSpacing.stackSm))
 
         Text(
-            text = "© 2026 toss-watch. All rights reserved.",
+            text = stringResource(id = R.string.auth_footer_copyright),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
         )
@@ -189,6 +210,7 @@ private fun LoginContentPreview() {
         LoginContent(
             uiState = AuthUiState(),
             onGoogleLoginClick = {},
+            onGuestLoginClick = {},
             onErrorDismiss = {},
         )
     }
@@ -201,6 +223,7 @@ private fun LoginContentLoadingPreview() {
         LoginContent(
             uiState = AuthUiState(isLoading = true),
             onGoogleLoginClick = {},
+            onGuestLoginClick = {},
             onErrorDismiss = {},
         )
     }

@@ -2,18 +2,25 @@
     <string name="app_name">toss-watch</string>
     <string name="hello_world">Hello, %1$s!</string>
 
-    <string name="onboarding_title">폰 앱으로 QR을 스캔하세요</string>
-    <string name="onboarding_retry">다시 시도</string>
-    <string name="onboarding_refresh">QR 새로고침</string>
-    <string name="onboarding_check_now">지금 확인</string>
+    <string name="onboarding_title">Scan the QR code in the phone app</string>
+    <string name="onboarding_retry">Retry</string>
+    <string name="onboarding_refresh">Refresh QR</string>
+    <string name="onboarding_check_now">Check now</string>
 
-    <string name="onboarding_paired_title">연동 완료</string>
-    <string name="onboarding_paired_model">기기: %1$s</string>
+    <string name="onboarding_paired_title">Paired</string>
+    <string name="onboarding_paired_model">Device: %1$s</string>
     <string name="onboarding_paired_uuid">UUID: %1$s</string>
-    <string name="onboarding_generate_qr">QR 생성</string>
+    <string name="onboarding_generate_qr">Generate QR</string>
 
     <string name="stock_alarm_change_rate">%1$s</string>
     <string name="stock_alarm_current_price">%1$s</string>
-    <string name="stock_alarm_dismiss">닫기</string>
-    <string name="stock_alarm_image_desc">시세 알림</string>
+    <string name="stock_alarm_dismiss">Dismiss</string>
+    <string name="stock_alarm_image_desc">Price alert</string>
+
+    <string name="onboarding_error_token">Couldn\'t load your token. Please try again.</string>
+    <string name="onboarding_error_check">Couldn\'t check pairing status. Please try again.</string>
+    <string name="onboarding_check_now_not_paired">Not paired yet. Please scan the QR code from your phone.</string>
+    <string name="onboarding_check_now_failed">Check failed. Please try again in a moment.</string>
+
+    <string name="notification_channel_stock_alarm">Stock alerts</string>
 </resources>

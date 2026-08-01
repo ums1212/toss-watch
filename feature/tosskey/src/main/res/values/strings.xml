@@ -1,0 +1,17 @@
+<resources>
+    <string name="tosskey_top_bar_title">Register Toss API key</string>
+    <string name="tosskey_back_desc">Back</string>
+    <string name="tosskey_description">Enter the Open API key issued by Toss Securities\nto connect your account.</string>
+    <string name="tosskey_client_id_label">Client ID</string>
+    <string name="tosskey_client_id_hint">e.g. tsck_live_...</string>
+    <string name="tosskey_client_secret_label">Client secret</string>
+    <string name="tosskey_client_secret_hint">e.g. tssk_live_...</string>
+    <string name="tosskey_submit_saving">Registering…</string>
+    <string name="tosskey_submit_button">Register Toss API key</string>
+    <string name="tosskey_error_dialog_title">Registration failed</string>
+
+    <string name="tosskey_error_api">Couldn\'t register your Toss API key. Please try again in a moment.</string>
+    <string name="tosskey_error_network">Please check your network connection and try again.</string>
+    <string name="tosskey_error_empty_field">Please enter both the client ID and secret.</string>
+    <string name="tosskey_toast_registered">Your Toss API key has been registered.</string>
+</resources>
