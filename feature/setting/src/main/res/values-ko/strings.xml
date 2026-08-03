@@ -15,6 +15,7 @@
     <string name="setting_watch_paired_format">연동된 워치: %1$s</string>
     <string name="setting_watch_unknown_model">이름 미확인 워치</string>
     <string name="setting_watch_uuid_format">UUID: %1$s</string>
+    <string name="setting_watch_linked_at_format">연동일: %1$s</string>
     <string name="setting_watch_unpaired_hint">워치 앱 페어링 화면에 표시된 QR 코드를 스캔해 연동해요.</string>
     <string name="setting_watch_repair_button">재연동</string>
     <string name="setting_watch_pair_button">QR로 워치 연동</string>

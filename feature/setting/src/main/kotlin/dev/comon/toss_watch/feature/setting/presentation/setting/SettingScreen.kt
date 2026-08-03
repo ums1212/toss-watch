@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,10 @@ import dev.comon.toss_watch.feature.setting.presentation.SettingUiIntent
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiSideEffect
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiState
 import dev.comon.toss_watch.feature.setting.presentation.SettingViewModel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 /**
  * 토스 연동 · Wear OS 연동 · 로그아웃 설정.
@@ -226,6 +231,16 @@ private fun WatchTokenSection(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            pairedWatch.linkedAt?.let { linkedAt ->
+                Text(
+                    text = stringResource(
+                        id = R.string.setting_watch_linked_at_format,
+                        formatLinkedAt(linkedAt),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         } else {
             Text(
                 text = stringResource(id = R.string.setting_watch_unpaired_hint),
@@ -243,6 +258,18 @@ private fun WatchTokenSection(
             onClick = { onIntent(SettingUiIntent.OnPairWatchClicked) },
         )
     }
+}
+
+/** 연동 시각을 기기 로케일/타임존 기준으로 사람이 읽을 수 있는 문자열로 포맷한다. */
+@Composable
+private fun formatLinkedAt(linkedAt: Instant): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val formatter = remember(locale) {
+        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
+            .withLocale(locale)
+            .withZone(ZoneId.systemDefault())
+    }
+    return formatter.format(linkedAt)
 }
 
 /**
@@ -291,6 +318,23 @@ private fun SettingContentGuestPreview() {
     TossWatchTheme {
         SettingContent(
             uiState = SettingUiState(isGuest = true),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingContentPairedPreview() {
+    TossWatchTheme {
+        SettingContent(
+            uiState = SettingUiState(
+                pairedWatch = PairedWatchInfo(
+                    modelName = "Galaxy Watch 6",
+                    uuid = "uuid-abc",
+                    linkedAt = Instant.now(),
+                ),
+            ),
             onIntent = {},
         )
     }

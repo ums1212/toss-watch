@@ -4,6 +4,7 @@ import dev.comon.toss_watch.core.datastore.GuestModeStore
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.repository.SettingRepository
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +29,7 @@ internal class GuestSettingRepository @Inject constructor(
         uuid: String,
         modelName: String,
     ): NetworkResult<Unit> {
-        pairedWatch.value = PairedWatchInfo(modelName = modelName, uuid = uuid)
+        pairedWatch.value = PairedWatchInfo(modelName = modelName, uuid = uuid, linkedAt = Instant.now())
         return NetworkResult.Success(Unit)
     }
 

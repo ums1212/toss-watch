@@ -114,7 +114,16 @@ PUT /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
 | `uuid` | string | ✅ | 워치 기기를 식별하는 UUID. 비워둘 수 없음 |
 | `model_name` | string | — | 워치 기기 모델명. 미전달/빈 값이면 DB에 `NULL`로 저장 |
 
-**Response 200**: `{"message": "FCM 토큰이 등록되었습니다."}`
+**Response 200**:
+```json
+{
+  "message": "FCM 토큰이 등록되었습니다.",
+  "has_fcm_token": true,
+  "model_name": "Galaxy Watch 6",
+  "uuid": "uuid-abc",
+  "linked_at": "2026-08-03T22:30:00.123456+09:00"
+}
+```
 **Errors**
 - `400 Bad Request` `fcm_token` 누락/빈 값 (`{"error": "body에 'fcm_token'이 필요합니다."}`) 또는 `uuid` 누락/빈 값 (`{"error": "body에 'uuid'가 필요합니다."}`)
 - `401 Unauthorized` JWT 인증 정보 누락/만료/위조
@@ -125,10 +134,11 @@ PUT /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
 GET /api/v1/toss-watch/users/fcm-token/       [JWT 필수]
 ```
 
-등록된 경우에만 현재 저장된 `model_name`/`uuid`를 함께 반환한다.
+등록된 경우에만 현재 저장된 `model_name`/`uuid`/`linked_at`을 함께 반환한다.
 
-**Response 200 (등록됨)**: `{"has_fcm_token": true, "model_name": "Galaxy Watch 6", "uuid": "uuid-abc"}`
+**Response 200 (등록됨)**: `{"has_fcm_token": true, "model_name": "Galaxy Watch 6", "uuid": "uuid-abc", "linked_at": "2026-08-03T22:30:00.123456+09:00"}`
 - `model_name`: 등록 시 `model_name`을 전달하지 않았다면 `null`
+- `linked_at`: 연동/갱신 시각 (ISO 8601 문자열)
 
 **Response 200 (미등록)**: `{"has_fcm_token": false}`
 

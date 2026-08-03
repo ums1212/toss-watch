@@ -8,6 +8,7 @@ import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCas
 import dev.comon.toss_watch.feature.setting.util.FakeSettingRepository
 import dev.comon.toss_watch.feature.setting.util.MainDispatcherRule
 import dev.comon.toss_watch.feature.setting.util.TestDispatcherProvider
+import java.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -51,14 +52,16 @@ class SettingViewModelTest {
     @Test
     fun `init 시 syncPairedWatch가 호출되어 서버에 복원된 워치 정보가 상태에 반영된다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            fakeRepository.syncedWatch = PairedWatchInfo(modelName = "Galaxy Watch 6", uuid = "uuid-abc")
+            val linkedAt = Instant.ofEpochMilli(1_754_000_000_000L)
+            fakeRepository.syncedWatch =
+                PairedWatchInfo(modelName = "Galaxy Watch 6", uuid = "uuid-abc", linkedAt = linkedAt)
 
             val viewModel = createViewModel()
             advanceUntilIdle()
 
             assertEquals(1, fakeRepository.syncInvocationCount)
             assertEquals(
-                PairedWatchInfo(modelName = "Galaxy Watch 6", uuid = "uuid-abc"),
+                PairedWatchInfo(modelName = "Galaxy Watch 6", uuid = "uuid-abc", linkedAt = linkedAt),
                 viewModel.uiState.value.pairedWatch,
             )
         }

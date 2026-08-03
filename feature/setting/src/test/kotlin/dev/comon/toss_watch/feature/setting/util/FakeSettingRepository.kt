@@ -3,6 +3,7 @@ package dev.comon.toss_watch.feature.setting.util
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.domain.repository.SettingRepository
+import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +47,7 @@ class FakeSettingRepository : SettingRepository {
         lastRegisteredModelName = modelName
         if (suspendUntilReleased) gate.await()
         if (tokenResult is NetworkResult.Success) {
-            pairedWatch.value = PairedWatchInfo(modelName = modelName, uuid = uuid)
+            pairedWatch.value = PairedWatchInfo(modelName = modelName, uuid = uuid, linkedAt = Instant.now())
         }
         return tokenResult
     }

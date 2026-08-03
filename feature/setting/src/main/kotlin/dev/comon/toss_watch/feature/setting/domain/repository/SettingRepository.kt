@@ -9,7 +9,7 @@ interface SettingRepository {
     suspend fun registerWatchToken(fcmToken: String, uuid: String, modelName: String): NetworkResult<Unit>
 
     /**
-     * 연동 완료된 워치(기기명+UUID)의 반응형 스트림.
+     * 연동 완료된 워치(기기명+UUID+연동 시각)의 반응형 스트림.
      * QR 등록 성공(200) 시점 또는 [syncPairedWatch] 복원으로 로컬(core:datastore)에
      * 저장해 둔 값을 그대로 관측한다. 미연동이면 `null`.
      */

@@ -4,10 +4,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.comon.toss_watch.core.datastore.crypto.TokenCipher
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import java.security.GeneralSecurityException
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -55,14 +57,18 @@ internal class DataStoreTokenStore @Inject constructor(
             .map { prefs ->
                 val uuid = prefs[KEY_PAIRED_WATCH_UUID]
                 if (uuid != null) {
-                    PairedWatchInfo(modelName = prefs[KEY_PAIRED_WATCH_MODEL], uuid = uuid)
+                    PairedWatchInfo(
+                        modelName = prefs[KEY_PAIRED_WATCH_MODEL],
+                        uuid = uuid,
+                        linkedAt = prefs[KEY_PAIRED_WATCH_LINKED_AT]?.let(Instant::ofEpochMilli),
+                    )
                 } else {
                     null
                 }
             }
             .distinctUntilChanged()
 
-    override fun setPairedWatch(modelName: String?, uuid: String) {
+    override fun setPairedWatch(modelName: String?, uuid: String, linkedAt: Instant?) {
         runBlocking {
             dataStore.edit { prefs ->
                 if (modelName != null) {
@@ -71,6 +77,11 @@ internal class DataStoreTokenStore @Inject constructor(
                     prefs.remove(KEY_PAIRED_WATCH_MODEL)
                 }
                 prefs[KEY_PAIRED_WATCH_UUID] = uuid
+                if (linkedAt != null) {
+                    prefs[KEY_PAIRED_WATCH_LINKED_AT] = linkedAt.toEpochMilli()
+                } else {
+                    prefs.remove(KEY_PAIRED_WATCH_LINKED_AT)
+                }
             }
         }
     }
@@ -80,6 +91,7 @@ internal class DataStoreTokenStore @Inject constructor(
             dataStore.edit { prefs ->
                 prefs.remove(KEY_PAIRED_WATCH_MODEL)
                 prefs.remove(KEY_PAIRED_WATCH_UUID)
+                prefs.remove(KEY_PAIRED_WATCH_LINKED_AT)
             }
         }
     }
@@ -113,6 +125,7 @@ internal class DataStoreTokenStore @Inject constructor(
                 prefs.remove(KEY_TOSS_KEY_REGISTERED)
                 prefs.remove(KEY_PAIRED_WATCH_MODEL)
                 prefs.remove(KEY_PAIRED_WATCH_UUID)
+                prefs.remove(KEY_PAIRED_WATCH_LINKED_AT)
             }
         }
     }
@@ -133,5 +146,6 @@ internal class DataStoreTokenStore @Inject constructor(
         val KEY_TOSS_KEY_REGISTERED = booleanPreferencesKey("toss_key_registered")
         val KEY_PAIRED_WATCH_MODEL = stringPreferencesKey("paired_watch_model_name")
         val KEY_PAIRED_WATCH_UUID = stringPreferencesKey("paired_watch_uuid")
+        val KEY_PAIRED_WATCH_LINKED_AT = longPreferencesKey("paired_watch_linked_at")
     }
 }
