@@ -8,6 +8,8 @@
     <string name="auth_footer_terms">Terms of Service</string>
     <string name="auth_footer_privacy">Privacy Policy</string>
     <string name="auth_footer_copyright">© 2026 toss-watch. All rights reserved.</string>
+    <string name="auth_footer_terms_url" translatable="false" formatted="false">https://comon.dev/policy/%ED%86%A0%EC%8A%A4%EC%9B%8C%EC%B9%98/terms/</string>
+    <string name="auth_footer_privacy_url" translatable="false" formatted="false">https://comon.dev/policy/%ED%86%A0%EC%8A%A4%EC%9B%8C%EC%B9%98/privacy/</string>
 
     <string name="auth_error_credential">We couldn\'t retrieve your Google account info. Please try again.</string>
     <string name="auth_error_unsupported_credential">Unsupported credential type.</string>

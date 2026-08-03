@@ -2,6 +2,7 @@ package dev.comon.toss_watch.feature.auth.presentation.login
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -172,9 +174,13 @@ private fun LoginContent(
     }
 }
 
-/** 이용약관/개인정보처리방침 및 저작권 표기. 별도 화면이 아직 없어 탐색 없이 텍스트만 노출한다. */
+/** 이용약관/개인정보처리방침 링크 및 저작권 표기. */
 @Composable
 private fun LoginFooter(modifier: Modifier = Modifier) {
+    val uriHandler = LocalUriHandler.current
+    val termsUrl = stringResource(id = R.string.auth_footer_terms_url)
+    val privacyUrl = stringResource(id = R.string.auth_footer_privacy_url)
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -184,12 +190,14 @@ private fun LoginFooter(modifier: Modifier = Modifier) {
                 text = stringResource(id = R.string.auth_footer_terms),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clickable { uriHandler.openUri(termsUrl) },
             )
             Spacer(modifier = Modifier.width(TossSpacing.stackMd))
             Text(
                 text = stringResource(id = R.string.auth_footer_privacy),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clickable { uriHandler.openUri(privacyUrl) },
             )
         }
 
