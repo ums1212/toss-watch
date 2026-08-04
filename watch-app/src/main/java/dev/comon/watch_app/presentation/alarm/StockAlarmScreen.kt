@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material3.Button
@@ -33,7 +34,9 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SwipeToDismissBox
 import androidx.wear.compose.material3.Text
+import androidx.wear.tooling.preview.devices.WearDevices
 import dev.comon.watch_app.R
+import dev.comon.watch_app.presentation.theme.TosswatchTheme
 import dev.comon.watch_app.presentation.theme.WatchColors
 import kotlinx.coroutines.delay
 
@@ -114,6 +117,40 @@ private fun ImageScene(
                 contentScale = ContentScale.Fit,
             )
         }
+    }
+}
+
+/**
+ * 실제 워치 단말들(원형 소/대, 사각형)에서 [ImageScene]의 합성 이미지가
+ * 화면 밖으로 잘리지 않는지 한 번에 점검하기 위한 멀티 디바이스 프리뷰.
+ */
+@Preview(name = "Small Round", device = WearDevices.SMALL_ROUND, showBackground = true)
+@Preview(name = "Large Round", device = WearDevices.LARGE_ROUND, showBackground = true)
+@Preview(name = "Square", device = WearDevices.SQUARE, showBackground = true)
+@Preview(name = "Rect", device = WearDevices.RECT, showBackground = true)
+private annotation class StockAlarmImageDevicePreviews
+
+@StockAlarmImageDevicePreviews
+@Composable
+private fun ImageSceneUpPreview() {
+    TosswatchTheme {
+        ImageScene(direction = PriceDirection.UP, visible = true)
+    }
+}
+
+@StockAlarmImageDevicePreviews
+@Composable
+private fun ImageSceneFlatPreview() {
+    TosswatchTheme {
+        ImageScene(direction = PriceDirection.FLAT, visible = true)
+    }
+}
+
+@StockAlarmImageDevicePreviews
+@Composable
+private fun ImageSceneDownPreview() {
+    TosswatchTheme {
+        ImageScene(direction = PriceDirection.DOWN, visible = true)
     }
 }
 
