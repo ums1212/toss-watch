@@ -1,5 +1,7 @@
 package dev.comon.toss_watch.feature.alarm.presentation.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -109,5 +111,29 @@ private fun AlarmProfileItemPreview() {
             onDelete = {},
             enabled = true,
         )
+    }
+}
+
+/**
+ * [SwipeToDeleteBox]가 드러내는 삭제 배경(빨간 배경 + 휴지통 아이콘)의 색 대비를 확인하기 위한 프리뷰.
+ * 스와이프 제스처는 정적 프리뷰에서 재현할 수 없으므로, 배경 콘텐츠를 항상 노출한 상태만 확인한다.
+ */
+@Preview(showBackground = true, name = "SwipeToDeleteBox background")
+@Composable
+private fun SwipeToDeleteBoxBackgroundPreview() {
+    TossWatchTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.error)
+                .padding(horizontal = TossSpacing.stackMd, vertical = TossSpacing.stackSm),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onError,
+            )
+        }
     }
 }

@@ -48,6 +48,7 @@ import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.presentation.component.AddAlarmDialog
 import dev.comon.toss_watch.feature.alarm.presentation.component.AlarmProfileItem
+import dev.comon.toss_watch.feature.alarm.presentation.component.SwipeToDeleteBox
 import dev.comon.toss_watch.feature.alarm.presentation.component.formatDaysOfWeek
 
 /**
@@ -176,14 +177,19 @@ private fun AlarmDetailContent(
                             items = stockAlarms,
                             key = { it.id },
                         ) { alarm ->
-                            AlarmProfileItem(
-                                alarm = alarm,
-                                onToggle = { enabled ->
-                                    onIntent(AlarmDetailUiIntent.OnToggleAlarm(alarm.id, enabled))
-                                },
+                            SwipeToDeleteBox(
                                 onDelete = { alarmPendingDelete = alarm },
                                 enabled = !uiState.isSaving,
-                            )
+                            ) {
+                                AlarmProfileItem(
+                                    alarm = alarm,
+                                    onToggle = { enabled ->
+                                        onIntent(AlarmDetailUiIntent.OnToggleAlarm(alarm.id, enabled))
+                                    },
+                                    onDelete = { alarmPendingDelete = alarm },
+                                    enabled = !uiState.isSaving,
+                                )
+                            }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
