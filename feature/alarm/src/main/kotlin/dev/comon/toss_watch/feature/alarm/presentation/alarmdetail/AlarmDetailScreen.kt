@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -120,6 +121,15 @@ private fun AlarmDetailContent(
 
     BackHandler(enabled = isCheckMode) { exitCheckMode() }
 
+    // Scaffold의 contentWindowInsets는 body(innerPadding)에만 적용되고 bottomBar 슬롯에는
+    // 적용되지 않는다 — NavigationBar 같은 M3 컴포넌트와 달리 순수 버튼은 인셋을 스스로
+    // 소비해야 3버튼 네비게이션바 환경(제스처 미사용)에서 가려지지 않는다.
+    // BottomMenuScreen의 FloatingBottomNavigationBar와 동일한 처리.
+    val bottomButtonModifier = Modifier
+        .fillMaxWidth()
+        .navigationBarsPadding()
+        .padding(TossSpacing.containerMargin)
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -167,9 +177,7 @@ private fun AlarmDetailContent(
                 OutlinedButton(
                     onClick = { showDeleteSelectedDialog = true },
                     enabled = !uiState.isSaving && selectedAlarmIds.isNotEmpty(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(TossSpacing.containerMargin),
+                    modifier = bottomButtonModifier,
                 ) {
                     Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
                     Text(
@@ -183,9 +191,7 @@ private fun AlarmDetailContent(
                 OutlinedButton(
                     onClick = { showAddAlarmDialog = true },
                     enabled = !uiState.isSaving,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(TossSpacing.containerMargin),
+                    modifier = bottomButtonModifier,
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null)
                     Text(text = stringResource(id = R.string.alarm_detail_add_button))
