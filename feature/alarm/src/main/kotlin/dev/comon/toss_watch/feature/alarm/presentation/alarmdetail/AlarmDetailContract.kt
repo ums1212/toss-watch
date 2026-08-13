@@ -39,6 +39,11 @@ sealed interface AlarmDetailUiIntent : UiIntent {
         val alarmId: Long,
     ) : AlarmDetailUiIntent
 
+    /** 체크모드에서 선택 삭제 — 확인 다이얼로그에서 확정된 후 전달된다. */
+    data class OnDeleteAlarms(
+        val alarmIds: List<Long>,
+    ) : AlarmDetailUiIntent
+
     /** 상단 앱바의 뒤로가기. */
     data object OnBackClicked : AlarmDetailUiIntent
 

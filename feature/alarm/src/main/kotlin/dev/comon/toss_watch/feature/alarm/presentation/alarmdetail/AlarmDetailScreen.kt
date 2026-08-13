@@ -1,6 +1,7 @@
 package dev.comon.toss_watch.feature.alarm.presentation.alarmdetail
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -106,6 +109,16 @@ private fun AlarmDetailContent(
 
     var showAddAlarmDialog by remember { mutableStateOf(false) }
     var alarmPendingDelete by remember { mutableStateOf<AlarmProfile?>(null) }
+    var isCheckMode by remember { mutableStateOf(false) }
+    var selectedAlarmIds by remember { mutableStateOf(emptySet<Long>()) }
+    var showDeleteSelectedDialog by remember { mutableStateOf(false) }
+
+    fun exitCheckMode() {
+        isCheckMode = false
+        selectedAlarmIds = emptySet()
+    }
+
+    BackHandler(enabled = isCheckMode) { exitCheckMode() }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -113,25 +126,70 @@ private fun AlarmDetailContent(
             TopAppBar(
                 title = { Text(text = resolvedStockName) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClicked) {
+                    IconButton(onClick = { if (isCheckMode) exitCheckMode() else onBackClicked() }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.alarm_detail_back_desc),
+                            imageVector = if (isCheckMode) Icons.Filled.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = if (isCheckMode) {
+                                stringResource(id = R.string.alarm_detail_check_mode_close_desc)
+                            } else {
+                                stringResource(id = R.string.alarm_detail_back_desc)
+                            },
                         )
+                    }
+                },
+                actions = {
+                    if (isCheckMode) {
+                        val allSelected = stockAlarms.isNotEmpty() &&
+                            selectedAlarmIds.size == stockAlarms.size
+                        TextButton(
+                            onClick = {
+                                selectedAlarmIds = if (allSelected) {
+                                    emptySet()
+                                } else {
+                                    stockAlarms.map { it.id }.toSet()
+                                }
+                            },
+                        ) {
+                            Text(
+                                text = if (allSelected) {
+                                    stringResource(id = R.string.alarm_detail_deselect_all)
+                                } else {
+                                    stringResource(id = R.string.alarm_detail_select_all)
+                                },
+                            )
+                        }
                     }
                 },
             )
         },
         bottomBar = {
-            OutlinedButton(
-                onClick = { showAddAlarmDialog = true },
-                enabled = !uiState.isSaving,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(TossSpacing.containerMargin),
-            ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                Text(text = stringResource(id = R.string.alarm_detail_add_button))
+            if (isCheckMode) {
+                OutlinedButton(
+                    onClick = { showDeleteSelectedDialog = true },
+                    enabled = !uiState.isSaving && selectedAlarmIds.isNotEmpty(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(TossSpacing.containerMargin),
+                ) {
+                    Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
+                    Text(
+                        text = stringResource(
+                            id = R.string.alarm_detail_delete_selected_button,
+                            selectedAlarmIds.size,
+                        ),
+                    )
+                }
+            } else {
+                OutlinedButton(
+                    onClick = { showAddAlarmDialog = true },
+                    enabled = !uiState.isSaving,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(TossSpacing.containerMargin),
+                ) {
+                    Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+                    Text(text = stringResource(id = R.string.alarm_detail_add_button))
+                }
             }
         },
     ) { innerPadding ->
@@ -177,9 +235,10 @@ private fun AlarmDetailContent(
                             items = stockAlarms,
                             key = { it.id },
                         ) { alarm ->
+                            val isSelected = alarm.id in selectedAlarmIds
                             SwipeToDeleteBox(
                                 onDelete = { alarmPendingDelete = alarm },
-                                enabled = !uiState.isSaving,
+                                enabled = !uiState.isSaving && !isCheckMode,
                             ) {
                                 AlarmProfileItem(
                                     alarm = alarm,
@@ -188,6 +247,23 @@ private fun AlarmDetailContent(
                                     },
                                     onDelete = { alarmPendingDelete = alarm },
                                     enabled = !uiState.isSaving,
+                                    isCheckMode = isCheckMode,
+                                    isSelected = isSelected,
+                                    onClick = {
+                                        if (isCheckMode) {
+                                            selectedAlarmIds = if (isSelected) {
+                                                selectedAlarmIds - alarm.id
+                                            } else {
+                                                selectedAlarmIds + alarm.id
+                                            }
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (!isCheckMode) {
+                                            isCheckMode = true
+                                            selectedAlarmIds = setOf(alarm.id)
+                                        }
+                                    },
                                 )
                             }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -239,6 +315,37 @@ private fun AlarmDetailContent(
             },
             dismissButton = {
                 TextButton(onClick = { alarmPendingDelete = null }) {
+                    Text(text = stringResource(id = R.string.alarm_delete_cancel))
+                }
+            },
+        )
+    }
+
+    if (showDeleteSelectedDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteSelectedDialog = false },
+            title = { Text(text = stringResource(id = R.string.alarm_delete_selected_dialog_title)) },
+            text = {
+                Text(
+                    text = stringResource(
+                        id = R.string.alarm_delete_selected_dialog_message,
+                        selectedAlarmIds.size,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onIntent(AlarmDetailUiIntent.OnDeleteAlarms(selectedAlarmIds.toList()))
+                        showDeleteSelectedDialog = false
+                        exitCheckMode()
+                    },
+                ) {
+                    Text(text = stringResource(id = R.string.alarm_delete_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteSelectedDialog = false }) {
                     Text(text = stringResource(id = R.string.alarm_delete_cancel))
                 }
             },

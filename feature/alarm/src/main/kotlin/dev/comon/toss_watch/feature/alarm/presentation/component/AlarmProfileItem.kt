@@ -1,6 +1,8 @@
 package dev.comon.toss_watch.feature.alarm.presentation.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +27,15 @@ import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 
-/** 알림 프로필 1행 — 종목, 알림 시각, 활성 토글 스위치, 삭제 버튼. */
+/**
+ * 알림 프로필 1행 — 종목, 알림 시각, 활성 토글 스위치, 삭제 버튼.
+ *
+ * @param isCheckMode `true`면 삭제 버튼/스위치 대신 체크박스를 보여주는 선택 모드로 렌더링한다.
+ * @param isSelected 체크모드에서 이 행이 선택되어 있는지 여부. [isCheckMode]가 `false`면 무시된다.
+ * @param onClick 행 탭 — 체크모드에서는 선택 토글, 일반 모드에서는 아무 동작도 하지 않는다.
+ * @param onLongClick 행 길게 누르기 — 일반 모드에서 체크모드로 진입시키는 데 쓰인다.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlarmProfileItem(
     alarm: AlarmProfile,
@@ -32,10 +43,19 @@ fun AlarmProfileItem(
     onDelete: () -> Unit,
     enabled: Boolean,
     modifier: Modifier = Modifier,
+    isCheckMode: Boolean = false,
+    isSelected: Boolean = false,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .combinedClickable(
+                enabled = enabled,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
             .padding(vertical = TossSpacing.stackSm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -55,19 +75,27 @@ fun AlarmProfileItem(
             }
         }
 
-        IconButton(onClick = onDelete, enabled = enabled) {
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = stringResource(id = R.string.alarm_delete_desc),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (isCheckMode) {
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = null,
+                enabled = enabled,
+            )
+        } else {
+            IconButton(onClick = onDelete, enabled = enabled) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = stringResource(id = R.string.alarm_delete_desc),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Switch(
+                checked = alarm.isEnabled,
+                onCheckedChange = onToggle,
+                enabled = enabled,
             )
         }
-
-        Switch(
-            checked = alarm.isEnabled,
-            onCheckedChange = onToggle,
-            enabled = enabled,
-        )
     }
 }
 

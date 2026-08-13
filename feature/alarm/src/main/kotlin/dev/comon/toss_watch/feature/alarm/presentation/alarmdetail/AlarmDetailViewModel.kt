@@ -49,6 +49,9 @@ class AlarmDetailViewModel @Inject constructor(
             is AlarmDetailUiIntent.OnDeleteAlarm ->
                 deleteAlarm(intent.alarmId)
 
+            is AlarmDetailUiIntent.OnDeleteAlarms ->
+                deleteAlarms(intent.alarmIds)
+
             AlarmDetailUiIntent.OnBackClicked ->
                 sendSideEffect(AlarmDetailUiSideEffect.NavigateBack)
 
@@ -142,6 +145,34 @@ class AlarmDetailViewModel @Inject constructor(
                 else -> updateState {
                     copy(isSaving = false, errorMessage = result.toErrorMessage())
                 }
+            }
+        }
+    }
+
+    /** 체크모드 선택 삭제 — 개별 삭제 API를 순차 호출하고, 실패한 건이 있으면 에러 메시지로 알린다. */
+    private fun deleteAlarms(alarmIds: List<Long>) {
+        if (uiState.value.isSaving || alarmIds.isEmpty()) return
+
+        viewModelScope.launch(dispatcherProvider.io) {
+            updateState { copy(isSaving = true, errorMessage = null) }
+
+            val failureCount = alarmIds.count { alarmId ->
+                deleteAlarmProfileUseCase(alarmId) !is NetworkResult.Success
+            }
+
+            updateState {
+                copy(
+                    isSaving = false,
+                    errorMessage = if (failureCount > 0) {
+                        stringProvider.getString(R.string.alarm_detail_error_api)
+                    } else {
+                        null
+                    },
+                )
+            }
+
+            if (failureCount < alarmIds.size) {
+                sendSideEffect(AlarmDetailUiSideEffect.ShowToast(stringProvider.getString(R.string.alarm_toast_deleted)))
             }
         }
     }

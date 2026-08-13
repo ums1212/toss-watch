@@ -19,6 +19,13 @@
     <string name="alarm_delete_confirm">삭제</string>
     <string name="alarm_delete_cancel">취소</string>
 
+    <string name="alarm_detail_check_mode_close_desc">선택 모드 종료</string>
+    <string name="alarm_detail_select_all">전체 선택</string>
+    <string name="alarm_detail_deselect_all">전체 해제</string>
+    <string name="alarm_detail_delete_selected_button">선택 삭제 (%1$d)</string>
+    <string name="alarm_delete_selected_dialog_title">알림 삭제</string>
+    <string name="alarm_delete_selected_dialog_message">선택한 알림 %1$d개를 삭제할까요?</string>
+
     <string name="add_alarm_dialog_title">알림 추가</string>
     <string name="add_alarm_no_stocks">보유 종목이 없어요. 대시보드에서 계좌를 먼저 확인해 주세요.</string>
     <string name="add_alarm_stock_label">종목</string>
