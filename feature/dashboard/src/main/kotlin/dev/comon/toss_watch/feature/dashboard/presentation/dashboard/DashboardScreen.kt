@@ -1,5 +1,6 @@
 package dev.comon.toss_watch.feature.dashboard.presentation.dashboard
 
+import android.R.attr.contentDescription
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,11 +13,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -160,9 +161,10 @@ private fun DashboardContent(
                     IconButton(
                         onClick = { isAccountDialogVisible = true },
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.List,
+                        Image(
+                            painter = painterResource(id = R.drawable.book),
                             contentDescription = stringResource(id = R.string.dashboard_account_list_desc),
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                     IconButton(
