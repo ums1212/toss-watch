@@ -72,6 +72,7 @@ class FakeDashboardRepository : DashboardRepository {
                     returnRate = 11.54,
                 ),
             ),
+            exchangeRate = 1_380.5,
         )
     }
 }

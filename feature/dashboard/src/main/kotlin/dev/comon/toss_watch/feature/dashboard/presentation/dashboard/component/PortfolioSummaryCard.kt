@@ -86,7 +86,7 @@ fun PortfolioSummaryCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = summary?.totalEvaluationKrw?.toKrw() ?: "—",
+                text = portfolio?.totalEvaluationInKrw?.toKrw() ?: "—",
                 style = MaterialTheme.typography.displaySmall,
                 color = onPrimary,
             )
@@ -99,7 +99,11 @@ fun PortfolioSummaryCard(
         if (summary != null && summary.hasUsdHoldings()) {
             Spacer(modifier = Modifier.height(TossSpacing.stackSm))
             Text(
-                text = summary.totalEvaluationUsd.toUsd(),
+                text = stringResource(
+                    id = R.string.portfolio_summary_breakdown_format,
+                    summary.totalEvaluationKrw.toKrw(),
+                    summary.totalEvaluationUsd.toUsd(),
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = onPrimary.copy(alpha = 0.7f),
             )
@@ -114,20 +118,14 @@ fun PortfolioSummaryCard(
                 SummaryStat(
                     modifier = Modifier.weight(1f),
                     label = stringResource(id = R.string.portfolio_summary_profit_loss),
-                    valueKrw = buildProfitLabel(summary.totalProfitLossKrw, isUsd = false),
-                    valueUsd = if (summary.hasUsdHoldings()) {
-                        buildProfitLabel(summary.totalProfitLossUsd, isUsd = true)
-                    } else {
-                        null
-                    },
-                    isPositive = summary.totalProfitLossKrw >= 0,
+                    value = buildProfitLabel(portfolio.totalProfitLossInKrw, isUsd = false),
+                    isPositive = portfolio.totalProfitLossInKrw >= 0,
                     onPrimary = onPrimary,
                 )
                 SummaryStat(
                     modifier = Modifier.weight(1f),
                     label = stringResource(id = R.string.portfolio_summary_total_return),
-                    valueKrw = formatRatePercent(summary.totalReturnRate),
-                    valueUsd = null,
+                    value = formatRatePercent(summary.totalReturnRate),
                     isPositive = summary.totalReturnRate >= 0,
                     onPrimary = onPrimary,
                 )
@@ -152,8 +150,7 @@ private fun ReturnRateBadge(rate: Double, onPrimary: Color) {
 @Composable
 private fun SummaryStat(
     label: String,
-    valueKrw: String,
-    valueUsd: String?,
+    value: String,
     isPositive: Boolean,
     onPrimary: Color,
     modifier: Modifier = Modifier,
@@ -168,17 +165,10 @@ private fun SummaryStat(
             color = onPrimary.copy(alpha = 0.8f),
         )
         Text(
-            text = valueKrw,
+            text = value,
             style = MaterialTheme.typography.titleMedium,
             color = valueColor,
         )
-        if (valueUsd != null) {
-            Text(
-                text = valueUsd,
-                style = MaterialTheme.typography.bodySmall,
-                color = onPrimary.copy(alpha = 0.7f),
-            )
-        }
     }
 }
 
@@ -230,14 +220,15 @@ private fun PortfolioSummaryCardPreview() {
             portfolio = Portfolio(
                 summary = PortfolioSummary(
                     totalInvestmentKrw = 650_000.0,
-                    totalInvestmentUsd = 2_600_000.0,
+                    totalInvestmentUsd = 3_500.0,
                     totalEvaluationKrw = 725_000.0,
-                    totalEvaluationUsd = 3_400_000.0,
+                    totalEvaluationUsd = 3_650.4,
                     totalProfitLossKrw = 75_000.0,
-                    totalProfitLossUsd = 800_000.0,
+                    totalProfitLossUsd = 150.4,
                     totalReturnRate = 26.92,
                 ),
                 securities = emptyList(),
+                exchangeRate = 1_380.5,
             ),
             accountNo = "100012345678",
         )
@@ -260,6 +251,7 @@ private fun PortfolioSummaryCardKrwOnlyNegativePreview() {
                     totalReturnRate = -9.38,
                 ),
                 securities = emptyList(),
+                exchangeRate = 1_380.5,
             ),
             accountNo = "100098765432",
         )

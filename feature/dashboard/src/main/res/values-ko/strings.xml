@@ -26,6 +26,7 @@
     <string name="portfolio_summary_total_valuation">총 평가 자산</string>
     <string name="portfolio_summary_profit_loss">평가 손익</string>
     <string name="portfolio_summary_total_return">총 수익률</string>
+    <string name="portfolio_summary_breakdown_format">원화 %1$s · 달러 %2$s</string>
 
     <string name="holding_quantity_format">%1$s주</string>
     <string name="dashboard_krw_amount_format">%1$s원</string>

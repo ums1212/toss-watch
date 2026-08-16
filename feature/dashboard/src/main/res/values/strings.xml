@@ -26,6 +26,7 @@
     <string name="portfolio_summary_total_valuation">Total valuation</string>
     <string name="portfolio_summary_profit_loss">Profit / loss</string>
     <string name="portfolio_summary_total_return">Total return</string>
+    <string name="portfolio_summary_breakdown_format">KRW %1$s · USD %2$s</string>
 
     <string name="holding_quantity_format">%1$s shares</string>
     <string name="dashboard_krw_amount_format">₩%1$s</string>

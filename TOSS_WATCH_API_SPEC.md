@@ -263,7 +263,8 @@ GET /api/v1/toss-watch/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
       "profit_loss": 800000,
       "return_rate": "30.77"
     }
-  ]
+  ],
+  "exchange_rate": 1380.5
 }
 ```
 
@@ -286,6 +287,7 @@ GET /api/v1/toss-watch/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
 | `securities[].total_evaluation_amount` | number | 평가 금액 |
 | `securities[].profit_loss` | number | 평가 손익 |
 | `securities[].return_rate` | string | 종목별 수익률(%), 소수 2자리 문자열 |
+| `exchange_rate` | number | 원/달러 기준 환율 (토스 Open API `/api/v1/exchange-rate` 조회값) |
 
 **Errors**
 - `400 Bad Request` 토스 키 미등록 (`{"error": "등록된 토스 API 키가 없습니다...", "code": "toss_key_not_registered"}`) 또는 파라미터 타입 오류 (`{"error": "accountSeq 파라미터는 숫자 형식이어야 합니다."}`)

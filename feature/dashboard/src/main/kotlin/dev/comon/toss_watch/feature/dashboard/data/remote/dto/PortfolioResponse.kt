@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
 data class PortfolioResponse(
     @SerialName("summary") val summary: PortfolioSummaryDto,
     @SerialName("securities") val securities: List<SecurityDto>,
+    // 원/달러 기준환율. 토스 Open API `/api/v1/exchange-rate` 조회값.
+    @SerialName("exchange_rate") val exchangeRate: Double = 0.0,
 )
 
 @Serializable
@@ -44,6 +46,7 @@ fun PortfolioResponse.toPortfolio(): Portfolio =
     Portfolio(
         summary = summary.toPortfolioSummary(),
         securities = securities.map { it.toHoldingStock() },
+        exchangeRate = exchangeRate,
     )
 
 private fun PortfolioSummaryDto.toPortfolioSummary(): PortfolioSummary =

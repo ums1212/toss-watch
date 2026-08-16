@@ -16,11 +16,28 @@ fun String.toCurrency(): Currency =
  * 계좌 포트폴리오 — 통화별 합계 요약과 보유 종목 상세.
  *
  * 계좌당 KRW/USD 종목이 섞일 수 있어 [summary]의 합계는 통화별로 분리되어 있다.
+ * [exchangeRate]는 원/달러 기준환율로, 화면에서 통화 합산 총액을 보여줄 때 사용한다.
  */
 data class Portfolio(
     val summary: PortfolioSummary,
     val securities: List<HoldingStock>,
-)
+    val exchangeRate: Double,
+) {
+    /** 환율을 적용해 KRW+USD를 합산한 총 평가금액. 환율이 없으면(0 이하) KRW 합계만 반환한다. */
+    val totalEvaluationInKrw: Double
+        get() = summary.totalEvaluationKrw + summary.totalEvaluationUsd * usableExchangeRate
+
+    /** 환율을 적용해 KRW+USD를 합산한 총 평가손익. 환율이 없으면(0 이하) KRW 합계만 반환한다. */
+    val totalProfitLossInKrw: Double
+        get() = summary.totalProfitLossKrw + summary.totalProfitLossUsd * usableExchangeRate
+
+    /** 환율을 적용해 KRW+USD를 합산한 총 매수금액. 환율이 없으면(0 이하) KRW 합계만 반환한다. */
+    val totalInvestmentInKrw: Double
+        get() = summary.totalInvestmentKrw + summary.totalInvestmentUsd * usableExchangeRate
+
+    private val usableExchangeRate: Double
+        get() = if (exchangeRate > 0.0) exchangeRate else 0.0
+}
 
 /**
  * @param totalInvestmentKrw 총 매수 금액 중 KRW 종목 합계

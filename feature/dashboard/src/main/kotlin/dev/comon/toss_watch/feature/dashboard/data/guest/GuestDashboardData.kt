@@ -29,6 +29,9 @@ object GuestDashboardData {
 
     val ACCOUNTS = listOf(ACCOUNT_MAIN, ACCOUNT_PENSION)
 
+    /** 원/달러 기준환율 더미값 — 실 API의 `exchange_rate`를 흉내 낸다. */
+    const val EXCHANGE_RATE = 1_380.5
+
     /** [ACCOUNT_MAIN] 보유 종목 — KRW 6종목 + USD 2종목, 수익/손실 혼합. */
     val HOLDINGS_MAIN = listOf(
         HoldingStock(
@@ -170,16 +173,24 @@ object GuestDashboardData {
     )
 
     val PORTFOLIOS: Map<Long, Portfolio> = mapOf(
-        ACCOUNT_MAIN.accountSeq to Portfolio(summary = summaryOf(HOLDINGS_MAIN), securities = HOLDINGS_MAIN),
-        ACCOUNT_PENSION.accountSeq to Portfolio(summary = summaryOf(HOLDINGS_PENSION), securities = HOLDINGS_PENSION),
+        ACCOUNT_MAIN.accountSeq to Portfolio(
+            summary = summaryOf(HOLDINGS_MAIN),
+            securities = HOLDINGS_MAIN,
+            exchangeRate = EXCHANGE_RATE,
+        ),
+        ACCOUNT_PENSION.accountSeq to Portfolio(
+            summary = summaryOf(HOLDINGS_PENSION),
+            securities = HOLDINGS_PENSION,
+            exchangeRate = EXCHANGE_RATE,
+        ),
     )
 
     /**
      * 보유 종목 목록으로부터 계좌 요약을 계산한다 — 종목을 수정해도 요약과 어긋나지 않도록
      * 손으로 합계를 적지 않는다.
      *
-     * 실 API의 `totalReturnRate`는 토스가 환율을 적용해 계산한 단일값이지만, 더미 데이터는 환율
-     * 정보가 없어 KRW 종목 기준 수익률로 근사한다(KRW 종목이 없는 계좌라면 USD 기준으로 대체).
+     * 실 API의 `totalReturnRate`는 토스가 환율을 적용해 계산한 단일값이므로, 더미 데이터도
+     * [EXCHANGE_RATE]로 USD 합계를 원화 환산해 합친 총액 기준으로 근사한다.
      */
     private fun summaryOf(holdings: List<HoldingStock>): PortfolioSummary {
         val krw = holdings.filter { it.currency == Currency.KRW }
@@ -192,11 +203,9 @@ object GuestDashboardData {
         val profitLossKrw = evaluationKrw - investmentKrw
         val profitLossUsd = evaluationUsd - investmentUsd
 
-        val returnRate = when {
-            investmentKrw > 0.0 -> profitLossKrw / investmentKrw * 100
-            investmentUsd > 0.0 -> profitLossUsd / investmentUsd * 100
-            else -> 0.0
-        }
+        val investmentTotal = investmentKrw + investmentUsd * EXCHANGE_RATE
+        val profitLossTotal = profitLossKrw + profitLossUsd * EXCHANGE_RATE
+        val returnRate = if (investmentTotal > 0.0) profitLossTotal / investmentTotal * 100 else 0.0
 
         return PortfolioSummary(
             totalInvestmentKrw = investmentKrw,

@@ -397,6 +397,7 @@ private fun DashboardContentPreview() {
                             returnRate = 2.4,
                         ),
                     ),
+                    exchangeRate = 1_380.5,
                 ),
             ),
             onIntent = {},
