@@ -1,8 +1,10 @@
 package dev.comon.toss_watch.feature.alarm.presentation.alarm
 
+import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ObserveAlarmProfilesUseCase
+import dev.comon.toss_watch.feature.alarm.domain.usecase.ObservePortfolioStocksUseCase
 import dev.comon.toss_watch.feature.alarm.util.FakeAlarmRepository
 import dev.comon.toss_watch.feature.alarm.util.FakeStringProvider
 import dev.comon.toss_watch.feature.alarm.util.MainDispatcherRule
@@ -32,6 +34,7 @@ class AlarmViewModelTest {
         AlarmViewModel(
             fetchAlarmProfilesUseCase = FetchAlarmProfilesUseCase(fakeRepository),
             observeAlarmProfilesUseCase = ObserveAlarmProfilesUseCase(fakeRepository),
+            observePortfolioStocksUseCase = ObservePortfolioStocksUseCase(fakeRepository),
             stringProvider = FakeStringProvider(),
             dispatcherProvider = TestDispatcherProvider(mainDispatcherRule.testDispatcher),
         )
@@ -98,6 +101,28 @@ class AlarmViewModelTest {
             runCurrent()
 
             assertEquals(null, viewModel.uiState.value.errorMessage)
+        }
+
+    @Test
+    fun `초기 로드 시 보유 종목 캐시가 상태에 반영된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            assertEquals(FakeAlarmRepository.DEFAULT_STOCKS, viewModel.uiState.value.portfolioStocks)
+        }
+
+    @Test
+    fun `보유 종목 캐시가 갱신되면 상태도 함께 갱신된다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            val updatedStocks = listOf(CachedStock(stockCode = "000660", stockName = "SK하이닉스"))
+            fakeRepository.portfolioStocks.value = updatedStocks
+            runCurrent()
+
+            assertEquals(updatedStocks, viewModel.uiState.value.portfolioStocks)
         }
 
     @Test

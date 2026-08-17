@@ -10,6 +10,7 @@ import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ObserveAlarmProfilesUseCase
+import dev.comon.toss_watch.feature.alarm.domain.usecase.ObservePortfolioStocksUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
@@ -17,12 +18,14 @@ import kotlinx.coroutines.launch
 class AlarmViewModel @Inject constructor(
     private val fetchAlarmProfilesUseCase: FetchAlarmProfilesUseCase,
     private val observeAlarmProfilesUseCase: ObserveAlarmProfilesUseCase,
+    private val observePortfolioStocksUseCase: ObservePortfolioStocksUseCase,
     private val stringProvider: StringProvider,
     private val dispatcherProvider: DispatcherProvider,
 ) : BaseMviViewModel<AlarmUiState, AlarmUiIntent, AlarmUiSideEffect>(AlarmUiState()) {
 
     init {
         observeAlarms()
+        observePortfolioStocks()
         refreshAlarms()
     }
 
@@ -42,6 +45,15 @@ class AlarmViewModel @Inject constructor(
         viewModelScope.launch(dispatcherProvider.io) {
             observeAlarmProfilesUseCase().collect { alarms ->
                 updateState { copy(stockAlarms = alarms.toStockAlarmSummaries()) }
+            }
+        }
+    }
+
+    /** 대시보드가 캐싱해 둔 보유 종목을 구독 — 알림 추가 다이얼로그의 종목 후보로 쓰인다. */
+    private fun observePortfolioStocks() {
+        viewModelScope.launch(dispatcherProvider.io) {
+            observePortfolioStocksUseCase().collect { stocks ->
+                updateState { copy(portfolioStocks = stocks) }
             }
         }
     }

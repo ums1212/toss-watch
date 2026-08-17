@@ -1,6 +1,8 @@
 <resources>
     <string name="alarm_tab_title">Alerts</string>
-    <string name="alarm_list_empty">No alerts yet.\nTap a holding to add one.</string>
+    <string name="alarm_list_empty">No alerts yet.\nAdd one with the button below.</string>
+    <string name="alarm_add_button">Add alert</string>
+    <string name="stock_select_dialog_title">Choose a stock</string>
     <string name="alarm_error_dialog_title">Couldn\'t load alerts</string>
     <string name="alarm_error_api">Couldn\'t load your alerts. Please try again in a moment.</string>
     <string name="alarm_error_network">Please check your network connection and try again.</string>
