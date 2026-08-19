@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -43,6 +44,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.designsystem.theme.adaptiveContentWidth
 import dev.comon.toss_watch.core.model.watch.PairedWatchInfo
 import dev.comon.toss_watch.feature.setting.R
 import dev.comon.toss_watch.feature.setting.presentation.SettingUiIntent
@@ -114,13 +116,18 @@ private fun SettingContent(
             )
         },
     ) { innerPadding ->
+        // 태블릿/대화면에서 리스트가 화면 전체 폭으로 늘어지지 않도록 콘텐츠 폭을 제한하고
+        // 가로 중앙에 정렬한다 — COMPACT에서는 adaptiveContentWidth()가 no-op이라 기존과 동일하다.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter,
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .adaptiveContentWidth(),
                 contentPadding = PaddingValues(
                     horizontal = TossSpacing.containerMargin,
                     vertical = TossSpacing.stackMd,

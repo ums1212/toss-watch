@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -33,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -47,6 +49,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.designsystem.theme.adaptiveContentWidth
 import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
@@ -62,12 +65,17 @@ import dev.comon.toss_watch.feature.alarm.presentation.component.formatDaysOfWee
  * @param stockName 진입 시점에 함께 전달되는 종목명 — 상단 타이틀 및 알림 추가 다이얼로그에 쓰인다.
  *   비어 있으면 이미 등록된 알림에서 종목명을 대체해 찾고, 그마저 없으면 종목 코드로 대체한다.
  * @param onNavigateBack [AlarmDetailUiSideEffect.NavigateBack] 수신 시 호출.
+ * @param showBackButton 상단 앱바에 뒤로가기 아이콘을 표시할지 여부. 기본값 true(전체화면 오버레이로
+ *   진입하는 일반 경로). EXPANDED 창 폭의 List-Detail 2-pane에서 detail pane으로 재사용될 때는
+ *   false로 전달돼, 다른 종목 선택이 곧 "이동"인 pane UI에서 불필요한 뒤로가기 아이콘을 숨긴다.
+ *   체크 모드(다중 선택) 종료용 닫기 아이콘은 이 값과 무관하게 항상 노출된다.
  */
 @Composable
 fun AlarmDetailScreen(
     stockCode: String,
     stockName: String?,
     onNavigateBack: () -> Unit,
+    showBackButton: Boolean = true,
     viewModel: AlarmDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -92,6 +100,7 @@ fun AlarmDetailScreen(
         uiState = uiState,
         onIntent = viewModel::handleIntent,
         onBackClicked = { viewModel.handleIntent(AlarmDetailUiIntent.OnBackClicked) },
+        showBackButton = showBackButton,
     )
 }
 
@@ -104,6 +113,7 @@ private fun AlarmDetailContent(
     onIntent: (AlarmDetailUiIntent) -> Unit,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,
+    showBackButton: Boolean = true,
 ) {
     val stockAlarms = uiState.alarms.filter { it.stockCode == stockCode }
     val resolvedStockName = stockName ?: stockAlarms.firstOrNull()?.stockName ?: stockCode
@@ -136,15 +146,19 @@ private fun AlarmDetailContent(
             TopAppBar(
                 title = { Text(text = resolvedStockName) },
                 navigationIcon = {
-                    IconButton(onClick = { if (isCheckMode) exitCheckMode() else onBackClicked() }) {
-                        Icon(
-                            imageVector = if (isCheckMode) Icons.Filled.Close else Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = if (isCheckMode) {
-                                stringResource(id = R.string.alarm_detail_check_mode_close_desc)
-                            } else {
-                                stringResource(id = R.string.alarm_detail_back_desc)
-                            },
-                        )
+                    // 체크 모드 종료 아이콘은 pane/전체화면 여부와 무관하게 항상 노출한다 —
+                    // showBackButton은 "일반 뒤로가기"만 pane 모드에서 숨기기 위한 옵션이다.
+                    if (showBackButton || isCheckMode) {
+                        IconButton(onClick = { if (isCheckMode) exitCheckMode() else onBackClicked() }) {
+                            Icon(
+                                imageVector = if (isCheckMode) Icons.Filled.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = if (isCheckMode) {
+                                    stringResource(id = R.string.alarm_detail_check_mode_close_desc)
+                                } else {
+                                    stringResource(id = R.string.alarm_detail_back_desc)
+                                },
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -199,80 +213,89 @@ private fun AlarmDetailContent(
             }
         },
     ) { innerPadding ->
+        // 태블릿/대화면에서 리스트가 화면 전체 폭으로 늘어지지 않도록 콘텐츠 폭을 제한하고
+        // 가로 중앙에 정렬한다 — COMPACT에서는 adaptiveContentWidth()가 no-op이라 기존과 동일하다.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            when {
-                uiState.isLoading && stockAlarms.isEmpty() -> {
-                    TossWatchLoadingIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = TossSpacing.sectionPadding),
-                    )
-                }
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .adaptiveContentWidth(),
+            ) {
+                when {
+                    uiState.isLoading && stockAlarms.isEmpty() -> {
+                        TossWatchLoadingIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = TossSpacing.sectionPadding),
+                        )
+                    }
 
-                stockAlarms.isEmpty() -> {
-                    Text(
-                        text = stringResource(id = R.string.alarm_detail_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
+                    stockAlarms.isEmpty() -> {
+                        Text(
+                            text = stringResource(id = R.string.alarm_detail_empty),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = TossSpacing.containerMargin,
+                                    vertical = TossSpacing.sectionPadding,
+                                ),
+                        )
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
                                 horizontal = TossSpacing.containerMargin,
-                                vertical = TossSpacing.sectionPadding,
+                                vertical = TossSpacing.stackMd,
                             ),
-                    )
-                }
-
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            horizontal = TossSpacing.containerMargin,
-                            vertical = TossSpacing.stackMd,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
-                    ) {
-                        items(
-                            items = stockAlarms,
-                            key = { it.id },
-                        ) { alarm ->
-                            val isSelected = alarm.id in selectedAlarmIds
-                            SwipeToDeleteBox(
-                                onDelete = { alarmPendingDelete = alarm },
-                                enabled = !uiState.isSaving && !isCheckMode,
-                            ) {
-                                AlarmProfileItem(
-                                    alarm = alarm,
-                                    onToggle = { enabled ->
-                                        onIntent(AlarmDetailUiIntent.OnToggleAlarm(alarm.id, enabled))
-                                    },
+                            verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
+                        ) {
+                            items(
+                                items = stockAlarms,
+                                key = { it.id },
+                            ) { alarm ->
+                                val isSelected = alarm.id in selectedAlarmIds
+                                SwipeToDeleteBox(
                                     onDelete = { alarmPendingDelete = alarm },
-                                    enabled = !uiState.isSaving,
-                                    isCheckMode = isCheckMode,
-                                    isSelected = isSelected,
-                                    onClick = {
-                                        if (isCheckMode) {
-                                            selectedAlarmIds = if (isSelected) {
-                                                selectedAlarmIds - alarm.id
-                                            } else {
-                                                selectedAlarmIds + alarm.id
+                                    enabled = !uiState.isSaving && !isCheckMode,
+                                ) {
+                                    AlarmProfileItem(
+                                        alarm = alarm,
+                                        onToggle = { enabled ->
+                                            onIntent(AlarmDetailUiIntent.OnToggleAlarm(alarm.id, enabled))
+                                        },
+                                        onDelete = { alarmPendingDelete = alarm },
+                                        enabled = !uiState.isSaving,
+                                        isCheckMode = isCheckMode,
+                                        isSelected = isSelected,
+                                        onClick = {
+                                            if (isCheckMode) {
+                                                selectedAlarmIds = if (isSelected) {
+                                                    selectedAlarmIds - alarm.id
+                                                } else {
+                                                    selectedAlarmIds + alarm.id
+                                                }
                                             }
-                                        }
-                                    },
-                                    onLongClick = {
-                                        if (!isCheckMode) {
-                                            isCheckMode = true
-                                            selectedAlarmIds = setOf(alarm.id)
-                                        }
-                                    },
-                                )
+                                        },
+                                        onLongClick = {
+                                            if (!isCheckMode) {
+                                                isCheckMode = true
+                                                selectedAlarmIds = setOf(alarm.id)
+                                            }
+                                        },
+                                    )
+                                }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                             }
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
                 }
@@ -359,7 +382,9 @@ private fun AlarmDetailContent(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Compact", showBackground = true, widthDp = 412)
+@Preview(name = "Medium", showBackground = true, widthDp = 700)
+@Preview(name = "Expanded", showBackground = true, widthDp = 1200, heightDp = 800)
 @Composable
 private fun AlarmDetailContentPreview() {
     TossWatchTheme {

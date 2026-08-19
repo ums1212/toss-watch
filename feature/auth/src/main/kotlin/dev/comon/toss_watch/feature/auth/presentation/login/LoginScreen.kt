@@ -42,6 +42,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.designsystem.theme.adaptiveContentWidth
 import dev.comon.toss_watch.feature.auth.BuildConfig
 import dev.comon.toss_watch.feature.auth.R
 import dev.comon.toss_watch.feature.auth.presentation.AuthUiIntent
@@ -113,9 +114,13 @@ private fun LoginContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
+        // 태블릿/대화면에서 폼이 화면 전체 폭으로 늘어지지 않도록 콘텐츠 폭을 제한하고 가로
+        // 중앙에 정렬한다 — COMPACT에서는 adaptiveContentWidth()가 no-op이라 기존과 동일하다.
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .align(Alignment.TopCenter)
+                .adaptiveContentWidth()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(horizontal = TossSpacing.containerMargin),
             horizontalAlignment = Alignment.CenterHorizontally,

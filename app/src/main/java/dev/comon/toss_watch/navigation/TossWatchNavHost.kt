@@ -164,6 +164,11 @@ fun TossWatchNavHost(
             }
 
             entry<BottomMenuRoute> {
+                // EXPANDED에서 종목을 선택했을 때의 목록+상세 2단 분할은 BottomMenuScreen이 내부적으로
+                // 처리한다(AlarmDetailRoute push가 아닌 로컬 상태 전환) — 새 AppRoute를 만들지 않고 이
+                // 목적지 내부 상태만으로 처리한다(CLAUDE.md §4 규칙). onNavigateToAlarmDetail은
+                // COMPACT/MEDIUM 또는 EXPANDED에서 대시보드 탭이 아직 종목을 선택하지 않은 첫 진입
+                // 등, BottomMenuScreen이 직접 처리하지 않기로 판단한 경우에만 호출되어 라우트를 push한다.
                 BottomMenuScreen(
                     isGuest = sessionState == SessionState.GUEST,
                     onNavigateToSetting = { navigator.goTo(SettingRoute) },

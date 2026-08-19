@@ -22,6 +22,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -36,6 +37,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchButton
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.designsystem.theme.adaptiveContentWidth
 import dev.comon.toss_watch.feature.tosskey.R
 import dev.comon.toss_watch.feature.tosskey.presentation.TossKeyUiIntent
 import dev.comon.toss_watch.feature.tosskey.presentation.TossKeyUiSideEffect
@@ -102,6 +104,8 @@ private fun TossKeyContent(
             )
         },
     ) { innerPadding ->
+        // 태블릿/대화면에서 폼이 화면 전체 폭으로 늘어지지 않도록 콘텐츠 폭을 제한하고 가로
+        // 중앙에 정렬한다 — COMPACT에서는 adaptiveContentWidth()가 no-op이라 기존과 동일하다.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -110,6 +114,8 @@ private fun TossKeyContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .align(Alignment.TopCenter)
+                    .adaptiveContentWidth()
                     .padding(horizontal = TossSpacing.containerMargin, vertical = TossSpacing.stackMd),
                 verticalArrangement = Arrangement.Top,
             ) {

@@ -1,22 +1,16 @@
 package dev.comon.toss_watch.feature.dashboard.presentation.dashboard
 
-import android.R.attr.contentDescription
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,10 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -63,12 +54,9 @@ import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiSideEffect
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiState
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardViewModel
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.AccountSelectDialog
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.HoldingListItem
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartCard
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.DashboardListContent
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartFullScreenDialog
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartType
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartTypeSelector
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioSummaryCard
 
 /**
  * 자산/보유 종목 대시보드.
@@ -186,89 +174,18 @@ private fun DashboardContent(
         ) {
             val securities = uiState.portfolio?.securities.orEmpty()
 
-            PullToRefreshBox(
-                isRefreshing = uiState.isRefreshing,
+            DashboardListContent(
+                uiState = uiState,
+                chartType = chartType,
+                onChartTypeSelect = { chartType = it },
+                onHoldingClick = { stockCode, stockName ->
+                    onIntent(DashboardUiIntent.OnHoldingClicked(stockCode = stockCode, stockName = stockName))
+                },
+                onChartClick = { isChartDialogVisible = true },
                 onRefresh = { onIntent(DashboardUiIntent.OnRefreshTriggered) },
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                LazyColumn(
-                    // PullToRefreshBox의 자체 nestedScroll 커넥션보다 이 LazyColumn에 더 가깝게
-                    // 붙어야 풀투리프레시 당김(리스트가 못 움직여 consumed = 0)과 실제 스크롤을
-                    // 구분할 수 있다 — 자세한 설명은 BottomMenuScreen 문서 참고.
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(listNestedScrollConnection),
-                    contentPadding = PaddingValues(
-                        start = TossSpacing.containerMargin,
-                        end = TossSpacing.containerMargin,
-                        top = TossSpacing.stackMd,
-                        bottom = TossSpacing.stackMd + bottomContentPadding,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(TossSpacing.stackMd),
-                ) {
-                    item(key = "account_card") {
-                        val selectedAccountNo = uiState.accounts
-                            .find { it.accountSeq == uiState.selectedAccountSeq }
-                            ?.accountNo
-                        PortfolioSummaryCard(
-                            portfolio = uiState.portfolio,
-                            accountNo = selectedAccountNo,
-                        )
-                    }
-
-                    item(key = "market_performance_header") {
-                        SectionHeader(title = stringResource(id = R.string.dashboard_section_holdings)) {
-                            if (securities.isNotEmpty()) {
-                                PortfolioChartTypeSelector(
-                                    selected = chartType,
-                                    onSelect = { chartType = it },
-                                )
-                            }
-                        }
-                    }
-
-                    if (securities.isNotEmpty()) {
-                        item(key = "market_performance_chart") {
-                            PortfolioChartCard(
-                                holdings = securities,
-                                chartType = chartType,
-                                onClick = { isChartDialogVisible = true },
-                            )
-                        }
-                    }
-
-                    if (securities.isEmpty() && !uiState.isLoading) {
-                        item(key = "holding_empty") {
-                            Text(
-                                text = stringResource(id = R.string.dashboard_holdings_empty),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = TossSpacing.sectionPadding),
-                            )
-                        }
-                    } else {
-                        items(
-                            items = securities,
-                            key = { it.stockCode },
-                        ) { holding ->
-                            HoldingListItem(
-                                holding = holding,
-                                onClick = {
-                                    onIntent(
-                                        DashboardUiIntent.OnHoldingClicked(
-                                            stockCode = holding.stockCode,
-                                            stockName = holding.stockName,
-                                        ),
-                                    )
-                                },
-                            )
-                        }
-                    }
-                }
-            }
+                bottomContentPadding = bottomContentPadding,
+                listNestedScrollConnection = listNestedScrollConnection,
+            )
 
             if (uiState.isLoading) {
                 TossWatchLoadingOverlay(message = stringResource(id = R.string.dashboard_loading_message))
@@ -305,29 +222,9 @@ private fun DashboardContent(
     }
 }
 
-/** 섹션 제목. [trailingContent]는 제목 오른쪽에 놓이는 선택적 액션 영역(예: 차트 종류 선택기). */
-@Composable
-private fun SectionHeader(
-    title: String,
-    trailingContent: @Composable () -> Unit = {},
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = TossSpacing.stackSm),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        trailingContent()
-    }
-}
-
-@Preview(showBackground = true)
+@Preview(name = "Compact", showBackground = true, widthDp = 412)
+@Preview(name = "Medium", showBackground = true, widthDp = 700)
+@Preview(name = "Expanded", showBackground = true, widthDp = 1200, heightDp = 800)
 @Composable
 private fun DashboardContentPreview() {
     TossWatchTheme {

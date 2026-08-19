@@ -49,6 +49,7 @@ import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.designsystem.theme.adaptiveContentWidth
 import dev.comon.toss_watch.feature.setting.R
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.component.QrCameraPreview
 
@@ -198,9 +199,14 @@ private fun WatchPairContent(
                     }
                 }
             } else {
+                // 카메라 프리뷰(위 분기)는 화면을 가득 채워야 하므로 폭을 제한하지 않지만,
+                // 권한 안내는 폼에 가까운 콘텐츠라 태블릿/대화면에서 폭을 제한하고 중앙 정렬한다 —
+                // COMPACT에서는 adaptiveContentWidth()가 no-op이라 기존과 동일하다.
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .align(Alignment.TopCenter)
+                        .adaptiveContentWidth()
                         .padding(horizontal = TossSpacing.containerMargin),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,

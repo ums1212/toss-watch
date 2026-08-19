@@ -11,4 +11,6 @@
 
     <string name="bottom_nav_dashboard">Dashboard</string>
     <string name="bottom_nav_alarm">Alerts</string>
+
+    <string name="alarm_detail_pane_placeholder">Select a stock to view its alerts</string>
 </resources>

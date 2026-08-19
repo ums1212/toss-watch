@@ -173,8 +173,12 @@ fun TossWatchTheme(
         else -> LightColorScheme
     }
     val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
+    val windowWidth = calculateTossWindowWidth()
 
-    CompositionLocalProvider(LocalTossExtendedColors provides extendedColors) {
+    CompositionLocalProvider(
+        LocalTossExtendedColors provides extendedColors,
+        LocalTossWindowWidth provides windowWidth,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = TossWatchTypography,

@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,8 +46,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingIndicator
+import dev.comon.toss_watch.core.designsystem.theme.TossAdaptive
 import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
+import dev.comon.toss_watch.core.designsystem.theme.adaptiveContentWidth
 import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.feature.alarm.R
 import dev.comon.toss_watch.feature.alarm.presentation.alarm.component.StockAlarmSummaryItem
@@ -132,71 +136,96 @@ private fun AlarmContent(
             }
         },
     ) { innerPadding ->
+        // 태블릿/대화면에서 리스트가 화면 전체 폭으로 늘어지지 않도록 콘텐츠 폭을 제한하고
+        // 가로 중앙에 정렬한다 — COMPACT에서는 adaptiveContentWidth()가 no-op이라 기존과 동일하다.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            when {
-                uiState.isLoading && uiState.stockAlarms.isEmpty() -> {
-                    TossWatchLoadingIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = TossSpacing.sectionPadding),
-                    )
-                }
-
-                uiState.stockAlarms.isEmpty() -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                horizontal = TossSpacing.containerMargin,
-                                vertical = TossSpacing.sectionPadding,
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.alarm_list_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .adaptiveContentWidth(),
+            ) {
+                when {
+                    uiState.isLoading && uiState.stockAlarms.isEmpty() -> {
+                        TossWatchLoadingIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = TossSpacing.sectionPadding),
                         )
-                        Button(
-                            onClick = { showStockSelectDialog = true },
-                            modifier = Modifier.padding(top = TossSpacing.containerMargin),
+                    }
+
+                    uiState.stockAlarms.isEmpty() -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = TossSpacing.containerMargin,
+                                    vertical = TossSpacing.sectionPadding,
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                            Spacer(modifier = Modifier.width(TossSpacing.stackSm))
-                            Text(text = stringResource(id = R.string.alarm_add_button))
+                            Text(
+                                text = stringResource(id = R.string.alarm_list_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Button(
+                                onClick = { showStockSelectDialog = true },
+                                modifier = Modifier.padding(top = TossSpacing.containerMargin),
+                            ) {
+                                Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+                                Spacer(modifier = Modifier.width(TossSpacing.stackSm))
+                                Text(text = stringResource(id = R.string.alarm_add_button))
+                            }
                         }
                     }
-                }
 
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(listNestedScrollConnection),
-                        contentPadding = PaddingValues(
-                            start = TossSpacing.containerMargin,
-                            end = TossSpacing.containerMargin,
-                            top = TossSpacing.stackMd,
-                            bottom = TossSpacing.stackMd + bottomContentPadding + FAB_CLEARANCE,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
-                    ) {
-                        items(
-                            items = uiState.stockAlarms,
-                            key = { it.stockCode },
-                        ) { summary ->
-                            StockAlarmSummaryItem(
-                                summary = summary,
-                                onClick = {
-                                    onIntent(AlarmUiIntent.OnStockClicked(summary.stockCode, summary.stockName))
-                                },
-                            )
+                    else -> {
+                        val columns = TossAdaptive.holdingColumns
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(listNestedScrollConnection),
+                            contentPadding = PaddingValues(
+                                start = TossAdaptive.containerMargin,
+                                end = TossAdaptive.containerMargin,
+                                top = TossSpacing.stackMd,
+                                bottom = TossSpacing.stackMd + bottomContentPadding + FAB_CLEARANCE,
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(TossSpacing.stackSm),
+                        ) {
+                            items(
+                                items = uiState.stockAlarms.chunked(columns),
+                                key = { chunk -> chunk.first().stockCode },
+                            ) { chunk ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(TossSpacing.stackMd)) {
+                                    chunk.forEach { summary ->
+                                        StockAlarmSummaryItem(
+                                            summary = summary,
+                                            onClick = {
+                                                onIntent(
+                                                    AlarmUiIntent.OnStockClicked(
+                                                        summary.stockCode,
+                                                        summary.stockName,
+                                                    ),
+                                                )
+                                            },
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                    }
+                                    // 마지막 청크가 columns보다 적으면 빈 칸을 채워 카드 폭이
+                                    // 늘어나지 않고 왼쪽 정렬된 것처럼 보이게 한다.
+                                    repeat(columns - chunk.size) {
+                                        Box(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -224,7 +253,9 @@ private fun AlarmContent(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Compact", showBackground = true, widthDp = 412)
+@Preview(name = "Medium", showBackground = true, widthDp = 700)
+@Preview(name = "Expanded", showBackground = true, widthDp = 1200, heightDp = 800)
 @Composable
 private fun AlarmContentPreview() {
     TossWatchTheme {
