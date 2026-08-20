@@ -1,5 +1,4 @@
 <resources>
-    <string name="alarm_tab_title">Alerts</string>
     <string name="alarm_list_empty">No alerts yet.\nAdd one with the button below.</string>
     <string name="alarm_add_button">Add alert</string>
     <string name="stock_select_dialog_title">Choose a stock</string>

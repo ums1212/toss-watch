@@ -1,5 +1,4 @@
 <resources>
-    <string name="alarm_tab_title">알림</string>
     <string name="alarm_list_empty">등록된 알림이 없어요.\n아래 버튼으로 알림을 추가해 보세요.</string>
     <string name="alarm_add_button">알림 추가</string>
     <string name="stock_select_dialog_title">종목 선택</string>

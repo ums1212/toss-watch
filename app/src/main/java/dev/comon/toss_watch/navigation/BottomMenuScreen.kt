@@ -8,17 +8,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -45,6 +44,7 @@ import dev.comon.toss_watch.core.designsystem.theme.TossWindowWidth
 import dev.comon.toss_watch.feature.alarm.presentation.alarm.AlarmScreen
 import dev.comon.toss_watch.feature.alarm.presentation.alarmdetail.AlarmDetailScreen
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardScreen
+import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.DashboardTopBar
 import dev.comon.toss_watch.navigation.component.FloatingBottomNavigationBar
 import dev.comon.toss_watch.navigation.component.TossNavigationRail
 import java.io.Serializable
@@ -103,8 +103,14 @@ private data class SelectedStock(val stockCode: String, val stockName: String?) 
  * COMPACT/MEDIUM에서는 종목 탭 시 항상 [onNavigateToAlarmDetail]을 호출해 기존과 동일하게
  * 전체화면 오버레이로 이동한다.
  *
- * @param isGuest 게스트(더미 데이터 체험) 모드 여부 — true면 탭 콘텐츠 상단에 [GuestModeBanner]를 노출한다.
- * @param onNavigateToSetting 설정 아이콘 탭 시 호출 — SettingRoute로 이동.
+ * 상단 앱바(`DashboardTopBar`)는 대시보드/알림 두 탭의 공통 부모인 이 화면의 `Scaffold(topBar)`
+ * 슬롯이 소유한다 — 각 탭 화면(`DashboardScreen`, `AlarmScreen`)은 더 이상 자체 `TopAppBar`를 갖지
+ * 않으므로, 탭을 전환해도 탑바는 화면 최상단에서 움직이지 않는다. 계좌 목록/설정 아이콘 모두 두
+ * 탭에서 항상 노출된다. MEDIUM/EXPANDED에서도 탑바는 전체 폭을 차지하고 [TossNavigationRail]은
+ * 그 아래에 놓인다.
+ *
+ * @param isGuest 게스트(더미 데이터 체험) 모드 여부 — true면 공통 탑바 위에 [GuestModeBanner]를 노출한다.
+ * @param onNavigateToSetting 공통 탑바(`DashboardTopBar`)의 설정 아이콘 탭 시 호출 — SettingRoute로 이동.
  * @param onNavigateToAlarmDetail 종목 항목(보유종목 카드 또는 알림 탭 항목) 탭 시, COMPACT/MEDIUM에서
  *   호출되어 해당 종목의 AlarmDetailRoute로 이동한다(전체화면 오버레이). EXPANDED에서는 대신
  *   내부 [selectedStock] 상태로 처리되므로 호출되지 않는다.
@@ -182,6 +188,20 @@ fun BottomMenuScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        topBar = {
+            // 대시보드/알림 두 탭이 공유하는 공통 탑바 — 탭을 전환해도 화면 최상단에 고정된다.
+            // 게스트 배너는 그 위에 놓여 상태바 인셋을 직접 반영하고, 배너가 있을 때는 탑바가
+            // 같은 인셋을 또 반영하면 배너와 타이틀 사이에 불필요한 여백이 생기므로 인셋 없이 그린다.
+            Column {
+                if (isGuest) {
+                    GuestModeBanner(modifier = Modifier.statusBarsPadding())
+                }
+                DashboardTopBar(
+                    onSettingClick = onNavigateToSetting,
+                    windowInsets = if (isGuest) WindowInsets(0, 0, 0, 0) else TopAppBarDefaults.windowInsets,
+                )
+            }
+        },
         bottomBar = {
             // MEDIUM/EXPANDED에서는 TossNavigationRail이 탭 콘텐츠 옆에 상시 노출되므로
             // 이 슬롯은 비운다 — 플로팅 알약 바는 COMPACT 전용 UI다.
@@ -201,115 +221,101 @@ fun BottomMenuScreen(
             }
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize()) {
-            if (isGuest) {
-                // 배너가 상태바 인셋을 직접 반영해 상태바 아래로 내려온다.
-                GuestModeBanner(modifier = Modifier.statusBarsPadding())
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                // topBar 슬롯(게스트 배너 + DashboardTopBar)의 실측 높이만큼 콘텐츠를 아래로 민다.
+                .padding(top = innerPadding.calculateTopPadding()),
+        ) {
+            if (!isCompact) {
+                TossNavigationRail(
+                    expanded = isExpanded,
+                    selectedIndex = if (selectedTab == BottomTab.DASHBOARD) 0 else 1,
+                    onDashboardClick = onDashboardTabClick,
+                    onAlarmClick = { selectedTab = BottomTab.ALARM },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .navigationBarsPadding(),
+                )
             }
 
-            Row(
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
-                    // 배너가 이미 상태바 인셋을 반영했으므로, 아래 레일/탭 화면의 TopAppBar가
-                    // 같은 인셋을 또 반영해 배너와 타이틀 사이에 불필요한 여백이 생기지 않도록
-                    // 이 서브트리 전체에서 상태바 인셋을 소비 처리한다. 게스트가 아닐 때는 배너가
-                    // 없으므로 소비하지 않아야 레일/TopAppBar가 정상적으로 상태바를 피해 그려진다.
-                    .let { if (isGuest) it.consumeWindowInsets(WindowInsets.statusBars) else it },
+                    .fillMaxHeight()
+                    // COMPACT는 플로팅 바가 콘텐츠 위에 겹쳐 그려지므로 innerPadding으로
+                    // 하단 여백을 계산해 리스트에 넘긴다(bottomContentPadding). MEDIUM/EXPANDED는
+                    // 겹쳐지는 바가 없는 대신 레일 옆 콘텐츠가 시스템 내비게이션 바에
+                    // 직접 가릴 수 있어 여기서 navigationBarsPadding()으로 처리한다.
+                    .let { if (isCompact) it else it.navigationBarsPadding() },
             ) {
-                if (!isCompact) {
-                    TossNavigationRail(
-                        expanded = isExpanded,
-                        selectedIndex = if (selectedTab == BottomTab.DASHBOARD) 0 else 1,
-                        onDashboardClick = onDashboardTabClick,
-                        onAlarmClick = { selectedTab = BottomTab.ALARM },
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .statusBarsPadding()
-                            .navigationBarsPadding(),
-                    )
-                }
+                // 알림 탭은 선택 여부와 무관하게 항상 분할되고, 대시보드 탭은 종목을 선택했을
+                // 때만 분할된다 — BottomMenuScreen 문서 참고.
+                val isSplit = isExpanded && (selectedTab == BottomTab.ALARM || selectedStock != null)
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        // COMPACT는 플로팅 바가 콘텐츠 위에 겹쳐 그려지므로 innerPadding으로
-                        // 하단 여백을 계산해 리스트에 넘긴다(bottomContentPadding). MEDIUM/EXPANDED는
-                        // 겹쳐지는 바가 없는 대신 레일 옆 콘텐츠가 시스템 내비게이션 바에
-                        // 직접 가릴 수 있어 여기서 navigationBarsPadding()으로 처리한다.
-                        .let { if (isCompact) it else it.navigationBarsPadding() },
-                ) {
-                    // 알림 탭은 선택 여부와 무관하게 항상 분할되고, 대시보드 탭은 종목을 선택했을
-                    // 때만 분할된다 — BottomMenuScreen 문서 참고.
-                    val isSplit = isExpanded && (selectedTab == BottomTab.ALARM || selectedStock != null)
+                if (isSplit) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(0.42f)
+                                .fillMaxHeight(),
+                        ) {
+                            // 분할 모드의 목록 pane은 전체 화면의 일부만 차지해 실제로는 좁으므로,
+                            // EXPANDED 전역 분류(2열 그리드, 넓은 여백)를 그대로 물려받으면 콘텐츠가
+                            // 눌려 깨진다 — 이 서브트리에서만 COMPACT로 오버라이드해 폭에 맞는
+                            // 레이아웃(1열, 좁은 여백)으로 그린다.
+                            CompositionLocalProvider(LocalTossWindowWidth provides TossWindowWidth.COMPACT) {
+                                when (selectedTab) {
+                                    BottomTab.DASHBOARD ->
+                                        DashboardScreen(
+                                            onNavigateToAlarmDetail = onStockSelected,
+                                            listNestedScrollConnection = nestedScrollConnection,
+                                        )
 
-                    if (isSplit) {
-                        Row(modifier = Modifier.fillMaxSize()) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(0.42f)
-                                    .fillMaxHeight(),
-                            ) {
-                                // 분할 모드의 목록 pane은 전체 화면의 일부만 차지해 실제로는 좁으므로,
-                                // EXPANDED 전역 분류(2열 그리드, 넓은 여백)를 그대로 물려받으면 콘텐츠가
-                                // 눌려 깨진다 — 이 서브트리에서만 COMPACT로 오버라이드해 폭에 맞는
-                                // 레이아웃(1열, 좁은 여백)으로 그린다.
-                                CompositionLocalProvider(LocalTossWindowWidth provides TossWindowWidth.COMPACT) {
-                                    when (selectedTab) {
-                                        BottomTab.DASHBOARD ->
-                                            DashboardScreen(
-                                                onNavigateToSetting = onNavigateToSetting,
-                                                onNavigateToAlarmDetail = onStockSelected,
-                                                listNestedScrollConnection = nestedScrollConnection,
-                                            )
-
-                                        BottomTab.ALARM ->
-                                            AlarmScreen(
-                                                onNavigateToAlarmDetail = onStockSelected,
-                                                listNestedScrollConnection = nestedScrollConnection,
-                                            )
-                                    }
-                                }
-                            }
-
-                            VerticalDivider()
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(0.58f)
-                                    .fillMaxHeight(),
-                            ) {
-                                val stock = selectedStock
-                                if (stock != null) {
-                                    AlarmDetailScreen(
-                                        stockCode = stock.stockCode,
-                                        stockName = stock.stockName,
-                                        onNavigateBack = { selectedStock = null },
-                                        showBackButton = false,
-                                    )
-                                } else {
-                                    AlarmDetailPanePlaceholder()
+                                    BottomTab.ALARM ->
+                                        AlarmScreen(
+                                            onNavigateToAlarmDetail = onStockSelected,
+                                            listNestedScrollConnection = nestedScrollConnection,
+                                        )
                                 }
                             }
                         }
-                    } else {
-                        when (selectedTab) {
-                            BottomTab.DASHBOARD ->
-                                DashboardScreen(
-                                    onNavigateToSetting = onNavigateToSetting,
-                                    onNavigateToAlarmDetail = onStockSelected,
-                                    bottomContentPadding = if (isCompact) innerPadding.calculateBottomPadding() else 0.dp,
-                                    listNestedScrollConnection = nestedScrollConnection,
-                                )
 
-                            BottomTab.ALARM ->
-                                AlarmScreen(
-                                    onNavigateToAlarmDetail = onStockSelected,
-                                    bottomContentPadding = if (isCompact) innerPadding.calculateBottomPadding() else 0.dp,
-                                    listNestedScrollConnection = nestedScrollConnection,
+                        VerticalDivider()
+
+                        Box(
+                            modifier = Modifier
+                                .weight(0.58f)
+                                .fillMaxHeight(),
+                        ) {
+                            val stock = selectedStock
+                            if (stock != null) {
+                                AlarmDetailScreen(
+                                    stockCode = stock.stockCode,
+                                    stockName = stock.stockName,
+                                    onNavigateBack = { selectedStock = null },
+                                    showBackButton = false,
                                 )
+                            } else {
+                                AlarmDetailPanePlaceholder()
+                            }
                         }
+                    }
+                } else {
+                    when (selectedTab) {
+                        BottomTab.DASHBOARD ->
+                            DashboardScreen(
+                                onNavigateToAlarmDetail = onStockSelected,
+                                bottomContentPadding = if (isCompact) innerPadding.calculateBottomPadding() else 0.dp,
+                                listNestedScrollConnection = nestedScrollConnection,
+                            )
+
+                        BottomTab.ALARM ->
+                            AlarmScreen(
+                                onNavigateToAlarmDetail = onStockSelected,
+                                bottomContentPadding = if (isCompact) innerPadding.calculateBottomPadding() else 0.dp,
+                                listNestedScrollConnection = nestedScrollConnection,
+                            )
                     }
                 }
             }

@@ -69,22 +69,6 @@ class DashboardViewModelTest {
         }
 
     @Test
-    fun `OnSettingClicked Intent는 NavigateToSetting 사이드이펙트를 발행한다`() =
-        runTest(mainDispatcherRule.testDispatcher.scheduler) {
-            val viewModel = createViewModel()
-            advanceUntilIdle()
-            val effects = collectSideEffects(viewModel)
-
-            viewModel.handleIntent(DashboardUiIntent.OnSettingClicked)
-            runCurrent()
-
-            assertEquals(
-                listOf<DashboardUiSideEffect>(DashboardUiSideEffect.NavigateToSetting),
-                effects,
-            )
-        }
-
-    @Test
     fun `OnHoldingClicked Intent는 해당 종목 정보를 담은 NavigateToAlarmDetail 사이드이펙트를 발행한다`() =
         runTest(mainDispatcherRule.testDispatcher.scheduler) {
             val viewModel = createViewModel()

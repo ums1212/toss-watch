@@ -32,9 +32,6 @@ class DashboardViewModel @Inject constructor(
 
             is DashboardUiIntent.OnAccountSelected -> selectAccount(intent.accountSeq)
 
-            DashboardUiIntent.OnSettingClicked ->
-                sendSideEffect(DashboardUiSideEffect.NavigateToSetting)
-
             is DashboardUiIntent.OnHoldingClicked ->
                 sendSideEffect(DashboardUiSideEffect.NavigateToAlarmDetail(intent.stockCode, intent.stockName))
 

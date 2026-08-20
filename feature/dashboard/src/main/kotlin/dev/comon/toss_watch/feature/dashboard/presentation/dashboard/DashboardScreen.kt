@@ -1,35 +1,15 @@
 package dev.comon.toss_watch.feature.dashboard.presentation.dashboard
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -41,7 +21,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import dev.comon.toss_watch.core.designsystem.component.TossWatchErrorDialog
 import dev.comon.toss_watch.core.designsystem.component.TossWatchLoadingOverlay
-import dev.comon.toss_watch.core.designsystem.theme.TossSpacing
 import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.feature.dashboard.R
 import dev.comon.toss_watch.feature.dashboard.domain.model.Account
@@ -53,7 +32,6 @@ import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiIntent
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiSideEffect
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardUiState
 import dev.comon.toss_watch.feature.dashboard.presentation.DashboardViewModel
-import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.AccountSelectDialog
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.DashboardListContent
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartFullScreenDialog
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.PortfolioChartType
@@ -61,7 +39,10 @@ import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.P
 /**
  * 자산/보유 종목 대시보드.
  *
- * @param onNavigateToSetting [DashboardUiSideEffect.NavigateToSetting] 수신 시 호출 — 상단 앱바의 설정 아이콘.
+ * 상단 앱바는 이 화면이 아니라 [dev.comon.toss_watch.navigation.BottomMenuScreen]이
+ * [dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.DashboardTopBar]로
+ * 소유한다 — 탭을 전환해도 탑바가 화면 최상단에 고정되도록 하기 위함이다(CLAUDE.md 참고).
+ *
  * @param onNavigateToAlarmDetail [DashboardUiSideEffect.NavigateToAlarmDetail] 수신 시 호출 —
  *   보유종목 카드를 탭해 진입, 해당 종목의 알림 목록(AlarmDetailScreen)으로 이동한다.
  * @param bottomContentPadding 이 화면 위에 겹쳐 떠 있는 플로팅 하단 네비게이션 바가 차지하는
@@ -72,7 +53,6 @@ import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.P
  */
 @Composable
 fun DashboardScreen(
-    onNavigateToSetting: () -> Unit,
     onNavigateToAlarmDetail: (stockCode: String, stockName: String) -> Unit,
     modifier: Modifier = Modifier,
     bottomContentPadding: Dp = 0.dp,
@@ -86,7 +66,6 @@ fun DashboardScreen(
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.sideEffect.collect { effect ->
                 when (effect) {
-                    DashboardUiSideEffect.NavigateToSetting -> onNavigateToSetting()
                     is DashboardUiSideEffect.NavigateToAlarmDetail ->
                         onNavigateToAlarmDetail(effect.stockCode, effect.stockName)
                 }
@@ -103,7 +82,6 @@ fun DashboardScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DashboardContent(
     uiState: DashboardUiState,
@@ -112,112 +90,47 @@ private fun DashboardContent(
     bottomContentPadding: Dp = 0.dp,
     listNestedScrollConnection: NestedScrollConnection = object : NestedScrollConnection {},
 ) {
-    var isAccountDialogVisible by rememberSaveable { mutableStateOf(false) }
     var isChartDialogVisible by rememberSaveable { mutableStateOf(false) }
     var chartType by rememberSaveable { mutableStateOf(PortfolioChartType.BUBBLE) }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        // 이 화면은 항상 BottomMenuScreen의 Scaffold(bottomBar) 안에 탭 콘텐츠로 호스팅된다 —
-        // 시스템 하단 인셋은 그 바깥 Scaffold가 이미 처리하므로, 여기서 기본값(safeDrawing)을
-        // 그대로 쓰면 같은 인셋이 두 번 반영되어 탭바와 콘텐츠 사이에 불필요한 여백이 생긴다.
-        // 플로팅 하단 바는 콘텐츠 위에 겹쳐 떠 있으므로(하드 클리핑 아님) 그 높이는
-        // bottomContentPadding으로 받아 LazyColumn의 contentPadding에 반영한다.
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            TopAppBar(
-                title = {
-                    // 로고(25:28 원본 비율) + 타이틀 텍스트. 기본 TopAppBar 높이(64dp)를 넘지
-                    // 않도록 로고는 24dp 높이로, 텍스트는 titleLarge(22sp) 이하로 제한한다.
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.toss_watch_logo),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .height(24.dp)
-                                .aspectRatio(25f / 28f),
-                        )
-                        Spacer(modifier = Modifier.width(TossSpacing.stackSm))
-                        Text(
-                            text = stringResource(id = R.string.dashboard_top_bar_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            maxLines = 1,
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { isAccountDialogVisible = true },
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.book),
-                            contentDescription = stringResource(id = R.string.dashboard_account_list_desc),
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                    IconButton(
-                        onClick = { onIntent(DashboardUiIntent.OnSettingClicked) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = stringResource(id = R.string.dashboard_setting_desc),
-                        )
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            val securities = uiState.portfolio?.securities.orEmpty()
+    // 상단 앱바는 BottomMenuScreen의 DashboardTopBar가 소유하므로 여기서는 별도 Scaffold 없이
+    // 콘텐츠만 채운다. 이 화면은 항상 BottomMenuScreen의 Scaffold(bottomBar) 안에 탭 콘텐츠로
+    // 호스팅되므로 시스템 인셋도 그 바깥 Scaffold가 이미 처리한다 — 플로팅 하단 바가 콘텐츠 위에
+    // 겹쳐 떠 있는 높이만 bottomContentPadding으로 받아 LazyColumn의 contentPadding에 반영한다.
+    Box(modifier = modifier.fillMaxSize()) {
+        val securities = uiState.portfolio?.securities.orEmpty()
 
-            DashboardListContent(
-                uiState = uiState,
+        DashboardListContent(
+            uiState = uiState,
+            chartType = chartType,
+            onChartTypeSelect = { chartType = it },
+            onHoldingClick = { stockCode, stockName ->
+                onIntent(DashboardUiIntent.OnHoldingClicked(stockCode = stockCode, stockName = stockName))
+            },
+            onChartClick = { isChartDialogVisible = true },
+            onRefresh = { onIntent(DashboardUiIntent.OnRefreshTriggered) },
+            bottomContentPadding = bottomContentPadding,
+            listNestedScrollConnection = listNestedScrollConnection,
+        )
+
+        if (uiState.isLoading) {
+            TossWatchLoadingOverlay(message = stringResource(id = R.string.dashboard_loading_message))
+        }
+
+        uiState.errorMessage?.let { message ->
+            TossWatchErrorDialog(
+                message = message,
+                onDismiss = { onIntent(DashboardUiIntent.OnErrorDismissed) },
+                title = stringResource(id = R.string.dashboard_error_dialog_title),
+            )
+        }
+
+        if (isChartDialogVisible && securities.isNotEmpty()) {
+            PortfolioChartFullScreenDialog(
+                holdings = securities,
                 chartType = chartType,
-                onChartTypeSelect = { chartType = it },
-                onHoldingClick = { stockCode, stockName ->
-                    onIntent(DashboardUiIntent.OnHoldingClicked(stockCode = stockCode, stockName = stockName))
-                },
-                onChartClick = { isChartDialogVisible = true },
-                onRefresh = { onIntent(DashboardUiIntent.OnRefreshTriggered) },
-                bottomContentPadding = bottomContentPadding,
-                listNestedScrollConnection = listNestedScrollConnection,
+                onDismiss = { isChartDialogVisible = false },
             )
-
-            if (uiState.isLoading) {
-                TossWatchLoadingOverlay(message = stringResource(id = R.string.dashboard_loading_message))
-            }
-
-            uiState.errorMessage?.let { message ->
-                TossWatchErrorDialog(
-                    message = message,
-                    onDismiss = { onIntent(DashboardUiIntent.OnErrorDismissed) },
-                    title = stringResource(id = R.string.dashboard_error_dialog_title),
-                )
-            }
-
-            if (isAccountDialogVisible) {
-                AccountSelectDialog(
-                    accounts = uiState.accounts,
-                    selectedAccountSeq = uiState.selectedAccountSeq,
-                    onSelect = { accountSeq ->
-                        onIntent(DashboardUiIntent.OnAccountSelected(accountSeq))
-                        isAccountDialogVisible = false
-                    },
-                    onDismiss = { isAccountDialogVisible = false },
-                )
-            }
-
-            if (isChartDialogVisible && securities.isNotEmpty()) {
-                PortfolioChartFullScreenDialog(
-                    holdings = securities,
-                    chartType = chartType,
-                    onDismiss = { isChartDialogVisible = false },
-                )
-            }
         }
     }
 }

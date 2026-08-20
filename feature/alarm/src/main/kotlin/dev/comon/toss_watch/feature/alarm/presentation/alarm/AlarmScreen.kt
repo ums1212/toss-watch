@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -116,10 +115,9 @@ private fun AlarmContent(
         // 그대로 쓰면 같은 인셋이 두 번 반영되어 탭바와 콘텐츠 사이에 불필요한 여백이 생긴다.
         // 플로팅 하단 바는 콘텐츠 위에 겹쳐 떠 있으므로(하드 클리핑 아님) 그 높이는
         // bottomContentPadding으로 받아 LazyColumn의 contentPadding 및 FAB의 여백에 반영한다.
+        // 상단 앱바는 이 화면이 아니라 BottomMenuScreen이 DashboardTopBar로 소유한다 —
+        // 탭을 전환해도 탑바가 화면 최상단에 고정되도록 하기 위함이다(CLAUDE.md 참고).
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            TopAppBar(title = { Text(text = stringResource(id = R.string.alarm_tab_title)) })
-        },
         floatingActionButton = {
             // 알림이 하나도 없을 때는 빈 상태 안내 아래에 이미 추가 버튼이 있으므로 FAB를 숨겨
             // 진입점이 중복되지 않게 한다.
