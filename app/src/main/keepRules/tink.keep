@@ -1,0 +1,6 @@
+# Tink AEAD(core:datastore 세션 토큰 암호화)는 KeyManager 조회에 protobuf 기반
+# 리플렉션을 사용하므로 축소 대상에서 제외한다.
+-keep class com.google.crypto.tink.** { *; }
+-keep interface com.google.crypto.tink.** { *; }
+-dontwarn com.google.crypto.tink.**
+-dontwarn com.google.protobuf.**

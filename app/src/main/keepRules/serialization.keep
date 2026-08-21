@@ -1,0 +1,13 @@
+# kotlinx.serialization: @Serializable DTO/도메인 모델의 $serializer, Companion이
+# 축소·난독화로 사라지면 런타임에 조용히 깨지므로 명시적으로 보존한다.
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class dev.comon.toss_watch.**$$serializer { *; }
+-keepclassmembers class dev.comon.toss_watch.** { *** Companion; }
+-keepclasseswithmembers class dev.comon.toss_watch.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}

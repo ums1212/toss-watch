@@ -1,0 +1,13 @@
+# kotlinx.serialization: fcm-token/check 호출 및 QR 페이로드 직렬화에 쓰이는
+# @Serializable 모델의 $serializer, Companion이 사라지지 않도록 보존한다.
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class dev.comon.toss_watch.**$$serializer { *; }
+-keepclassmembers class dev.comon.toss_watch.** { *** Companion; }
+-keepclasseswithmembers class dev.comon.toss_watch.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
