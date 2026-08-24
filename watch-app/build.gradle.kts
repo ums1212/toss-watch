@@ -31,7 +31,7 @@ android {
         applicationId = "dev.comon.toss_watch"
         minSdk = 30
         targetSdk = 37
-        versionCode = 1
+        versionCode = 1001
         versionName = "0.0.1"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
