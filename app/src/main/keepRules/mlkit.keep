@@ -1,0 +1,13 @@
+# ML Kit discovers and constructs these components through its manifest-registered
+# ComponentRegistrar graph. R8 9.2.14's full optimization inlines/merges this graph
+# into the QrCameraPreview call site and causes BarcodeScanning.getClient() to read
+# a null component in release builds. Debug builds are unaffected because R8 is off.
+#
+# Keep the initialization graph and barcode implementation intact. The internal
+# Google vision classes are included because the barcode implementation delegates
+# to them and R8 otherwise horizontally merges them with unrelated Compose code.
+-keep class com.google.mlkit.common.internal.** { *; }
+-keep class com.google.mlkit.common.sdkinternal.** { *; }
+-keep class com.google.mlkit.vision.barcode.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_barcode.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_common.** { *; }
