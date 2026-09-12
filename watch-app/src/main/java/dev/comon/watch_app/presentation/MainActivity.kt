@@ -14,7 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
-import dev.comon.watch_app.presentation.onboarding.OnboardingRoute
+import dev.comon.watch_app.presentation.navigation.WatchNavHost
 import dev.comon.watch_app.presentation.theme.TosswatchTheme
 
 @AndroidEntryPoint
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TosswatchTheme {
                 RequestNotificationPermission()
-                OnboardingRoute()
+                WatchNavHost()
             }
         }
     }

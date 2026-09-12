@@ -43,7 +43,7 @@ import androidx.wear.compose.material3.lazy.transformedHeight
 import dev.comon.watch_app.R
 
 @Composable
-fun OnboardingRoute(viewModel: WatchOnboardingViewModel = hiltViewModel()) {
+fun OnboardingRoute(onAlarmSettingsClick: () -> Unit, viewModel: WatchOnboardingViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -60,6 +60,7 @@ fun OnboardingRoute(viewModel: WatchOnboardingViewModel = hiltViewModel()) {
     }
 
     OnboardingScreen(
+        onAlarmSettingsClick = onAlarmSettingsClick,
         uiState = uiState,
         onRetryClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RetryClicked) },
         onRefreshClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RefreshClicked) },
@@ -70,6 +71,7 @@ fun OnboardingRoute(viewModel: WatchOnboardingViewModel = hiltViewModel()) {
 
 @Composable
 fun OnboardingScreen(
+    onAlarmSettingsClick: () -> Unit,
     uiState: WatchOnboardingUiState,
     onRetryClick: () -> Unit,
     onRefreshClick: () -> Unit,
@@ -152,6 +154,15 @@ fun OnboardingScreen(
                     }
                 }
                 if (phase is WatchOnboardingPhase.Paired) {
+                    item {
+                        Button(
+                            onClick = onAlarmSettingsClick,
+                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
+                            Text(stringResource(R.string.alarm_settings_title))
+                        }
+                    }
                     item {
                         Button(
                             onClick = onGenerateQrClick,

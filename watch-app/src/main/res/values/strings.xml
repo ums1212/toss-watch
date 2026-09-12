@@ -23,4 +23,42 @@
     <string name="onboarding_check_now_failed">Check failed. Please try again in a moment.</string>
 
     <string name="notification_channel_stock_alarm">Stock alerts</string>
+    <string name="alarm_settings_title">Alarm settings</string>
+    <string name="alarm_sync_complete">Synced with phone</string>
+    <string name="alarm_sync_pair_phone">Open the phone app and check login and watch pairing.</string>
+    <string name="alarm_sync_unknown">Save result is uncertain. Refresh and check the phone before adding again.</string>
+    <string name="alarm_sync_stale">This stock or alarm has changed. Refresh and try again.</string>
+    <string name="alarm_sync_delivery_failed">Waiting to send. Check the phone connection and tap Retry sync.</string>
+    <string name="alarm_sync_too_large">Too much data to sync. Manage alarms on the phone.</string>
+    <string name="alarm_sync_failed">Could not complete the request. Check the phone and refresh.</string>
+    <string name="alarm_sync_loading">Waiting for phone sync. The phone needs a network connection.</string>
+    <string name="alarm_sync_pending">Waiting for server save via phone. Changes are not confirmed yet.</string>
+    <string name="alarm_sync_phone_account">Holdings last loaded on the phone. Times are in Korea Standard Time.</string>
+    <string name="alarm_sync_refresh">Refresh / retry sync</string>
+    <string name="alarm_no_stocks">No holdings synced. Refresh your portfolio in the phone app.</string>
+    <string name="alarm_other_stocks">Other stocks with alarms</string>
+    <string name="alarm_stock_summary">%1$s\n%2$d alarms</string>
+    <string name="alarm_back">Back</string>
+    <string name="alarm_empty">No alarms for this stock.</string>
+    <string name="alarm_disable">On · Tap to disable</string>
+    <string name="alarm_enable">Off · Tap to enable</string>
+    <string name="alarm_delete_question">Delete this alarm? This also deletes it on the phone.</string>
+    <string name="alarm_delete_confirm">Confirm delete</string>
+    <string name="alarm_cancel">Cancel</string>
+    <string name="alarm_delete">Delete alarm</string>
+    <string name="alarm_add">Add alarm</string>
+    <string name="alarm_time">Time · %1$s</string>
+    <string name="alarm_timezone">Korea time (Asia/Seoul)</string>
+    <string name="alarm_days">Repeat on</string>
+    <string name="alarm_select_day">Select at least one day.</string>
+    <string name="alarm_save">Request save</string>
+    <string-array name="alarm_weekdays">
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+        <item>Sun</item>
+    </string-array>
 </resources>

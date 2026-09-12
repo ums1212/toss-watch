@@ -23,4 +23,42 @@
     <string name="onboarding_check_now_failed">확인에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
 
     <string name="notification_channel_stock_alarm">주식 알림</string>
+    <string name="alarm_settings_title">알람 설정</string>
+    <string name="alarm_sync_complete">폰과 동기화 완료</string>
+    <string name="alarm_sync_pair_phone">폰 앱에서 로그인과 워치 연동을 확인해 주세요.</string>
+    <string name="alarm_sync_unknown">저장 결과를 확인하지 못했어요. 다시 추가하기 전에 새로고침 후 폰에서 확인해 주세요.</string>
+    <string name="alarm_sync_stale">종목 또는 알람이 변경됐어요. 새로고침 후 다시 시도해 주세요.</string>
+    <string name="alarm_sync_delivery_failed">전송 대기 중이에요. 폰 연결을 확인하고 동기화 재시도를 눌러 주세요.</string>
+    <string name="alarm_sync_too_large">동기화할 데이터가 너무 많아요. 폰에서 알람을 관리해 주세요.</string>
+    <string name="alarm_sync_failed">요청을 완료하지 못했어요. 폰을 확인하고 새로고침해 주세요.</string>
+    <string name="alarm_sync_loading">폰과 동기화 대기 중이에요. 폰의 네트워크 연결이 필요해요.</string>
+    <string name="alarm_sync_pending">폰을 통한 서버 저장 대기 중이에요. 아직 변경이 확정되지 않았어요.</string>
+    <string name="alarm_sync_phone_account">폰에서 마지막 조회한 계좌 기준 · 한국 시간</string>
+    <string name="alarm_sync_refresh">새로고침 / 동기화 재시도</string>
+    <string name="alarm_no_stocks">동기화된 보유 종목이 없어요. 폰 앱에서 계좌를 새로고침해 주세요.</string>
+    <string name="alarm_other_stocks">그 외 알람 등록 종목</string>
+    <string name="alarm_stock_summary">%1$s\n알람 %2$d개</string>
+    <string name="alarm_back">뒤로</string>
+    <string name="alarm_empty">이 종목에 등록된 알람이 없어요.</string>
+    <string name="alarm_disable">사용 중 · 눌러서 끄기</string>
+    <string name="alarm_enable">꺼짐 · 눌러서 켜기</string>
+    <string name="alarm_delete_question">이 알람을 삭제할까요? 폰의 알람도 함께 삭제돼요.</string>
+    <string name="alarm_delete_confirm">삭제 확인</string>
+    <string name="alarm_cancel">취소</string>
+    <string name="alarm_delete">알람 삭제</string>
+    <string name="alarm_add">알람 추가</string>
+    <string name="alarm_time">시간 · %1$s</string>
+    <string name="alarm_timezone">한국 시간 (Asia/Seoul)</string>
+    <string name="alarm_days">반복 요일</string>
+    <string name="alarm_select_day">요일을 하나 이상 선택해 주세요.</string>
+    <string name="alarm_save">저장 요청</string>
+    <string-array name="alarm_weekdays">
+        <item>월</item>
+        <item>화</item>
+        <item>수</item>
+        <item>목</item>
+        <item>금</item>
+        <item>토</item>
+        <item>일</item>
+    </string-array>
 </resources>
