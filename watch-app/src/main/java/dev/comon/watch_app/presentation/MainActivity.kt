@@ -16,10 +16,12 @@ import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import dev.comon.watch_app.presentation.navigation.WatchNavHost
 import dev.comon.watch_app.presentation.theme.TosswatchTheme
+import dev.comon.watch_app.diagnostics.StartupTiming
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val startedAt = StartupTiming.now()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
@@ -28,6 +30,7 @@ class MainActivity : ComponentActivity() {
                 WatchNavHost()
             }
         }
+        StartupTiming.mark("activity.onCreate", startedAt)
     }
 }
 

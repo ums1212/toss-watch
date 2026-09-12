@@ -31,8 +31,9 @@ android {
         applicationId = "dev.comon.toss_watch"
         minSdk = 30
         targetSdk = 37
-        versionCode = 1001
-        versionName = "0.0.1"
+        versionCode = 1002
+        versionName = "0.0.2"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "TOSS_WATCH_APP_API_KEY", "\"$watchApiKey\"")
@@ -100,6 +101,7 @@ dependencies {
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.junit)

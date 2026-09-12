@@ -20,6 +20,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import dev.comon.watch_app.diagnostics.StartupTiming
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.currentCoroutineContext
 
 @HiltViewModel
 class WatchOnboardingViewModel @Inject constructor(
@@ -37,6 +40,8 @@ class WatchOnboardingViewModel @Inject constructor(
 
     /** QR 표시 중 자동 등록 확인 루프. 폰이 등록을 마치는 즉시(다음 틱에) 화면을 전환하기 위함. */
     private var pollingJob: Job? = null
+    private var loadingJob: Job? = null
+    private var checkingJob: Job? = null
 
     init {
         loadPairingState(forceRefreshToken = false)
@@ -58,23 +63,34 @@ class WatchOnboardingViewModel @Inject constructor(
 
     /**
      * 로컬에 연동 완료 상태가 저장되어 있으면 API 호출 없이 바로 [WatchOnboardingPhase.Paired]를 보여준다.
-     * 아니면 UUID 발급(최초 1회) → FCM 토큰 조회 → 2-5 등록 여부 확인 순으로 진행한다.
+     * 미연동이면 토큰 조회 직후 QR을 표시하고 등록 여부는 백그라운드에서 확인한다.
      */
     private fun loadPairingState(forceRefreshToken: Boolean) {
         pollingJob?.cancel()
-        viewModelScope.launch(dispatcherProvider.io) {
-            updateState { copy(phase = WatchOnboardingPhase.Loading) }
+        loadingJob?.cancel()
+        checkingJob?.cancel()
+        loadingJob = viewModelScope.launch(dispatcherProvider.io) {
+            val startedAt = StartupTiming.now()
+            StartupTiming.mark("onboarding.start")
+            updateState { copy(phase = WatchOnboardingPhase.Loading, isCheckingNow = false) }
+            if (forceRefreshToken) savePairedStateUseCase(false)
 
-            val uuid = getOrCreateDeviceUuidUseCase()
+            val uuid = StartupTiming.measure("pairing.local") { getOrCreateDeviceUuidUseCase() }
             val modelName = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
 
             if (isPairedUseCase()) {
                 updateState { copy(phase = WatchOnboardingPhase.Paired(uuid = uuid, modelName = modelName)) }
+                StartupTiming.mark("onboarding.paired_ready", startedAt)
                 return@launch
             }
 
-            getFcmTokenUseCase(forceRefresh = forceRefreshToken)
-                .onSuccess { token -> resolvePairingState(token, uuid, modelName) }
+            StartupTiming.measure("fcm.token") { getFcmTokenUseCase(forceRefresh = forceRefreshToken) }
+                .onSuccess { token ->
+                    currentCoroutineContext().ensureActive()
+                    showQr(token, uuid, modelName)
+                    StartupTiming.mark("onboarding.qr_ready", startedAt)
+                    startPolling()
+                }
                 .onFailure {
                     val message = stringProvider.getString(R.string.onboarding_error_token)
                     updateState { copy(phase = WatchOnboardingPhase.Error(message)) }
@@ -82,33 +98,13 @@ class WatchOnboardingViewModel @Inject constructor(
         }
     }
 
-    private suspend fun resolvePairingState(token: String, uuid: String, modelName: String) {
-        when (val result = checkFcmTokenRegisteredUseCase(token)) {
-            is NetworkResult.Success -> {
-                if (result.data) {
-                    transitionToPaired(uuid, modelName)
-                } else {
-                    showQr(token, uuid, modelName)
-                    startPolling()
-                }
-            }
-
-            is NetworkResult.ApiError,
-            is NetworkResult.NetworkError,
-            -> {
-                val message = stringProvider.getString(R.string.onboarding_error_check)
-                updateState { copy(phase = WatchOnboardingPhase.Error(message)) }
-            }
-        }
-    }
-
     /** 연동 완료 상태로 전환하며, 다음 실행부터 API 호출을 건너뛸 수 있도록 로컬에 영속화한다. */
     private suspend fun transitionToPaired(uuid: String, modelName: String) {
-        pollingJob?.cancel()
         savePairedStateUseCase(true)
         updateState {
             copy(phase = WatchOnboardingPhase.Paired(uuid = uuid, modelName = modelName), isCheckingNow = false)
         }
+        pollingJob?.cancel()
     }
 
     /**
@@ -117,24 +113,7 @@ class WatchOnboardingViewModel @Inject constructor(
      * 로컬 연동완료 플래그도 false로 되돌려, 재연동 도중 프로세스가 죽어도 다음 실행 시 QR 화면부터 이어간다.
      */
     private fun generateQr() {
-        pollingJob?.cancel()
-        viewModelScope.launch(dispatcherProvider.io) {
-            updateState { copy(phase = WatchOnboardingPhase.Loading) }
-            savePairedStateUseCase(false)
-
-            val uuid = getOrCreateDeviceUuidUseCase()
-            val modelName = "${Build.MANUFACTURER} ${Build.MODEL}".trim()
-
-            getFcmTokenUseCase(forceRefresh = true)
-                .onSuccess { token ->
-                    showQr(token, uuid, modelName)
-                    startPolling()
-                }
-                .onFailure {
-                    val message = stringProvider.getString(R.string.onboarding_error_token)
-                    updateState { copy(phase = WatchOnboardingPhase.Error(message)) }
-                }
-        }
+        loadPairingState(forceRefreshToken = true)
     }
 
     private fun showQr(token: String, uuid: String, modelName: String) {
@@ -149,8 +128,8 @@ class WatchOnboardingViewModel @Inject constructor(
         pollingJob?.cancel()
         pollingJob = viewModelScope.launch(dispatcherProvider.io) {
             while (isActive) {
-                delay(POLL_INTERVAL_MS)
                 if (checkPairingSilently()) break
+                delay(POLL_INTERVAL_MS)
             }
         }
     }
@@ -158,7 +137,7 @@ class WatchOnboardingViewModel @Inject constructor(
     /** "지금 확인" 버튼 — 폴링 주기를 기다리지 않고 즉시 한 번 확인하고, 결과를 로딩/토스트로 알려준다. */
     private fun checkNow() {
         if (uiState.value.phase !is WatchOnboardingPhase.Qr || uiState.value.isCheckingNow) return
-        viewModelScope.launch(dispatcherProvider.io) {
+        checkingJob = viewModelScope.launch(dispatcherProvider.io) {
             updateState { copy(isCheckingNow = true) }
             when (val outcome = checkPairingOnce()) {
                 is PairingCheckOutcome.Paired -> transitionToPaired(outcome.uuid, outcome.modelName)
@@ -200,7 +179,9 @@ class WatchOnboardingViewModel @Inject constructor(
         val token = getFcmTokenUseCase(forceRefresh = false).getOrNull()
             ?: return PairingCheckOutcome.Failed
 
-        return when (val result = checkFcmTokenRegisteredUseCase(token)) {
+        val result = StartupTiming.measure("pairing.check") { checkFcmTokenRegisteredUseCase(token) }
+        currentCoroutineContext().ensureActive()
+        return when (result) {
             is NetworkResult.Success ->
                 if (result.data) {
                     PairingCheckOutcome.Paired(uuid = uuid, modelName = modelName)

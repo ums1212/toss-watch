@@ -15,6 +15,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.drawWithContent
+import java.util.concurrent.atomic.AtomicBoolean
+import dev.comon.watch_app.diagnostics.StartupTiming
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -196,6 +200,7 @@ private fun PairedInfo(phase: WatchOnboardingPhase.Paired) {
 
 @Composable
 private fun QrCodeCard(bitmap: Bitmap) {
+    val logged = remember(bitmap) { AtomicBoolean(false) }
     // ScreenScaffold의 contentPadding이 이미 원형 세이프존을 계산해 주므로,
     // 그 안에서는 폭을 최대한 채워 스캔 인식률을 높인다(과거 0.55f는 지나치게 보수적이었음).
     Box(
@@ -208,6 +213,10 @@ private fun QrCodeCard(bitmap: Bitmap) {
     ) {
         Image(
             bitmap = bitmap.asImageBitmap(),
+            modifier = Modifier.drawWithContent {
+                drawContent()
+                if (logged.compareAndSet(false, true)) StartupTiming.mark("qr.drawn")
+            },
             contentDescription = stringResource(R.string.onboarding_title),
         )
     }

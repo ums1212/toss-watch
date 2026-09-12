@@ -3,6 +3,7 @@ package dev.comon.watch_app.data.remote
 import dev.comon.toss_watch.core.model.NetworkResult
 import retrofit2.HttpException
 import retrofit2.Response
+import kotlinx.coroutines.CancellationException
 
 /**
  * `:core:network`의 `safeApiCall`과 동일한 역할을 하는 워치앱 전용 최소 구현.
@@ -23,6 +24,8 @@ suspend fun <T> watchSafeApiCall(execute: suspend () -> Response<T>): NetworkRes
                 message = response.errorBody()?.string() ?: response.message(),
             )
         }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: HttpException) {
         NetworkResult.ApiError(code = e.code(), message = e.message())
     } catch (e: Exception) {

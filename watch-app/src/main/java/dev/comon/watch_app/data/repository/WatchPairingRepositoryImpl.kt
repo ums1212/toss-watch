@@ -11,6 +11,8 @@ import dev.comon.watch_app.domain.repository.WatchPairingRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.CancellationException
+import dev.comon.watch_app.diagnostics.StartupTiming
 
 @Singleton
 class WatchPairingRepositoryImpl @Inject constructor(
@@ -23,13 +25,21 @@ class WatchPairingRepositoryImpl @Inject constructor(
         pairingPreferences.getOrCreateDeviceUuid()
 
     override suspend fun getFcmToken(): Result<String> =
-        runCatching { firebaseMessaging.token.await() }
+        tokenResult { firebaseMessaging.token.await() }
 
     override suspend fun refreshFcmToken(): Result<String> =
-        runCatching {
-            firebaseMessaging.deleteToken().await()
-            firebaseMessaging.token.await()
+        tokenResult {
+            StartupTiming.measure("fcm.delete") { firebaseMessaging.deleteToken().await() }
+            StartupTiming.measure("fcm.issue") { firebaseMessaging.token.await() }
         }
+
+    private suspend fun tokenResult(block: suspend () -> String): Result<String> = try {
+        Result.success(block())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 
     override suspend fun checkFcmTokenRegistered(fcmToken: String): NetworkResult<Boolean> =
         watchSafeApiCall { watchApi.checkFcmToken(FcmTokenCheckRequest(fcmToken = fcmToken)) }
