@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface WatchRoute : NavKey {
     @Serializable data object Onboarding : WatchRoute
-    @Serializable data object Settings : WatchRoute
+    @Serializable data object AlarmList : WatchRoute
     @Serializable data object AppSettings : WatchRoute
     @Serializable data object PairingInfo : WatchRoute
     @Serializable data object Qr : WatchRoute
@@ -45,7 +45,7 @@ fun WatchNavHost(
     val back: () -> Unit = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) }
     val showAlarms: () -> Unit = {
         backStack.clear()
-        backStack.add(WatchRoute.Settings)
+        backStack.add(WatchRoute.AlarmList)
     }
     LaunchedEffect(viewModel) {
         viewModel.sideEffect.collect { effect ->
@@ -66,7 +66,7 @@ fun WatchNavHost(
             entry<WatchRoute.Onboarding> {
                 OnboardingRoute(onAlarmSettingsClick = showAlarms, viewModel = pairingViewModel(), onPaired = showAlarms)
             }
-            entry<WatchRoute.Settings> {
+            entry<WatchRoute.AlarmList> {
                 val foreground = LocalWatchForeground.current
                 LaunchedEffect(foreground) {
                     if (foreground) viewModel.handleIntent(WatchAlarmIntent.Refresh)
