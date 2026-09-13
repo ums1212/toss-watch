@@ -78,13 +78,34 @@ class WatchOnboardingStartupTest {
         bitmap.recycle()
     }
 
+    @Test fun pairedStartupSkipsFcmAndOpeningQrRefreshesOnlyOnce() = runTest(dispatcher) {
+        repository.paired = true
+        val vm = createModel()
+        runCurrent()
+        assertTrue(vm.uiState.value.phase is WatchOnboardingPhase.Paired)
+        assertEquals(0, repository.checks)
+        vm.handleIntent(WatchOnboardingUiIntent.OpenQr)
+        assertTrue(vm.uiState.value.phase is WatchOnboardingPhase.Loading)
+        runCurrent()
+        assertTrue(vm.uiState.value.phase is WatchOnboardingPhase.Qr)
+        assertFalse(repository.paired)
+        vm.handleIntent(WatchOnboardingUiIntent.OpenQr)
+        runCurrent()
+        assertEquals(1, repository.refreshes)
+        vm.viewModelScope.cancel()
+    }
+
     private class FakeRepository : WatchPairingRepository {
         var paired = false
         var checks = 0
+        var refreshes = 0
         val response = CompletableDeferred<NetworkResult<Boolean>>()
         override suspend fun getOrCreateDeviceUuid() = "test-uuid"
         override suspend fun getFcmToken() = Result.success("test-token")
-        override suspend fun refreshFcmToken() = Result.success("new-test-token")
+        override suspend fun refreshFcmToken(): Result<String> {
+            refreshes++
+            return Result.success("new-test-token")
+        }
         override suspend fun isPaired() = paired
         override suspend fun setPaired(paired: Boolean) {
             yield() // Persistence must finish even when called by the polling job itself.

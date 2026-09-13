@@ -42,6 +42,7 @@ class WatchOnboardingViewModel @Inject constructor(
     private var pollingJob: Job? = null
     private var loadingJob: Job? = null
     private var checkingJob: Job? = null
+    private var qrOpened = false
 
     init {
         loadPairingState(forceRefreshToken = false)
@@ -49,6 +50,10 @@ class WatchOnboardingViewModel @Inject constructor(
 
     override fun handleIntent(intent: WatchOnboardingUiIntent) {
         when (intent) {
+            WatchOnboardingUiIntent.OpenQr -> if (!qrOpened) {
+                qrOpened = true
+                generateQr()
+            }
             WatchOnboardingUiIntent.LoadToken,
             WatchOnboardingUiIntent.RetryClicked,
             -> loadPairingState(forceRefreshToken = false)
@@ -69,10 +74,10 @@ class WatchOnboardingViewModel @Inject constructor(
         pollingJob?.cancel()
         loadingJob?.cancel()
         checkingJob?.cancel()
+        updateState { copy(phase = WatchOnboardingPhase.Loading, isCheckingNow = false) }
         loadingJob = viewModelScope.launch(dispatcherProvider.io) {
             val startedAt = StartupTiming.now()
             StartupTiming.mark("onboarding.start")
-            updateState { copy(phase = WatchOnboardingPhase.Loading, isCheckingNow = false) }
             if (forceRefreshToken) savePairedStateUseCase(false)
 
             val uuid = StartupTiming.measure("pairing.local") { getOrCreateDeviceUuidUseCase() }

@@ -29,7 +29,7 @@ class PairingPreferences @Inject constructor(
         return generated
     }
 
-    /** 폰과의 연동 완료 여부. true면 앱 재실행 시 등록 확인 API 없이 바로 연동완료 화면을 보여준다. */
+    /** 폰과의 연동 완료 여부. true면 앱 재실행 시 등록 확인 API 없이 알람 설정을 메인으로 연다. */
     suspend fun isPaired(): Boolean = dataStore.data.first()[KEY_IS_PAIRED] ?: false
 
     suspend fun setPaired(paired: Boolean) {

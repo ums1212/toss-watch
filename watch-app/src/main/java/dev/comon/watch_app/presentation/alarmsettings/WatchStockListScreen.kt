@@ -7,7 +7,7 @@ import dev.comon.watch_app.R
 
 @Composable
 fun WatchStockListScreen(state: WatchAlarmUiState, onIntent: (WatchAlarmIntent) -> Unit,
-    onBack: () -> Unit, onStockClick: (WatchStock) -> Unit) {
+    onSettingsClick: () -> Unit, onStockClick: (WatchStock) -> Unit) {
     val snapshot = state.sync.snapshot
     val stocks = snapshot?.stocks.orEmpty()
     // Keep existing alarms accessible even after a stock is no longer held.
@@ -30,6 +30,6 @@ fun WatchStockListScreen(state: WatchAlarmUiState, onIntent: (WatchAlarmIntent) 
             item(key = "other_${stock.code}") { SettingsButton(stock.name) { onStockClick(stock) } }
         }
         item { SettingsButton(stringResource(R.string.alarm_sync_refresh), !state.submitting) { onIntent(WatchAlarmIntent.Refresh) } }
-        item { SettingsButton(stringResource(R.string.alarm_back), onClick = onBack) }
+        item { SettingsButton(stringResource(R.string.watch_settings_title), onClick = onSettingsClick) }
     }
 }

@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.drawWithContent
 import java.util.concurrent.atomic.AtomicBoolean
 import dev.comon.watch_app.diagnostics.StartupTiming
@@ -49,10 +51,25 @@ import dev.comon.watch_app.R
 import dev.comon.watch_app.presentation.component.WatchSafeContent
 
 @Composable
-fun OnboardingRoute(onAlarmSettingsClick: () -> Unit, viewModel: WatchOnboardingViewModel = hiltViewModel()) {
+fun OnboardingRoute(
+    onAlarmSettingsClick: () -> Unit,
+    viewModel: WatchOnboardingViewModel = hiltViewModel(),
+    onPaired: (() -> Unit)? = null,
+    startWithQr: Boolean = false,
+    onGenerateQrClick: (() -> Unit)? = null,
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var ready by remember(viewModel, startWithQr) { mutableStateOf(!startWithQr) }
+
+    LaunchedEffect(viewModel, startWithQr) {
+        if (startWithQr) viewModel.handleIntent(WatchOnboardingUiIntent.OpenQr)
+        ready = true
+    }
+    LaunchedEffect(uiState.phase, ready) {
+        if (ready && viewModel.uiState.value.phase is WatchOnboardingPhase.Paired) onPaired?.invoke()
+    }
 
     LaunchedEffect(viewModel, lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -71,7 +88,7 @@ fun OnboardingRoute(onAlarmSettingsClick: () -> Unit, viewModel: WatchOnboarding
         onRetryClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RetryClicked) },
         onRefreshClick = { viewModel.handleIntent(WatchOnboardingUiIntent.RefreshClicked) },
         onCheckNowClick = { viewModel.handleIntent(WatchOnboardingUiIntent.CheckNowClicked) },
-        onGenerateQrClick = { viewModel.handleIntent(WatchOnboardingUiIntent.GenerateQrClicked) },
+        onGenerateQrClick = onGenerateQrClick ?: { viewModel.handleIntent(WatchOnboardingUiIntent.GenerateQrClicked) },
     )
 }
 

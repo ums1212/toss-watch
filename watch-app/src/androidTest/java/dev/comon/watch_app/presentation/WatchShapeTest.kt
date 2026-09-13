@@ -72,7 +72,7 @@ class WatchShapeTest {
 
     @Test fun lastSettingsButtonFitsRoundScreen() {
         compose.setContent { TosswatchTheme { WatchStockListScreen(WatchAlarmUiState(), {}, {}, {}) } }
-        checkButton(text(R.string.alarm_back), "settings-back", 4)
+        checkButton(text(R.string.watch_settings_title), "settings-button", 4)
     }
 
     @Test fun alarmDismissRemainsReachableWithLargeText() {

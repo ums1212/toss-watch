@@ -26,6 +26,8 @@ sealed interface WatchOnboardingPhase {
 }
 
 sealed interface WatchOnboardingUiIntent : UiIntent {
+    /** Open the QR destination once per destination ViewModel, including after rotation. */
+    data object OpenQr : WatchOnboardingUiIntent
     data object LoadToken : WatchOnboardingUiIntent
     data object RetryClicked : WatchOnboardingUiIntent
     data object RefreshClicked : WatchOnboardingUiIntent
