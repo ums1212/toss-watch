@@ -101,6 +101,10 @@ dependencies {
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.espresso.core)
+    // Align the debug APK with Espresso under AGP's consistent test dependency resolution.
+    debugImplementation(libs.androidx.concurrent.futures)
+    debugImplementation(libs.errorprone.annotations)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)

@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +46,7 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import dev.comon.watch_app.R
+import dev.comon.watch_app.presentation.component.WatchSafeContent
 
 @Composable
 fun OnboardingRoute(onAlarmSettingsClick: () -> Unit, viewModel: WatchOnboardingViewModel = hiltViewModel()) {
@@ -86,94 +88,96 @@ fun OnboardingScreen(
     AppScaffold {
         val listState = rememberTransformingLazyColumnState()
         val transformationSpec = rememberTransformationSpec()
-        ScreenScaffold(scrollState = listState) { contentPadding ->
-            TransformingLazyColumn(contentPadding = contentPadding, state = listState) {
-                item {
-                    ListHeader(
-                        modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
-                        transformation = SurfaceTransformation(transformationSpec),
-                    ) {
-                        Text(
-                            text = if (phase is WatchOnboardingPhase.Paired) {
-                                stringResource(R.string.onboarding_paired_title)
-                            } else {
-                                stringResource(R.string.onboarding_title)
-                            },
-                        )
-                    }
-                }
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .transformedHeight(this, transformationSpec)
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        when (phase) {
-                            is WatchOnboardingPhase.Qr -> QrCodeCard(phase.bitmap)
-                            is WatchOnboardingPhase.Paired -> PairedInfo(phase)
-                            is WatchOnboardingPhase.Error -> Text(
-                                text = phase.message,
-                                color = MaterialTheme.colorScheme.error,
+        ScreenScaffold(scrollState = listState) {
+            WatchSafeContent {
+                TransformingLazyColumn(contentPadding = PaddingValues(vertical = 4.dp), state = listState) {
+                    item {
+                        ListHeader(
+                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
+                            Text(
+                                text = if (phase is WatchOnboardingPhase.Paired) {
+                                    stringResource(R.string.onboarding_paired_title)
+                                } else {
+                                    stringResource(R.string.onboarding_title)
+                                },
                             )
-                            WatchOnboardingPhase.Loading -> CircularProgressIndicator()
-                        }
-                    }
-                }
-                if (phase is WatchOnboardingPhase.Error) {
-                    item {
-                        Button(
-                            onClick = onRetryClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
-                            transformation = SurfaceTransformation(transformationSpec),
-                        ) {
-                            Text(stringResource(R.string.onboarding_retry))
-                        }
-                    }
-                }
-                if (phase is WatchOnboardingPhase.Qr) {
-                    item {
-                        Button(
-                            onClick = onRefreshClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
-                            transformation = SurfaceTransformation(transformationSpec),
-                        ) {
-                            Text(stringResource(R.string.onboarding_refresh))
                         }
                     }
                     item {
-                        Button(
-                            onClick = onCheckNowClick,
-                            enabled = !uiState.isCheckingNow,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
-                            transformation = SurfaceTransformation(transformationSpec),
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .transformedHeight(this, transformationSpec)
+                                .padding(vertical = 2.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            if (uiState.isCheckingNow) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                            } else {
-                                Text(stringResource(R.string.onboarding_check_now))
+                            when (phase) {
+                                is WatchOnboardingPhase.Qr -> QrCodeCard(phase.bitmap)
+                                is WatchOnboardingPhase.Paired -> PairedInfo(phase)
+                                is WatchOnboardingPhase.Error -> Text(
+                                    text = phase.message,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                WatchOnboardingPhase.Loading -> CircularProgressIndicator()
                             }
                         }
                     }
-                }
-                if (phase is WatchOnboardingPhase.Paired) {
-                    item {
-                        Button(
-                            onClick = onAlarmSettingsClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
-                            transformation = SurfaceTransformation(transformationSpec),
-                        ) {
-                            Text(stringResource(R.string.alarm_settings_title))
+                    if (phase is WatchOnboardingPhase.Error) {
+                        item {
+                            Button(
+                                onClick = onRetryClick,
+                                modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                                transformation = SurfaceTransformation(transformationSpec),
+                            ) {
+                                Text(stringResource(R.string.onboarding_retry))
+                            }
                         }
                     }
-                    item {
-                        Button(
-                            onClick = onGenerateQrClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
-                            transformation = SurfaceTransformation(transformationSpec),
-                        ) {
-                            Text(stringResource(R.string.onboarding_generate_qr))
+                    if (phase is WatchOnboardingPhase.Qr) {
+                        item {
+                            Button(
+                                onClick = onRefreshClick,
+                                modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                                transformation = SurfaceTransformation(transformationSpec),
+                            ) {
+                                Text(stringResource(R.string.onboarding_refresh))
+                            }
+                        }
+                        item {
+                            Button(
+                                onClick = onCheckNowClick,
+                                enabled = !uiState.isCheckingNow,
+                                modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                                transformation = SurfaceTransformation(transformationSpec),
+                            ) {
+                                if (uiState.isCheckingNow) {
+                                    CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                                } else {
+                                    Text(stringResource(R.string.onboarding_check_now))
+                                }
+                            }
+                        }
+                    }
+                    if (phase is WatchOnboardingPhase.Paired) {
+                        item {
+                            Button(
+                                onClick = onAlarmSettingsClick,
+                                modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                                transformation = SurfaceTransformation(transformationSpec),
+                            ) {
+                                Text(stringResource(R.string.alarm_settings_title))
+                            }
+                        }
+                        item {
+                            Button(
+                                onClick = onGenerateQrClick,
+                                modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                                transformation = SurfaceTransformation(transformationSpec),
+                            ) {
+                                Text(stringResource(R.string.onboarding_generate_qr))
+                            }
                         }
                     }
                 }
@@ -201,8 +205,7 @@ private fun PairedInfo(phase: WatchOnboardingPhase.Paired) {
 @Composable
 private fun QrCodeCard(bitmap: Bitmap) {
     val logged = remember(bitmap) { AtomicBoolean(false) }
-    // ScreenScaffold의 contentPadding이 이미 원형 세이프존을 계산해 주므로,
-    // 그 안에서는 폭을 최대한 채워 스캔 인식률을 높인다(과거 0.55f는 지나치게 보수적이었음).
+    // WatchSafeContent의 원형 안전 영역 안에서 QR의 흰 여백까지 보존한다.
     Box(
         modifier = Modifier
             .fillMaxWidth(fraction = 0.9f)
