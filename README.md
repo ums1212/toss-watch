@@ -32,14 +32,14 @@
 | 토스증권 계좌 연동 | 클라이언트 ID·시크릿을 백엔드에 등록 | 폰의 계정 연결 활용 |
 | 자산 확인 | 계좌 선택, 총 평가 자산·평가 손익·수익률, 보유 종목, 버블·트리맵 비중 차트 | 폰에서 전달한 종목 목록 확인 |
 | 예약 알림 | 종목별 요일·시각 설정, 추가·활성화/비활성화·삭제 | 같은 종류의 관리 요청을 폰에 전송 |
-| 알림 수신 | 계정과 워치 수신 정보를 연결 | FCM 수신, 종목명·현재가·등락률 표시, 진동, 닫기·스와이프 |
+| 알람 울림 | 계정과 워치 수신 정보를 연결 | 워치 로컬 알람(AlarmManager)으로 전체 화면 알람·진동, 누르면 종목명·현재가·등락률 표시, 닫기·스와이프 |
 | 연결 관리 | 등록된 워치 상태 조회, QR 재등록, 로그아웃 | 연결 정보 확인, QR 재생성, 목록 새로고침 |
 
-예를 들어 삼성전자에 ‘월~금 오전 9:30’ 알람을 등록하면, 서비스는 해당 일정의 주가 알림을 워치로 전달하도록 구성됩니다. 워치는 상승·하락·보합에 따른 이미지 장면을 먼저 보여주고 약 2초 뒤 가격 정보로 전환합니다. 실제 발송 시각과 시세의 최신성은 별도 백엔드와 네트워크 상태에 달려 있습니다.
+예를 들어 삼성전자에 ‘월~금 오전 9:30’ 알람을 등록하면, 워치가 해당 요일·시각에 직접 알람을 울리고 “오늘의 삼성전자 주 정보가 도착했습니다.” 화면을 띄웁니다. 동시에 백엔드에서 시세를 미리 받아두고, 사용자가 알람을 누르면 상승·하락·보합에 따른 이미지 장면을 보여준 뒤 약 2초 뒤 가격 정보로 전환합니다. 시세의 최신성은 별도 백엔드와 네트워크 상태에 달려 있습니다.
 
 ## 폰과 워치는 어떻게 연동하나요?
 
-연동은 **계정에 워치를 등록하는 QR 흐름**, **알람 설정을 주고받는 Data Layer**, **서버에서 워치로 보내는 FCM**으로 나뉩니다.
+연동은 **계정에 워치를 등록하는 QR 흐름**, **알람 설정을 주고받는 Data Layer**, **워치 로컬 알람과 시세 조회**로 나뉩니다.
 
 ```mermaid
 flowchart LR
@@ -50,8 +50,7 @@ flowchart LR
     Watch -->|등록 여부 확인 / 워치 API 키| Server
     Watch -->|Data Layer: 알람 변경 요청| Phone
     Phone -->|Data Layer: 종목·알람 스냅샷과 처리 결과| Watch
-    Server -->|예약 알림 발송| FCM[Firebase Cloud Messaging]
-    FCM -->|종목명·현재가·등락률| Watch
+    Watch -->|알람 시각: 시세 조회 / 워치 API 키| Server
 ```
 
 ### 1. QR로 계정과 워치 연결
@@ -87,11 +86,11 @@ sequenceDiagram
 - 폰의 알람 목록·상세 화면은 Repository의 단일 `StateFlow` 캐시를 구독하므로, 수정 후 뒤로 돌아가도 변경된 알람 개수가 반영됩니다.
 - Data Layer의 알람 계약에는 로그인 JWT나 토스 API 시크릿을 담지 않습니다.
 
-### 3. 서버에서 워치로 주가 알림 전달
+### 3. 워치 로컬 알람과 시세 조회
 
-백엔드는 등록된 워치 FCM 토큰으로 `stock_name`, `price`, `change_rate` 데이터를 보냅니다. 워치의 `WatchNotificationService`는 높은 중요도의 알람 알림과 전체 화면 Intent를 구성하고, `StockAlarmActivity`가 가격 UI와 진동을 실행합니다. 실제 전체 화면 표시 여부는 알림 권한과 OS·기기 정책에 영향을 받습니다.
+워치는 폰에서 동기화된 알람 목록으로 `AlarmManager.setAlarmClock` 알람을 직접 예약합니다(재부팅·시간 변경 시 재예약). 알람 시각이 되면 `StockAlarmReceiver`가 전체 화면 알람 알림을 띄우고, `StockAlarmActivity`가 진동과 함께 “정보가 도착했습니다” 화면을 보여주면서 백엔드의 `POST v1/toss-watch/watch/stock-quote/`로 시세를 미리 조회합니다. 사용자가 누르면 가격 UI를 보여주고, 응답 전이면 로딩을 표시합니다. 실제 전체 화면 표시 여부는 알림 권한과 OS·기기 정책에 영향을 받습니다.
 
-이 수신 경로는 폰의 알림 미러링이 아닌 **워치의 직접 FCM 수신**입니다. 워치가 인터넷에 연결되어 있으면 폰 UI를 열어둘 필요는 없습니다. 다만 계정 연결과 알람 설정 변경에는 폰이 필요합니다. 워치의 FCM 토큰 갱신을 서버에 자동 등록하는 처리는 현재 없으므로, 필요할 때 QR을 재생성해 폰에서 다시 등록합니다.
+알람 자체는 네트워크 없이도 울리지만, 시세 표시에는 워치의 인터넷 연결이 필요합니다. 계정 연결과 알람 설정 변경에는 폰이 필요합니다. FCM 토큰은 이제 QR 페어링의 기기 식별 용도로만 쓰입니다.
 
 ## 프로젝트 구조
 
@@ -139,6 +138,7 @@ toss-watch/
 - [폰 알람 동기화 처리](app/src/main/java/dev/comon/toss_watch/watchsync/PhoneAlarmSyncBridge.kt)
 - [워치 요청·스냅샷 보관](watch-app/src/main/java/dev/comon/watch_app/data/repository/WatchAlarmRepositoryImpl.kt)
 - [폰 QR 등록 ViewModel](feature/setting/src/main/kotlin/dev/comon/toss_watch/feature/setting/presentation/watchpair/WatchPairViewModel.kt)
-- [워치 FCM 수신 서비스](watch-app/src/main/java/dev/comon/watch_app/service/WatchNotificationService.kt)
+- [워치 로컬 알람 발화](watch-app/src/main/java/dev/comon/watch_app/service/StockAlarmReceiver.kt)
+- [워치 알람 예약](watch-app/src/main/java/dev/comon/watch_app/data/alarm/AndroidStockAlarmScheduler.kt)
 
 문서 작성 시 폰·워치 `assembleDebug` 및 워치 캡처용 `assembleDebugAndroidTest` 빌드를 확인했습니다. 캡처용 instrumentation 실행은 4개 시나리오로 구성되며, 전체 회귀 테스트나 실제 백엔드·FCM 연동 검증을 대체하지 않습니다.

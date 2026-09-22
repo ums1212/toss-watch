@@ -1,5 +1,7 @@
 # 워치앱 알림 기능(헤즈업 + 전체화면 팝업) 구현 기록
 
+> **참고 (이슈 #2 이후):** 알람 발화 경로가 FCM 푸시(`WatchNotificationService`, 제거됨)에서 워치 로컬 AlarmManager(`StockAlarmReceiver` → `StockAlarmNotifications`)로 바뀌었다. 아래의 전체 화면 표시·BAL opt-in·진동 억제 우회 내용은 `StockAlarmNotifications`/`StockAlarmActivity`에 그대로 이어져 있다. 현재 구조는 `WATCH_ALARM_SYNC.md` 참고.
+
 목표: 워치 단말기가 꺼져 있는 상태에서도 알람 앱처럼 진동과 함께 화면이 켜지고
 `StockAlarmActivity`가 전체화면으로 즉시 표시되도록 만든다.
 

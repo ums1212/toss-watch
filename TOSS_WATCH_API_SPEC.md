@@ -171,6 +171,46 @@ POST /api/v1/toss-watch/fcm-token/check/      [X-Toss-Watch-Api-Key 헤더 필�
 - `400 Bad Request` `fcm_token` 누락/빈 값 (`{"error": "body에 'fcm_token'이 필요합니다."}`)
 - `403 Forbidden` `X-Toss-Watch-Api-Key` 헤더 누락/불일치
 
+### 2-6. 워치 알람 시세 조회 (워치앱 전용) — 서버 구현 필요
+
+```
+POST /api/v1/toss-watch/watch/stock-quote/    [X-Toss-Watch-Api-Key 헤더 필수, JWT 불필요]
+```
+
+워치는 사용자가 설정한 요일·시각에 **워치 로컬 AlarmManager로 직접 알람을 울리고**, 알람 화면이
+뜨는 즉시 이 API로 해당 종목의 현재 시세를 미리 조회한다(사용자가 알람을 누르면 표시).
+서버는 `uuid`로 워치가 연동된 유저(2-3에서 저장한 `uuid`)를 찾아, 그 유저의 토스 API 키로 시세를 조회한다.
+
+**Request Header**: 2-5와 동일 (`X-Toss-Watch-Api-Key`)
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| `uuid` | string | ✅ | 워치 기기 UUID (2-3에서 등록된 값) |
+| `stock_code` | string | ✅ | 조회할 종목 코드 |
+
+**Response 200** (값 포맷은 기존 §5 FCM 페이로드와 동일, 전부 문자열)
+
+```json
+{
+  "stock_code": "005930",
+  "stock_name": "삼성전자",
+  "price": "72500",
+  "change_rate": "+2.30%",
+  "timestamp": "1783662000"
+}
+```
+
+**Errors**
+- `400 Bad Request` `uuid`/`stock_code` 누락·빈 값
+- `403 Forbidden` `X-Toss-Watch-Api-Key` 헤더 누락/불일치
+- `404 Not Found` `uuid`로 연동된 유저 없음 (워치 재연동 필요)
+- `409 Conflict` 유저의 토스 API 키 미등록
+- `502 Bad Gateway` 토스 API 시세 조회 실패 (기존 재시도 정책 적용 후)
+
+워치는 오류 시 “시세를 불러오지 못했어요” + 재시도 버튼을 표시한다. 알람 시각(`alarm_time`)은 한국 시간(Asia/Seoul) 기준이다.
+
 ---
 
 ## 3. 계좌/포트폴리오 조회 (Accounts & Portfolio)
@@ -376,7 +416,12 @@ DELETE /api/v1/toss-watch/notifications/<id>/     → 204
 
 ---
 
-## 5. 워치가 수신하는 FCM 메시지 규격 (Wear OS 클라이언트용)
+## 5. 워치가 수신하는 FCM 메시지 규격 (Wear OS 클라이언트용) — **Deprecated**
+
+> **워치 알람 용도로는 더 이상 사용하지 않는다.** 이슈 #2 반영 이후의 워치앱은 알람을 워치 로컬 AlarmManager로 울리고
+> 시세는 [2-6](#2-6-워치-알람-시세-조회-워치앱-전용--서버-구현-필요)으로 조회하며, 수신한 FCM 메시지는 무시한다.
+> 서버는 워치 알람 FCM 발송(스케줄러)을 중단해야 한다 — 구버전 워치앱과 신버전이 섞여 있으면 중복 알람이 생긴다.
+> 워치 FCM 토큰 자체는 페어링 식별(2-3, 2-5)에 계속 쓰인다.
 
 매분 서버 스케줄러가 `alarm_time`이 일치하고 오늘 요일이 `days_of_week`에 포함된 활성 알림을 골라 발송한다.
 **Data-Only 메시지**(notification 필드 없음)이며 **Android priority: high**로 발송되므로,

@@ -18,13 +18,17 @@
     <string name="stock_alarm_current_price">%1$s</string>
     <string name="stock_alarm_dismiss">Dismiss</string>
     <string name="stock_alarm_image_desc">Price alert</string>
+    <string name="stock_alarm_arrived">Today\'s %1$s stock update has arrived.</string>
+    <string name="stock_alarm_open">View</string>
+    <string name="stock_alarm_quote_error">Couldn\'t load the price.</string>
+    <string name="stock_alarm_retry">Retry</string>
 
     <string name="onboarding_error_token">Couldn\'t load your token. Please try again.</string>
     <string name="onboarding_error_check">Couldn\'t check pairing status. Please try again.</string>
     <string name="onboarding_check_now_not_paired">Not paired yet. Please scan the QR code from your phone.</string>
     <string name="onboarding_check_now_failed">Check failed. Please try again in a moment.</string>
 
-    <string name="notification_channel_stock_alarm">Stock alerts</string>
+    <string name="notification_channel_stock_alarm">Stock alarms</string>
     <string name="alarm_settings_title">Alarm settings</string>
     <string name="alarm_sync_complete">Synced with phone</string>
     <string name="alarm_sync_pair_phone">Open the phone app and check login and watch pairing.</string>

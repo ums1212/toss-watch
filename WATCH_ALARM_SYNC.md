@@ -15,7 +15,18 @@
 - 워치 `WatchAlarmRepositoryImpl`: Preferences DataStore에 Data Layer 수신 스냅샷과 대기 요청을 보관한다. UI는 UseCase를 통해서만 접근한다.
 - `/alarm-sync/v1/request/{uuid}`: 워치 소유 요청 DataItem.
 - `/alarm-sync/v1/snapshot/{uuid}`: 폰 소유 목록 및 처리 결과 DataItem.
-- 새 백엔드 엔드포인트 없이 기존 JWT 인증 및 자동 갱신을 사용한다. 알림 발송은 기존 서버 스케줄러와 FCM이 담당한다. 전체 화면 인텐트 권한/알림 발송 코드는 이번 변경에서 수정하지 않았다.
+- 알람 설정 동기화는 새 백엔드 엔드포인트 없이 기존 JWT 인증 및 자동 갱신을 사용한다.
+
+## 알람 발화 (워치 로컬 AlarmManager)
+
+서버 FCM 푸시 대신 워치가 동기화된 스냅샷을 기준으로 직접 알람을 예약한다(이슈 #2, Play `USE_FULL_SCREEN_INTENT` 정책 대응).
+
+- `RescheduleStockAlarmsUseCase`: 스냅샷의 켜진 알람을 `nextTriggerAt`(한국 시간, 0=월..6=일)으로 계산해 `AndroidStockAlarmScheduler`가 `AlarmManager.setAlarmClock`으로 예약한다. 사라지거나 꺼진 알람은 예약 해제한다(예약 id는 DataStore `stock_alarm_scheduled_ids`에 보관). 멱등.
+- 재예약 시점: 스냅샷 변경(`WatchApplication` 관찰 + `WatchAlarmSyncService` 수신 직후), 알람 발화 직후(다음 회차), 재부팅·시간/시간대 변경·앱 업데이트(`StockAlarmRescheduleReceiver`).
+- 발화: `StockAlarmReceiver`가 알람이 여전히 켜져 있는지 확인하고 `CATEGORY_ALARM` 전체 화면 알림을 띄운다(Android 14+에서 전체 화면 권한이 꺼져 있으면 heads-up으로 폴백).
+- `StockAlarmActivity`: “오늘의 OO 주 정보가 도착했습니다.” 화면에서 진동(최대 1분)을 울리며, 뜨는 즉시 `POST /watch/stock-quote/`(API 명세 2-6)로 시세를 미리 조회한다. 사용자가 누르면 시세 화면을 보여주고, 응답 전이면 프로그래스바, 실패 시 재시도 버튼을 표시한다.
+- 권한: `USE_EXACT_ALARM`(API 33+, 알람 앱 전용 — Play 선언 필요), `SCHEDULE_EXACT_ALARM`(maxSdk 32), `RECEIVE_BOOT_COMPLETED`, `USE_FULL_SCREEN_INTENT`.
+- FCM은 페어링 식별(QR의 토큰, `fcm-token/check`)에만 쓴다. 메시지 수신 서비스(`FirebaseMessagingService`)는 제거했다.
 
 ## 오프라인과 정합성
 

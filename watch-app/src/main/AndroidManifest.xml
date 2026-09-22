@@ -3,6 +3,14 @@
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- 사용자가 지정한 요일·시각에 울리는 알람(setAlarmClock). API 33+는 USE_EXACT_ALARM(알람 앱 전용),
+         API 31~32는 SCHEDULE_EXACT_ALARM(해당 버전에서 자동 허용)을 쓴다. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <!-- 재부팅 후 알람 재예약. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -63,13 +71,19 @@
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/alarm-sync/v1/snapshot/" />
             </intent-filter>
         </service>
-        <service
-            android:name=".service.WatchNotificationService"
-            android:exported="false">
+        <receiver
+            android:name=".service.StockAlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".service.StockAlarmRescheduleReceiver"
+            android:exported="true">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
-        </service>
+        </receiver>
     </application>
 
 </manifest>
