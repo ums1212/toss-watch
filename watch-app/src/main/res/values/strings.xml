@@ -35,7 +35,7 @@
     <string name="alarm_sync_unknown">Save result is uncertain. Refresh and check the phone before adding again.</string>
     <string name="alarm_sync_stale">This stock or alarm has changed. Refresh and try again.</string>
     <string name="alarm_sync_delivery_failed">Waiting to send. Check the phone connection and tap Retry sync.</string>
-    <string name="alarm_sync_too_large">Too much data to sync. Manage alarms on the phone.</string>
+    <string name="alarm_sync_too_large">Too many stocks to edit on the watch. Alarms still ring; manage them on your phone.</string>
     <string name="alarm_sync_failed">Could not complete the request. Check the phone and refresh.</string>
     <string name="alarm_sync_loading">Waiting for phone sync. The phone needs a network connection.</string>
     <string name="alarm_sync_pending">Waiting for server save via phone. Changes are not confirmed yet.</string>
