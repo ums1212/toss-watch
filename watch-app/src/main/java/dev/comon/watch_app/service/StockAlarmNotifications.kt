@@ -35,6 +35,15 @@ object StockAlarmNotifications {
     // 이 패턴으로 직접 Vibrator를 호출한다. 두 곳의 패턴을 동일하게 유지하기 위해 공유.
     internal val VIBRATION_PATTERN = longArrayOf(0, 500, 200, 500)
 
+    /** 알람 화면을 띄울 Intent. 알림의 fullScreenIntent와 리시버의 직접 실행이 같은 화면을 공유한다. */
+    fun alarmIntent(context: Context, alarm: WatchAlarm): Intent =
+        Intent(context, StockAlarmActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            putExtra(EXTRA_ALARM_ID, alarm.id)
+            putExtra(EXTRA_STOCK_CODE, alarm.stockCode)
+            putExtra(EXTRA_STOCK_NAME, alarm.stockName)
+        }
+
     fun showRinging(context: Context, alarm: WatchAlarm) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED
@@ -45,12 +54,7 @@ object StockAlarmNotifications {
         val manager = context.getSystemService(NotificationManager::class.java)
         ensureChannel(context, manager)
 
-        val alarmIntent = Intent(context, StockAlarmActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            putExtra(EXTRA_ALARM_ID, alarm.id)
-            putExtra(EXTRA_STOCK_CODE, alarm.stockCode)
-            putExtra(EXTRA_STOCK_NAME, alarm.stockName)
-        }
+        val alarmIntent = alarmIntent(context, alarm)
         // 화면이 꺼진 상태에서는 워치 OEM의 알림 패널(예: 삼성 One UI Watch sysui)이 우리 대신
         // 이 PendingIntent를 전송한다. Android 15+에서는 그런 대리 전송 시 발신자뿐 아니라
         // PendingIntent를 만든 이 앱도 백그라운드 액티비티 실행을 명시적으로 허용해야 한다
