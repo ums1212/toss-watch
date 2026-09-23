@@ -64,7 +64,7 @@ fun StockAlarmScreen(
     }
 
     // Scene 1(이미지) → Scene 2(종목 정보) 순서로 전환한다.
-    // alarmVersion은 알람 화면이 떠 있는 동안 새 FCM이 도착할 때마다 증가하며(StockAlarmActivity),
+    // alarmVersion은 알람 화면이 떠 있는 동안 새 알람이 울릴 때마다 증가하며(StockAlarmViewModel),
     // 그때마다 이 LaunchedEffect가 재시작돼 이미지 Scene부터 다시 재생된다.
     var showInfoScene by remember { mutableStateOf(false) }
     // alarmVersion으로 remember 키를 걸어, 새 알람마다 false로 리셋된 상태가 반드시 한 프레임

@@ -207,12 +207,7 @@ class PhoneAlarmSyncBridge @Inject constructor(
     }
 
     private suspend fun send(snapshot: WatchAlarmSnapshot) {
-        var outgoing = snapshot.copy(updatedAt = store.nextRevision())
-        var bytes = Json.encodeToString(WatchAlarmSnapshot.serializer(), outgoing).toByteArray()
-        if (bytes.size > WatchAlarmSync.MAX_BYTES) {
-            outgoing = outgoing.copy(available = false, stocks = emptyList(), alarms = emptyList(), error = "TOO_LARGE")
-            bytes = Json.encodeToString(WatchAlarmSnapshot.serializer(), outgoing).toByteArray()
-        }
+        val (_, bytes) = fitSnapshotToLimit(snapshot.copy(updatedAt = store.nextRevision()))
         val item = PutDataMapRequest.create(WatchAlarmSync.SNAPSHOT_PREFIX + snapshot.uuid).apply {
             dataMap.putByteArray(WatchAlarmSync.PAYLOAD, bytes)
         }.asPutDataRequest().setUrgent()
