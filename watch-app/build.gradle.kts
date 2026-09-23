@@ -31,8 +31,8 @@ android {
         applicationId = "dev.comon.toss_watch"
         minSdk = 30
         targetSdk = 37
-        versionCode = 1004
-        versionName = "0.0.4"
+        versionCode = 1005
+        versionName = "0.0.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
