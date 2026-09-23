@@ -44,7 +44,7 @@ class StockAlarmReceiver : BroadcastReceiver() {
      *    액티비티가 떠도 사용자가 볼 수 없다.
      * 2. 알림을 먼저 발행한다 — 3번이 시스템에 막혀도 알림은 남아 사용자가 눌러서 볼 수 있다.
      * 3. 액티비티를 직접 실행한다. 알림의 fullScreenIntent는 워치 OEM 알림 레이어(삼성 sysui 등)가
-     *    대신 전송하다 BAL로 막히는 사례가 있어(WATCH_NOTIFICATION_INVESTIGATION.md), 우리 앱이
+     *    대신 전송하다 BAL로 막히는 사례가 있어(docs/watch-alarm-manager.md), 우리 앱이
      *    정확 알람 수신 직후 직접 실행하는 경로를 함께 쓴다.
      */
     private fun ring(context: Context, alarm: WatchAlarm) {

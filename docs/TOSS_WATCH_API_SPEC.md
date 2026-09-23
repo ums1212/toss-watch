@@ -3,7 +3,7 @@
 개인 맞춤형 증권 알림 서비스의 백엔드(Django) API 명세.
 안드로이드 폰앱(Phase 4)과 Wear OS 워치앱(Phase 5) 클라이언트 개발 시 이 문서를 기준으로 한다.
 
-- **Base URL**: `https://comon.dev` (로컬 개발: `http://127.0.0.1:8000`)
+- **Base URL**: `local.properties`에서 관리
 - **API Prefix**: 모든 엔드포인트는 `/api/v1/toss-watch/` 아래에 마운트된다.
 - **인증 방식**: 서비스 전용 JWT (`Authorization: Bearer <access_token>`)
 - **Content-Type**: `application/json`

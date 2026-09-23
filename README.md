@@ -2,9 +2,9 @@
 
 **폰에서 보유 주식과 알림 시간을 관리하고, Wear OS 워치에서 주가 알림을 확인하는 Android 프로젝트입니다.**
 
-폰앱은 Google 로그인, 토스증권 Open API 키 등록, 계좌·포트폴리오 조회를 담당합니다. 사용자는 종목별로 알림을 받을 요일과 시간을 설정하고, 워치는 서버가 보낸 종목명·현재가·등락률을 진동과 알림 화면으로 전달합니다. 워치에서도 알람을 추가하거나 켜고 끄고 삭제할 수 있으며, 변경 요청은 연결된 폰을 거쳐 서버에 저장됩니다.
+폰앱은 Google 로그인, 토스증권 Open API 키 등록, 계좌·포트폴리오 조회를 담당합니다. 사용자는 종목별로 알람을 받을 요일과 시간을 설정하고, 워치는 그 시각에 스스로 알람을 울립니다. 알람 화면을 누르면 종목명·현재가·등락률을 보여줍니다. 워치에서도 알람을 추가하거나 켜고 끄고 삭제할 수 있으며, 변경 요청은 연결된 폰을 거쳐 서버에 저장됩니다.
 
-이 저장소에는 **Android 폰앱과 Wear OS 앱**이 들어 있습니다. 계좌·시세 조회, 사용자 인증, 알림 스케줄 실행 및 FCM 발송을 처리하는 백엔드는 별도로 필요합니다. 현재 클라이언트의 알람 모델은 **요일·시간 예약형**이며, 목표가 도달 조건이나 주식 주문 기능은 포함하지 않습니다.
+이 저장소에는 **Android 폰앱과 Wear OS 앱**이 들어 있습니다. 계좌·시세 조회, 사용자 인증, 알람 목록 저장을 처리하는 백엔드는 별도로 구현되어있습니다. 알람 발화는 워치의 `AlarmManager`가 담당합니다. 현재 클라이언트의 알람 모델은 **요일·시간 예약형**이며, 목표가 도달 조건이나 주식 주문 기능은 포함하지 않습니다.
 
 ## 화면으로 살펴보기
 
@@ -56,12 +56,12 @@ flowchart LR
 ### 1. QR로 계정과 워치 연결
 
 1. 폰에서 Google 로그인 후 토스 API 키를 등록하고 계좌를 조회합니다.
-2. 워치가 FCM 토큰을 발급받고 로컬 UUID를 생성합니다. `fcm_token`, `uuid`, `model_name`을 JSON으로 직렬화하여 QR로 표시합니다.
+2. 워치가 기기 식별용 FCM 토큰을 발급받고 로컬 UUID를 생성합니다. 이 토큰은 연동 식별에만 쓰이며 알람 발송에는 쓰지 않습니다. `fcm_token`, `uuid`, `model_name`을 JSON으로 직렬화하여 QR로 표시합니다.
 3. 폰의 설정 → 워치 연결 화면에서 카메라로 QR을 스캔합니다.
 4. 폰이 로그인 세션으로 `PUT v1/toss-watch/users/fcm-token/`을 호출해 워치를 사용자 계정에 등록합니다. 현재 API 계약은 **계정당 워치 1개**입니다.
 5. 워치는 `POST v1/toss-watch/fcm-token/check/`로 등록 여부를 확인하고, 확인되면 연결 상태를 로컬에 저장해 알람 홈으로 이동합니다. 이 호출은 사용자 JWT 대신 `X-Toss-Watch-Api-Key` 헤더를 사용합니다.
 
-QR 등록은 서비스 계정 연결입니다. 알람 설정 동기화를 위해서는 이와 별도로 **폰과 워치가 Wear OS 기기 페어링을 통해 Data Layer로 통신할 수 있어야 합니다.**
+QR 등록은 서비스 계정 연결입니다. 알람은 워치가 직접 울리므로, 이 연동은 시세 조회와 알람 목록 동기화를 위한 것입니다. 알람 설정 동기화를 위해서는 이와 별도로 **폰과 워치가 Wear OS 기기 페어링을 통해 Data Layer로 통신할 수 있어야 합니다.**
 
 ### 2. 폰을 통해 알람 설정 동기화
 
@@ -113,7 +113,7 @@ toss-watch/
 │   ├── datastore/        # 암호화한 폰 세션, 게스트 모드·워치 연결 상태
 │   ├── database/         # Room 보유 종목 캐시
 │   └── designsystem/     # 폰 공통 테마·UI 컴포넌트
-├── docs/screenshots/     # 에뮬레이터 캡처와 재현 안내
+├── docs/                 # API 명세, 워치 알람 구현 문서, 에뮬레이터 캡처
 └── gradle/libs.versions.toml
 ```
 
@@ -134,6 +134,8 @@ toss-watch/
 
 ## 코드 탐색과 검증
 
+- [워치 알람 구현 문서](docs/watch-alarm-manager.md) — FCM에서 AlarmManager로 전환한 구조와 이유
+- [백엔드 API 명세](docs/TOSS_WATCH_API_SPEC.md)
 - [공유 워치 통신 계약](core/model/src/main/kotlin/dev/comon/toss_watch/core/model/watch/WatchAlarmSync.kt)
 - [폰 알람 동기화 처리](app/src/main/java/dev/comon/toss_watch/watchsync/PhoneAlarmSyncBridge.kt)
 - [워치 요청·스냅샷 보관](watch-app/src/main/java/dev/comon/watch_app/data/repository/WatchAlarmRepositoryImpl.kt)
@@ -141,4 +143,4 @@ toss-watch/
 - [워치 로컬 알람 발화](watch-app/src/main/java/dev/comon/watch_app/service/StockAlarmReceiver.kt)
 - [워치 알람 예약](watch-app/src/main/java/dev/comon/watch_app/data/alarm/AndroidStockAlarmScheduler.kt)
 
-문서 작성 시 폰·워치 `assembleDebug` 및 워치 캡처용 `assembleDebugAndroidTest` 빌드를 확인했습니다. 캡처용 instrumentation 실행은 4개 시나리오로 구성되며, 전체 회귀 테스트나 실제 백엔드·FCM 연동 검증을 대체하지 않습니다.
+문서 작성 시 폰·워치 `assembleDebug` 및 워치 캡처용 `assembleDebugAndroidTest` 빌드를 확인했습니다. 캡처용 instrumentation 실행은 4개 시나리오로 구성되며, 전체 회귀 테스트나 실제 백엔드 연동 검증을 대체하지 않습니다.
