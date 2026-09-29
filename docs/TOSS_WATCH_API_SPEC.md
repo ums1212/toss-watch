@@ -3,7 +3,7 @@
 개인 맞춤형 증권 알림 서비스의 백엔드(Django) API 명세.
 안드로이드 폰앱(Phase 4)과 Wear OS 워치앱(Phase 5) 클라이언트 개발 시 이 문서를 기준으로 한다.
 
-- **Base URL**: `https://comon.dev` (로컬 개발: `http://127.0.0.1:8000`)
+- **Base URL**: `local.properties`에서 관리
 - **API Prefix**: 모든 엔드포인트는 `/api/v1/toss-watch/` 아래에 마운트된다.
 - **인증 방식**: 서비스 전용 JWT (`Authorization: Bearer <access_token>`)
 - **Content-Type**: `application/json`
@@ -171,6 +171,46 @@ POST /api/v1/toss-watch/fcm-token/check/      [X-Toss-Watch-Api-Key 헤더 필�
 - `400 Bad Request` `fcm_token` 누락/빈 값 (`{"error": "body에 'fcm_token'이 필요합니다."}`)
 - `403 Forbidden` `X-Toss-Watch-Api-Key` 헤더 누락/불일치
 
+### 2-6. 워치 알람 시세 조회 (워치앱 전용) — 서버 구현 필요
+
+```
+POST /api/v1/toss-watch/watch/stock-quote/    [X-Toss-Watch-Api-Key 헤더 필수, JWT 불필요]
+```
+
+워치는 사용자가 설정한 요일·시각에 **워치 로컬 AlarmManager로 직접 알람을 울리고**, 알람 화면이
+뜨는 즉시 이 API로 해당 종목의 현재 시세를 미리 조회한다(사용자가 알람을 누르면 표시).
+서버는 `uuid`로 워치가 연동된 유저(2-3에서 저장한 `uuid`)를 찾아, 그 유저의 토스 API 키로 시세를 조회한다.
+
+**Request Header**: 2-5와 동일 (`X-Toss-Watch-Api-Key`)
+
+**Request Body**
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| `uuid` | string | ✅ | 워치 기기 UUID (2-3에서 등록된 값) |
+| `stock_code` | string | ✅ | 조회할 종목 코드 |
+
+**Response 200** (값 포맷은 기존 §5 FCM 페이로드와 동일, 전부 문자열)
+
+```json
+{
+  "stock_code": "005930",
+  "stock_name": "삼성전자",
+  "price": "72500",
+  "change_rate": "+2.30%",
+  "timestamp": "1783662000"
+}
+```
+
+**Errors**
+- `400 Bad Request` `uuid`/`stock_code` 누락·빈 값
+- `403 Forbidden` `X-Toss-Watch-Api-Key` 헤더 누락/불일치
+- `404 Not Found` `uuid`로 연동된 유저 없음 (워치 재연동 필요)
+- `409 Conflict` 유저의 토스 API 키 미등록
+- `502 Bad Gateway` 토스 API 시세 조회 실패 (기존 재시도 정책 적용 후)
+
+워치는 오류 시 “시세를 불러오지 못했어요” + 재시도 버튼을 표시한다. 알람 시각(`alarm_time`)은 한국 시간(Asia/Seoul) 기준이다.
+
 ---
 
 ## 3. 계좌/포트폴리오 조회 (Accounts & Portfolio)
@@ -302,6 +342,11 @@ GET /api/v1/toss-watch/portfolio/    [JWT 필수, 유저당 분당 20회 제한]
 
 모든 엔드포인트 **[JWT 필수]**. 본인 소유 알림만 조회/수정 가능 (타인 것은 404).
 
+서버는 알람 목록의 **저장소** 역할만 한다. 알람을 실제로 울리는 것은 워치다: 폰앱이 이 API로 저장에 성공하면
+갱신된 전체 목록을 Data Layer로 워치에 보내고, 워치가 그 목록으로 로컬 AlarmManager 알람을 예약한다
+(워치에서 추가/수정/삭제한 요청도 폰앱이 이 API로 대신 호출한다). 서버는 알람 시각에 아무것도 발송하지 않으며,
+워치는 알람이 울릴 때 [2-6](#2-6-워치-알람-시세-조회-워치앱-전용--서버-구현-필요)으로 시세만 조회한다.
+
 ### 4-1. 알림 목록 조회
 
 ```
@@ -328,10 +373,10 @@ GET /api/v1/toss-watch/notifications/
 
 - `stock_name`: 등록/수정 시 클라이언트가 전달한 종목명을 그대로 저장했다가 반환하는 값. 서버가 별도로 조회/검증하지 않으며, 전달하지 않으면 빈 문자열(`""`)
 - `days_of_week`: 알림이 울릴 요일 목록. `0`=월요일 ~ `6`=일요일 (Python `date.weekday()` 기준), 오름차순 정렬되어 반환됨
-- `disabled_reason`: 서버가 자동 비활성화한 경우 그 사유
-  (예: 워치 FCM 토큰 무효/미등록, 토스 키 미등록). 유저가 다시 `is_active: true`로 켜면(`PUT` or `PATCH`) `disabled_reason`은 빈 문자열(`""`)로 자동 초기화된다.
-- 워치 FCM 토큰은 알림 레코드가 아닌 유저(디바이스) 단위로 별도 저장된다 →
-  [2-3. 워치 FCM 토큰 등록/갱신](#2-3-워치-fcm-토큰-등록갱신) 참고.
+- `is_active`: `false`인 알람은 워치에서 예약되지 않는다(울리지 않음).
+- `disabled_reason`: 서버가 자동 비활성화한 경우 그 사유. 유저가 다시 `is_active: true`로 켜면(`PUT` or `PATCH`)
+  `disabled_reason`은 빈 문자열(`""`)로 자동 초기화된다. 워치 FCM 토큰 무효/미등록을 이유로 한 자동 비활성화는
+  더 이상 하지 않는다(알람 발화가 FCM에 의존하지 않음).
 
 ### 4-2. 알림 등록
 
@@ -345,13 +390,12 @@ POST /api/v1/toss-watch/notifications/
 |---|---|---|---|
 | `stock_code` | string | ✅ | 종목 코드 (예: `005930`, `AAPL`). 비워둘 수 없음 |
 | `stock_name` | string | — | 종목명 (예: `삼성전자`). 서버는 별도 조회하지 않고 전달값을 그대로 저장. 미전달 시 빈 문자열 |
-| `alarm_time` | string | ✅ | `HH:MM` — 지정된 요일마다 이 시각(Asia/Seoul)에 발송. 초 단위는 무시(0으로 정규화)됨 |
+| `alarm_time` | string | ✅ | `HH:MM` — 지정된 요일마다 이 시각(Asia/Seoul)에 워치가 로컬 알람을 울린다. 초 단위는 무시(0으로 정규화)됨 |
 | `days_of_week` | array[int] | — | 알림을 울릴 요일. `0`=월요일 ~ `6`=일요일 (Python `date.weekday()` 기준). 미전달 시 기본값 `[0,1,2,3,4,5,6]`(매일) |
 | `is_active` | boolean | — | 기본 `true` |
 
-워치 FCM 토큰은 이 요청에 포함하지 않는다. 발송 시 서버가 유저 프로필에 등록된 토큰
-(`PUT /api/v1/toss-watch/users/fcm-token/`)을 사용하므로, 알림 등록 전에 토큰이 먼저 등록되어 있어야
-실제 발송이 이루어진다 (미등록 시 첫 발송 시도에서 자동 비활성화됨 — 5장 참고).
+등록이 성공하면 폰앱이 갱신된 목록을 워치로 보내 워치가 알람을 예약한다. 워치가 알람 시각에 시세를 조회하려면
+워치가 계정에 연동(2-3)되어 있어야 하지만, 알람 등록 자체는 연동 여부와 무관하게 성공한다.
 
 **Response 201** — 생성된 알림 객체 (4-1과 동일 구조)
 
@@ -371,12 +415,18 @@ PATCH  /api/v1/toss-watch/notifications/<id>/     (부분 수정)
 DELETE /api/v1/toss-watch/notifications/<id>/     → 204
 ```
 
-워치 FCM 토큰이 갱신되면(`onNewToken`) 클라이언트는 [2-3. 워치 FCM 토큰 등록/갱신](#2-3-워치-fcm-토큰-등록갱신)
-(`PUT /api/v1/toss-watch/users/fcm-token/`)을 한 번만 호출하면 된다. 알림 레코드마다 개별 갱신할 필요는 없다.
+수정·삭제도 등록과 같이, 성공하면 폰앱이 갱신된 전체 목록을 워치로 다시 보내고 워치가 예약을 맞춘다
+(꺼지거나 삭제된 알람은 예약 해제).
 
 ---
 
-## 5. 워치가 수신하는 FCM 메시지 규격 (Wear OS 클라이언트용)
+## 5. 워치가 수신하는 FCM 메시지 규격 (Wear OS 클라이언트용) — **Deprecated**
+
+> **워치 알람 용도로는 더 이상 사용하지 않는다.** 이슈 #2 반영 이후의 워치앱은 알람을 워치 로컬 AlarmManager로 울리고
+> 시세는 [2-6](#2-6-워치-알람-시세-조회-워치앱-전용--서버-구현-필요)으로 조회하며, 수신한 FCM 메시지는 무시한다.
+> 신버전 워치앱에는 FCM 수신 서비스가 없어 발송이 계속돼도 중복 알람은 생기지 않는다. 반대로 구버전 워치앱은 이 발송에
+> 의존하므로, 서버의 워치 알람 FCM 발송(스케줄러)은 **신버전 워치앱 배포 후** 중단한다.
+> 워치 FCM 토큰 자체는 페어링 식별(2-3, 2-5)에 계속 쓰인다.
 
 매분 서버 스케줄러가 `alarm_time`이 일치하고 오늘 요일이 `days_of_week`에 포함된 활성 알림을 골라 발송한다.
 **Data-Only 메시지**(notification 필드 없음)이며 **Android priority: high**로 발송되므로,

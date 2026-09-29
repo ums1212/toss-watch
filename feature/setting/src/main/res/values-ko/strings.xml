@@ -35,5 +35,5 @@
     <string name="watchpair_error_api">워치 연동에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
     <string name="watchpair_error_network">네트워크 연결을 확인한 뒤 다시 시도해 주세요.</string>
     <string name="watchpair_error_invalid_qr">인식할 수 없는 QR이에요. 워치 화면의 QR을 다시 스캔해 주세요.</string>
-    <string name="watchpair_toast_registered">워치 알림 토큰이 등록됐어요.</string>
+    <string name="watchpair_toast_registered">워치가 연동됐어요.</string>
 </resources>

@@ -18,20 +18,24 @@
     <string name="stock_alarm_current_price">%1$s</string>
     <string name="stock_alarm_dismiss">닫기</string>
     <string name="stock_alarm_image_desc">시세 알림</string>
+    <string name="stock_alarm_arrived">오늘의 %1$s 주 정보가 도착했습니다.</string>
+    <string name="stock_alarm_open">확인하기</string>
+    <string name="stock_alarm_quote_error">시세를 불러오지 못했어요.</string>
+    <string name="stock_alarm_retry">다시 시도</string>
 
     <string name="onboarding_error_token">토큰을 불러오지 못했어요. 다시 시도해 주세요.</string>
     <string name="onboarding_error_check">연동 상태를 확인하지 못했어요. 다시 시도해 주세요.</string>
     <string name="onboarding_check_now_not_paired">아직 연동되지 않았어요. 폰에서 QR을 스캔해 주세요.</string>
     <string name="onboarding_check_now_failed">확인에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
 
-    <string name="notification_channel_stock_alarm">주식 알림</string>
+    <string name="notification_channel_stock_alarm">주식 알람</string>
     <string name="alarm_settings_title">알람 설정</string>
     <string name="alarm_sync_complete">폰과 동기화 완료</string>
     <string name="alarm_sync_pair_phone">폰 앱에서 로그인과 워치 연동을 확인해 주세요.</string>
     <string name="alarm_sync_unknown">저장 결과를 확인하지 못했어요. 다시 추가하기 전에 새로고침 후 폰에서 확인해 주세요.</string>
     <string name="alarm_sync_stale">종목 또는 알람이 변경됐어요. 새로고침 후 다시 시도해 주세요.</string>
     <string name="alarm_sync_delivery_failed">전송 대기 중이에요. 폰 연결을 확인하고 동기화 재시도를 눌러 주세요.</string>
-    <string name="alarm_sync_too_large">동기화할 데이터가 너무 많아요. 폰에서 알람을 관리해 주세요.</string>
+    <string name="alarm_sync_too_large">종목이 너무 많아 워치에서는 편집할 수 없어요. 알람은 그대로 울려요. 폰에서 관리해 주세요.</string>
     <string name="alarm_sync_failed">요청을 완료하지 못했어요. 폰을 확인하고 새로고침해 주세요.</string>
     <string name="alarm_sync_loading">폰과 동기화 대기 중이에요. 폰의 네트워크 연결이 필요해요.</string>
     <string name="alarm_sync_pending">폰을 통한 서버 저장 대기 중이에요. 아직 변경이 확정되지 않았어요.</string>

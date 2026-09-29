@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** Android 13+(API 33)에서는 POST_NOTIFICATIONS가 런타임 권한이라, 미허용 상태면 FCM 알림이 조용히 씹힌다. */
+/** Android 13+(API 33)에서는 POST_NOTIFICATIONS가 런타임 권한이라, 미허용 상태면 로컬 알람 알림이 울리지 않는다. */
 @Composable
 private fun RequestNotificationPermission() {
     val context = LocalContext.current

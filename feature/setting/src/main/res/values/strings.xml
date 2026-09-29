@@ -35,5 +35,5 @@
     <string name="watchpair_error_api">Couldn\'t pair your watch. Please try again in a moment.</string>
     <string name="watchpair_error_network">Please check your network connection and try again.</string>
     <string name="watchpair_error_invalid_qr">Couldn\'t recognize the QR code. Please scan the code on your watch again.</string>
-    <string name="watchpair_toast_registered">Your watch has been registered for alerts.</string>
+    <string name="watchpair_toast_registered">Your watch is now linked.</string>
 </resources>

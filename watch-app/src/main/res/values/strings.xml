@@ -18,20 +18,24 @@
     <string name="stock_alarm_current_price">%1$s</string>
     <string name="stock_alarm_dismiss">Dismiss</string>
     <string name="stock_alarm_image_desc">Price alert</string>
+    <string name="stock_alarm_arrived">Today\'s %1$s stock update has arrived.</string>
+    <string name="stock_alarm_open">View</string>
+    <string name="stock_alarm_quote_error">Couldn\'t load the price.</string>
+    <string name="stock_alarm_retry">Retry</string>
 
     <string name="onboarding_error_token">Couldn\'t load your token. Please try again.</string>
     <string name="onboarding_error_check">Couldn\'t check pairing status. Please try again.</string>
     <string name="onboarding_check_now_not_paired">Not paired yet. Please scan the QR code from your phone.</string>
     <string name="onboarding_check_now_failed">Check failed. Please try again in a moment.</string>
 
-    <string name="notification_channel_stock_alarm">Stock alerts</string>
+    <string name="notification_channel_stock_alarm">Stock alarms</string>
     <string name="alarm_settings_title">Alarm settings</string>
     <string name="alarm_sync_complete">Synced with phone</string>
     <string name="alarm_sync_pair_phone">Open the phone app and check login and watch pairing.</string>
     <string name="alarm_sync_unknown">Save result is uncertain. Refresh and check the phone before adding again.</string>
     <string name="alarm_sync_stale">This stock or alarm has changed. Refresh and try again.</string>
     <string name="alarm_sync_delivery_failed">Waiting to send. Check the phone connection and tap Retry sync.</string>
-    <string name="alarm_sync_too_large">Too much data to sync. Manage alarms on the phone.</string>
+    <string name="alarm_sync_too_large">Too many stocks to edit on the watch. Alarms still ring; manage them on your phone.</string>
     <string name="alarm_sync_failed">Could not complete the request. Check the phone and refresh.</string>
     <string name="alarm_sync_loading">Waiting for phone sync. The phone needs a network connection.</string>
     <string name="alarm_sync_pending">Waiting for server save via phone. Changes are not confirmed yet.</string>
