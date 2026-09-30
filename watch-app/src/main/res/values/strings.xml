@@ -44,7 +44,6 @@
     <string name="alarm_no_stocks">No holdings synced. Refresh your portfolio in the phone app.</string>
     <string name="alarm_stock_count">%1$d alarms</string>
     <string name="alarm_other_stock_badge">Not in holdings</string>
-    <string name="alarm_stock_open">Tap to manage alarms</string>
     <string name="alarm_swipe_hint">Swipe left to see each stock</string>
     <string name="alarm_back">Back</string>
     <string name="alarm_empty">No alarms for this stock.</string>

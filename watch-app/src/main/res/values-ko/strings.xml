@@ -44,7 +44,6 @@
     <string name="alarm_no_stocks">동기화된 보유 종목이 없어요. 폰 앱에서 계좌를 새로고침해 주세요.</string>
     <string name="alarm_stock_count">알람 %1$d개</string>
     <string name="alarm_other_stock_badge">보유 종목 아님</string>
-    <string name="alarm_stock_open">눌러서 알람 관리</string>
     <string name="alarm_swipe_hint">왼쪽으로 넘겨 종목별로 보기</string>
     <string name="alarm_back">뒤로</string>
     <string name="alarm_empty">이 종목에 등록된 알람이 없어요.</string>
