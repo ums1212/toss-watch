@@ -6,12 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +33,7 @@ import androidx.wear.compose.material3.SwipeToDismissBox
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import dev.comon.watch_app.R
-import dev.comon.watch_app.presentation.component.WatchSafeContent
+import dev.comon.watch_app.presentation.component.WatchScrollColumn
 import androidx.compose.ui.text.style.TextAlign
 import dev.comon.watch_app.presentation.theme.TosswatchTheme
 import dev.comon.watch_app.presentation.theme.WatchColors
@@ -166,52 +161,43 @@ private fun InfoScene(
     badgeColor: Color,
     onDismissClick: () -> Unit,
 ) {
-    WatchSafeContent {
-        Column(
+    WatchScrollColumn {
+        Text(
+            text = stockName,
+            textAlign = TextAlign.Center,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Text(
+            text = stringResource(R.string.stock_alarm_current_price, currentPrice),
+            textAlign = TextAlign.Center,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+
+        Text(
+            text = stringResource(R.string.stock_alarm_change_rate, changeRate),
+            textAlign = TextAlign.Center,
+            color = badgeColor,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(PaddingValues(vertical = 4.dp)),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+                .padding(top = 6.dp)
+                .background(color = badgeColor.copy(alpha = 0.15f), shape = RoundedCornerShape(50))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+
+        Button(
+            onClick = onDismissClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ),
+            modifier = Modifier.padding(top = 16.dp),
         ) {
-            Text(
-                text = stockName,
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Text(
-                text = stringResource(R.string.stock_alarm_current_price, currentPrice),
-                textAlign = TextAlign.Center,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-
-            Text(
-                text = stringResource(R.string.stock_alarm_change_rate, changeRate),
-                textAlign = TextAlign.Center,
-                color = badgeColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(top = 6.dp)
-                    .background(color = badgeColor.copy(alpha = 0.15f), shape = RoundedCornerShape(50))
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
-            )
-
-            Button(
-                onClick = onDismissClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
-                modifier = Modifier.padding(top = 16.dp),
-            ) {
-                Text(stringResource(R.string.stock_alarm_dismiss))
-            }
+            Text(stringResource(R.string.stock_alarm_dismiss))
         }
     }
 }
