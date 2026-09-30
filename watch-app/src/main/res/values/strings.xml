@@ -42,8 +42,9 @@
     <string name="alarm_sync_phone_account">Holdings last loaded on the phone. Times are in Korea Standard Time.</string>
     <string name="alarm_sync_refresh">Refresh / retry sync</string>
     <string name="alarm_no_stocks">No holdings synced. Refresh your portfolio in the phone app.</string>
-    <string name="alarm_other_stocks">Other stocks with alarms</string>
-    <string name="alarm_stock_summary">%1$s\n%2$d alarms</string>
+    <string name="alarm_stock_count">%1$d alarms</string>
+    <string name="alarm_other_stock_badge">Not in holdings</string>
+    <string name="alarm_swipe_hint">Swipe left to see each stock</string>
     <string name="alarm_back">Back</string>
     <string name="alarm_empty">No alarms for this stock.</string>
     <string name="alarm_disable">On · Tap to disable</string>

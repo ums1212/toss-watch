@@ -42,8 +42,9 @@
     <string name="alarm_sync_phone_account">폰에서 마지막 조회한 계좌 기준 · 한국 시간</string>
     <string name="alarm_sync_refresh">새로고침 / 동기화 재시도</string>
     <string name="alarm_no_stocks">동기화된 보유 종목이 없어요. 폰 앱에서 계좌를 새로고침해 주세요.</string>
-    <string name="alarm_other_stocks">그 외 알람 등록 종목</string>
-    <string name="alarm_stock_summary">%1$s\n알람 %2$d개</string>
+    <string name="alarm_stock_count">알람 %1$d개</string>
+    <string name="alarm_other_stock_badge">보유 종목 아님</string>
+    <string name="alarm_swipe_hint">왼쪽으로 넘겨 종목별로 보기</string>
     <string name="alarm_back">뒤로</string>
     <string name="alarm_empty">이 종목에 등록된 알람이 없어요.</string>
     <string name="alarm_disable">사용 중 · 눌러서 끄기</string>
