@@ -10,7 +10,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.wear.compose.material3.Button
+import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import dev.comon.watch_app.R
 import java.util.Locale
 
@@ -28,10 +31,13 @@ fun WatchAddAlarmScreen(code: String, name: String, state: WatchAlarmUiState,
         item { SettingsText(stringResource(R.string.alarm_days)) }
         (0..6).chunked(2).forEach { days ->
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                val spec = rememberTransformationSpec()
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.transformedHeight(this, spec)) {
                     days.forEach { day ->
                         Button(onClick = { onIntent(WatchAlarmIntent.ToggleDay(day)) }, enabled = !state.busy,
-                            modifier = Modifier.weight(1f).semantics { selected = day in state.days }) {
+                            modifier = Modifier.weight(1f).semantics { selected = day in state.days },
+                            transformation = SurfaceTransformation(spec)) {
                             Text((if (day in state.days) "✓ " else "") + labels[day])
                         }
                     }
