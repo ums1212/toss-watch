@@ -1,7 +1,6 @@
 package dev.comon.watch_app.presentation.alarmsettings
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,18 +14,16 @@ import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.*
 import dev.comon.toss_watch.core.model.watch.WatchAlarmOperation
 import dev.comon.watch_app.R
-import dev.comon.watch_app.presentation.component.WatchSafeContent
 
 @Composable
 internal fun AlarmSettingsScaffold(title: String, content: TransformingLazyColumnScope.() -> Unit) {
     AppScaffold {
         val listState = rememberTransformingLazyColumnState()
-        ScreenScaffold(scrollState = listState) {
-            WatchSafeContent {
-                TransformingLazyColumn(state = listState, contentPadding = PaddingValues(vertical = 4.dp)) {
-                    item { ListHeader { Text(title, textAlign = TextAlign.Center) } }
-                    content()
-                }
+        ScreenScaffold(scrollState = listState) { contentPadding ->
+            // 뷰포트는 원형 화면 전체를 쓰고, 화면 형태에 맞춘 여백은 리스트 contentPadding으로만 준다.
+            TransformingLazyColumn(state = listState, contentPadding = contentPadding) {
+                item { ListHeader { Text(title, textAlign = TextAlign.Center) } }
+                content()
             }
         }
     }
