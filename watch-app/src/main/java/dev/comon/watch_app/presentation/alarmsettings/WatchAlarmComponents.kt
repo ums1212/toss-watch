@@ -21,20 +21,25 @@ import dev.comon.watch_app.R
 
 @Composable
 internal fun AlarmSettingsScaffold(title: String, content: TransformingLazyColumnScope.() -> Unit) {
-    AppScaffold {
-        val listState = rememberTransformingLazyColumnState()
-        ScreenScaffold(scrollState = listState) { contentPadding ->
-            // 뷰포트는 원형 화면 전체를 쓰고, 화면 형태에 맞춘 여백은 리스트 contentPadding으로만 준다.
-            TransformingLazyColumn(state = listState, contentPadding = contentPadding) {
-                item {
-                    val spec = rememberTransformationSpec()
-                    ListHeader(
-                        modifier = Modifier.fillMaxWidth().transformedHeight(this, spec),
-                        transformation = SurfaceTransformation(spec),
-                    ) { Text(title, textAlign = TextAlign.Center) }
-                }
-                content()
+    AppScaffold { AlarmSettingsList(title, content) }
+}
+
+// AppScaffold 없이 ScreenScaffold + TransformingLazyColumn만 그린다. 페이저의 한 페이지처럼
+// 이미 AppScaffold 안에 있는 곳에서 재사용한다.
+@Composable
+internal fun AlarmSettingsList(title: String, content: TransformingLazyColumnScope.() -> Unit) {
+    val listState = rememberTransformingLazyColumnState()
+    ScreenScaffold(scrollState = listState) { contentPadding ->
+        // 뷰포트는 원형 화면 전체를 쓰고, 화면 형태에 맞춘 여백은 리스트 contentPadding으로만 준다.
+        TransformingLazyColumn(state = listState, contentPadding = contentPadding) {
+            item {
+                val spec = rememberTransformationSpec()
+                ListHeader(
+                    modifier = Modifier.fillMaxWidth().transformedHeight(this, spec),
+                    transformation = SurfaceTransformation(spec),
+                ) { Text(title, textAlign = TextAlign.Center) }
             }
+            content()
         }
     }
 }

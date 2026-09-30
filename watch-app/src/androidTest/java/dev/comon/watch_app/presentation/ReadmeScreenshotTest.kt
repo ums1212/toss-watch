@@ -5,6 +5,9 @@ import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.comon.toss_watch.core.model.watch.WatchAlarm
@@ -56,7 +59,8 @@ class ReadmeScreenshotTest {
 
     @Test fun stockList() {
         compose.setContent { TosswatchTheme { WatchStockListScreen(state, {}, {}, {}) } }
-        compose.onNode(hasScrollToIndexAction()).performScrollToIndex(3)
+        // 첫 페이지는 동기화 개요이므로 한 장 넘겨 첫 종목 페이지를 캡처한다.
+        compose.onRoot().performTouchInput { swipeLeft() }
         capture("watch-stocks")
     }
 
