@@ -1,7 +1,6 @@
 package dev.comon.watch_app.presentation.alarm
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -39,9 +38,7 @@ fun StockAlarmRingingScreen(
             )
             Button(
                 onClick = onOpenClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
+                modifier = Modifier.padding(top = 12.dp),
             ) {
                 Text(stringResource(R.string.stock_alarm_open))
             }
@@ -51,9 +48,7 @@ fun StockAlarmRingingScreen(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp),
+                modifier = Modifier.padding(top = 6.dp),
             ) {
                 Text(stringResource(R.string.stock_alarm_dismiss))
             }

@@ -2,7 +2,6 @@ package dev.comon.watch_app.presentation.alarm
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,9 +43,7 @@ fun StockQuoteErrorScreen(
             )
             Button(
                 onClick = onRetryClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
+                modifier = Modifier.padding(top = 12.dp),
             ) {
                 Text(stringResource(R.string.stock_alarm_retry))
             }
@@ -56,9 +53,7 @@ fun StockQuoteErrorScreen(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp),
+                modifier = Modifier.padding(top = 6.dp),
             ) {
                 Text(stringResource(R.string.stock_alarm_dismiss))
             }

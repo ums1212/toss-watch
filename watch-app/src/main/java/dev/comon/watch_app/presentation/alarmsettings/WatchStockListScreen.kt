@@ -65,7 +65,13 @@ private fun OverviewPage(state: WatchAlarmUiState, hasStocks: Boolean,
         } else if (snapshot?.available == true) {
             item { SettingsText(stringResource(R.string.alarm_no_stocks)) }
         }
-        item { SettingsButton(stringResource(R.string.alarm_sync_refresh), !state.submitting) { onIntent(WatchAlarmIntent.Refresh) } }
-        item { SettingsButton(stringResource(R.string.watch_settings_title), onClick = onSettingsClick) }
+        item {
+            SettingsIconButtonRow {
+                SettingsIconButton(R.drawable.ic_refresh, stringResource(R.string.alarm_sync_refresh), !state.submitting) {
+                    onIntent(WatchAlarmIntent.Refresh)
+                }
+                SettingsIconButton(R.drawable.ic_settings, stringResource(R.string.watch_settings_title), onClick = onSettingsClick)
+            }
+        }
     }
 }

@@ -124,7 +124,7 @@ private fun AlarmDeleteConfirm(enabled: Boolean, onConfirm: () -> Unit, onCancel
     }
 }
 
-// 알람 추가 / 새로고침처럼 화면 하단의 보조 동작을 아이콘 버튼 한 줄로 나란히 보여준다.
+// 알람 추가 / 새로고침 / 설정처럼 화면 하단의 보조 동작을 아이콘 버튼 한 줄로 나란히 보여준다.
 @Composable
 internal fun TransformingLazyColumnItemScope.SettingsIconButtonRow(content: @Composable () -> Unit) {
     val spec = rememberTransformationSpec()
