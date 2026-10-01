@@ -143,7 +143,7 @@ fun OnboardingScreen(
                     item {
                         Button(
                             onClick = onRetryClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            modifier = Modifier.transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
                         ) {
                             Text(stringResource(R.string.onboarding_retry))
@@ -154,7 +154,7 @@ fun OnboardingScreen(
                     item {
                         Button(
                             onClick = onRefreshClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            modifier = Modifier.transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
                         ) {
                             Text(stringResource(R.string.onboarding_refresh))
@@ -164,7 +164,7 @@ fun OnboardingScreen(
                         Button(
                             onClick = onCheckNowClick,
                             enabled = !uiState.isCheckingNow,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            modifier = Modifier.transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
                         ) {
                             if (uiState.isCheckingNow) {
@@ -179,7 +179,7 @@ fun OnboardingScreen(
                     item {
                         Button(
                             onClick = onAlarmSettingsClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            modifier = Modifier.transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
                         ) {
                             Text(stringResource(R.string.alarm_settings_title))
@@ -188,7 +188,7 @@ fun OnboardingScreen(
                     item {
                         Button(
                             onClick = onGenerateQrClick,
-                            modifier = Modifier.fillMaxWidth().transformedHeight(this, transformationSpec),
+                            modifier = Modifier.transformedHeight(this, transformationSpec),
                             transformation = SurfaceTransformation(transformationSpec),
                         ) {
                             Text(stringResource(R.string.onboarding_generate_qr))

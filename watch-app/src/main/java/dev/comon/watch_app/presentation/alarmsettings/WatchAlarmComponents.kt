@@ -50,7 +50,7 @@ internal fun AlarmSettingsList(title: String, content: TransformingLazyColumnSco
 internal fun TransformingLazyColumnItemScope.SettingsButton(label: String, enabled: Boolean = true, onClick: () -> Unit) {
     val spec = rememberTransformationSpec()
     Button(onClick = onClick, enabled = enabled,
-        modifier = Modifier.fillMaxWidth().transformedHeight(this, spec),
+        modifier = Modifier.transformedHeight(this, spec),
         transformation = SurfaceTransformation(spec)) {
         Text(label, textAlign = TextAlign.Center)
     }
