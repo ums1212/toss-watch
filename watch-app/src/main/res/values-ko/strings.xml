@@ -39,7 +39,6 @@
     <string name="alarm_sync_failed">요청을 완료하지 못했어요. 폰을 확인하고 새로고침해 주세요.</string>
     <string name="alarm_sync_loading">폰과 동기화 대기 중이에요. 폰의 네트워크 연결이 필요해요.</string>
     <string name="alarm_sync_pending">폰을 통한 서버 저장 대기 중이에요. 아직 변경이 확정되지 않았어요.</string>
-    <string name="alarm_sync_phone_account">폰에서 마지막 조회한 계좌 기준 · 한국 시간</string>
     <string name="alarm_sync_refresh">새로고침 / 동기화 재시도</string>
     <string name="alarm_no_stocks">동기화된 보유 종목이 없어요. 폰 앱에서 계좌를 새로고침해 주세요.</string>
     <string name="alarm_stock_count">알람 %1$d개</string>
