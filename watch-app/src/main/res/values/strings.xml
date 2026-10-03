@@ -38,6 +38,8 @@
     <string name="alarm_sync_pair_phone">Open the phone app and check login and watch pairing.</string>
     <string name="alarm_sync_unknown">Save result is uncertain. Refresh and check the phone before adding again.</string>
     <string name="alarm_sync_stale">This stock or alarm has changed. Refresh and try again.</string>
+    <string name="alarm_sync_limit">You can have up to 100 alarms. Delete ones you no longer need.</string>
+    <string name="alarm_sync_duplicate">This stock already has an alarm at the same time on an overlapping day.</string>
     <string name="alarm_sync_delivery_failed">Waiting to send. Check the phone connection and tap Retry sync.</string>
     <string name="alarm_sync_too_large">Too many stocks to edit on the watch. Alarms still ring; manage them on your phone.</string>
     <string name="alarm_sync_failed">Could not complete the request. Check the phone and refresh.</string>

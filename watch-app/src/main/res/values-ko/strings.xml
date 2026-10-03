@@ -38,6 +38,8 @@
     <string name="alarm_sync_pair_phone">폰 앱에서 로그인과 워치 연동을 확인해 주세요.</string>
     <string name="alarm_sync_unknown">저장 결과를 확인하지 못했어요. 다시 추가하기 전에 새로고침 후 폰에서 확인해 주세요.</string>
     <string name="alarm_sync_stale">종목 또는 알람이 변경됐어요. 새로고침 후 다시 시도해 주세요.</string>
+    <string name="alarm_sync_limit">알람은 최대 100개까지 등록할 수 있어요. 쓰지 않는 알람을 삭제해 주세요.</string>
+    <string name="alarm_sync_duplicate">같은 종목에 시각과 요일이 겹치는 알람이 이미 있어요.</string>
     <string name="alarm_sync_delivery_failed">전송 대기 중이에요. 폰 연결을 확인하고 동기화 재시도를 눌러 주세요.</string>
     <string name="alarm_sync_too_large">종목이 너무 많아 워치에서는 편집할 수 없어요. 알람은 그대로 울려요. 폰에서 관리해 주세요.</string>
     <string name="alarm_sync_failed">요청을 완료하지 못했어요. 폰을 확인하고 새로고침해 주세요.</string>

@@ -15,4 +15,19 @@ data class AlarmProfile(
     val daysOfWeek: List<Int>,
     val isEnabled: Boolean,
     val disabledReason: String = "",
-)
+) {
+    /**
+     * 같은 종목·시각이면서 요일이 하나라도 겹치는지 — 겹치면 같은 순간에 두 번 울린다.
+     * 꺼진 알림도 포함해 비교한다(나중에 켜면 그대로 중복이 되므로).
+     */
+    fun conflictsWith(stockCode: String, hour: Int, minute: Int, daysOfWeek: List<Int>): Boolean =
+        this.stockCode == stockCode &&
+            this.hour == hour &&
+            this.minute == minute &&
+            this.daysOfWeek.any { it in daysOfWeek }
+
+    companion object {
+        /** 계정당 등록할 수 있는 알림 총 개수 상한. */
+        const val MAX_COUNT = 100
+    }
+}

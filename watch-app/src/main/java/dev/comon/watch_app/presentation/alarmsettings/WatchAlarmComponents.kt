@@ -85,6 +85,8 @@ internal fun TransformingLazyColumnItemScope.SyncStatus(state: WatchAlarmUiState
             "PAIR_PHONE" -> R.string.alarm_sync_pair_phone
             "CHECK_PHONE" -> R.string.alarm_sync_unknown
             "STALE_DATA" -> R.string.alarm_sync_stale
+            "ALARM_LIMIT" -> R.string.alarm_sync_limit
+            "ALARM_DUPLICATE" -> R.string.alarm_sync_duplicate
             "DELIVERY_FAILED" -> R.string.alarm_sync_delivery_failed
             "TOO_LARGE" -> R.string.alarm_sync_too_large
             else -> R.string.alarm_sync_failed
