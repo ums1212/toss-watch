@@ -45,6 +45,7 @@ import dev.comon.toss_watch.feature.alarm.presentation.alarm.AlarmScreen
 import dev.comon.toss_watch.feature.alarm.presentation.alarmdetail.AlarmDetailScreen
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardScreen
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.DashboardTopBar
+import dev.comon.toss_watch.navigation.component.AdMobBanner
 import dev.comon.toss_watch.navigation.component.FloatingBottomNavigationBar
 import dev.comon.toss_watch.navigation.component.TossNavigationRail
 import java.io.Serializable
@@ -200,6 +201,9 @@ fun BottomMenuScreen(
                     onSettingClick = onNavigateToSetting,
                     windowInsets = if (isGuest) WindowInsets(0, 0, 0, 0) else TopAppBarDefaults.windowInsets,
                 )
+                // 탑바 바로 아래의 AdMob 배너 — topBar 슬롯에 포함되므로 탭을 전환해도 고정되고,
+                // 본문은 innerPadding의 top(이 슬롯의 실측 높이)만큼 자동으로 밀린다.
+                AdMobBanner()
             }
         },
         bottomBar = {

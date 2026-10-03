@@ -17,6 +17,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tosswatch">
+        <!-- AdMob 앱 ID — 없으면 Mobile Ads SDK가 앱 시작 시 크래시한다. 값은 app/build.gradle.kts가
+             local.properties(tossWatch.adMobAppId)에서 읽어 주입한다. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${adMobAppId}" />
         <service
             android:name=".watchsync.PhoneAlarmSyncService"
             android:exported="true">

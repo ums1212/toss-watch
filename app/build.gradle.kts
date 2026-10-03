@@ -1,9 +1,28 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+// AdMob 앱 ID/배너 광고 단위 ID는 저장소에 노출하지 않도록 local.properties에서 읽는다 (VCS 제외 파일).
+// 값이 없으면 Google 공식 테스트 ID로 대체해 빌드는 깨지지 않게 하되, 그대로 릴리스하면 실제 광고가
+// 나오지 않으므로 경고를 남긴다. debug 빌드는 본인 광고에 대한 무효 트래픽을 막기 위해 값이 있어도
+// 항상 테스트 ID를 쓴다.
+val adMobTestAppId = "ca-app-pub-3940256099942544~3347511713"
+val adMobTestBannerUnitId = "ca-app-pub-3940256099942544/9214589741"
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use(::load)
+}
+fun adMobProperty(key: String, testValue: String): String =
+    localProperties.getProperty(key)?.trim()?.takeIf { it.isNotEmpty() } ?: testValue.also {
+        logger.warn("WARNING: $key is missing in local.properties - release builds will use the AdMob TEST id.")
+    }
+val adMobAppId: String = adMobProperty("tossWatch.adMobAppId", adMobTestAppId)
+val adMobBannerUnitId: String = adMobProperty("tossWatch.adMobBannerUnitId", adMobTestBannerUnitId)
 
 android {
     namespace = "dev.comon.toss_watch"
@@ -22,7 +41,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["adMobAppId"] = adMobTestAppId
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$adMobTestBannerUnitId\"")
+        }
         release {
+            manifestPlaceholders["adMobAppId"] = adMobAppId
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$adMobBannerUnitId\"")
             optimization {
                 enable = true
             }
@@ -34,6 +59,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -51,6 +77,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     implementation(libs.play.services.wearable)
+    implementation(libs.play.services.ads)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.datastore.preferences)
