@@ -6,9 +6,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.comon.toss_watch.core.datastore.GuestModeStore
 import dev.comon.toss_watch.feature.setting.data.remote.SettingApi
+import dev.comon.toss_watch.feature.setting.data.repository.AlarmImageRepositoryImpl
 import dev.comon.toss_watch.feature.setting.data.repository.GuestSettingRepository
 import dev.comon.toss_watch.feature.setting.data.repository.SettingRepositoryImpl
 import dev.comon.toss_watch.feature.setting.data.repository.SettingRepositoryRouter
+import dev.comon.toss_watch.feature.setting.domain.repository.AlarmImageRepository
 import dev.comon.toss_watch.feature.setting.domain.repository.SettingRepository
 import javax.inject.Singleton
 import retrofit2.Retrofit
@@ -31,4 +33,9 @@ internal object SettingDataModule {
         guest: GuestSettingRepository,
         guestModeStore: GuestModeStore,
     ): SettingRepository = SettingRepositoryRouter(remote, guest, guestModeStore)
+
+    // 알람 이미지는 백엔드를 거치지 않는 기기 로컬 설정이라 게스트 라우터가 필요 없다.
+    @Provides
+    @Singleton
+    fun provideAlarmImageRepository(impl: AlarmImageRepositoryImpl): AlarmImageRepository = impl
 }

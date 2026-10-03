@@ -172,6 +172,16 @@ Android 14+에서 `SCHEDULE_EXACT_ALARM`은 기본 거부라 사용자가 설정
 - 스냅샷이 Data Layer 한도(90 KB)를 넘으면 보유 종목 목록만 빼고 **알람 목록은 유지**한다(`fitSnapshotToLimit`).
   워치에서는 편집만 막히고 알람은 계속 울린다. 알람만으로도 한도를 넘는 경우에만 둘 다 비운다.
 
+### 사용자 지정 알람 이미지
+
+- 폰 설정의 "알람 이미지 설정"에서 상승/보합/하락 이미지를 각각 바꿀 수 있다. 폰은 크롭한 480×480 JPEG를
+  `filesDir/alarm_images/`에 저장하고, `PhoneAlarmImageSync`가 스냅샷과 **별도의 DataItem**
+  (`/alarm-image/v1/{워치 UUID}`)에 슬롯별 Asset(`up`/`flat`/`down`)으로 올린다. Asset은 DataItem 100 KB 한도에 들지 않는다.
+- 워치는 `WatchAlarmSyncService`(실행 중) 또는 `AlarmImageRepositoryImpl.start()`(앱 시작 시 따라잡기)에서 Asset을 받아
+  워치의 `filesDir/alarm_images/`에 풀어 둔다. **알람 화면은 이 로컬 파일만 읽으므로** 폰과 끊긴 상태에서도 사용자 이미지가 뜬다.
+- DataItem에 키가 없는 슬롯은 워치에서도 파일을 지워 기본 이미지(`stock_alarm_*.png`)로 돌아간다. 파일이 깨졌으면 기본 이미지로 대체한다.
+- 미연동/게스트 상태에서 설정한 이미지는 폰에만 남아 있다가 워치가 연동되는 시점에 전송된다.
+
 ---
 
 ## 10. 테스트

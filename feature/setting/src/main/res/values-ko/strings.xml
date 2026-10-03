@@ -20,6 +20,25 @@
     <string name="setting_watch_repair_button">재연동</string>
     <string name="setting_watch_pair_button">QR로 워치 연동</string>
 
+    <string name="setting_alarm_image_button">알람 이미지 설정</string>
+
+    <string name="alarmimage_top_bar_title">알람 이미지 설정</string>
+    <string name="alarmimage_edit_top_bar_title">이미지 위치 조정</string>
+    <string name="alarmimage_back_desc">뒤로가기</string>
+    <string name="alarmimage_hint">원형 이미지를 눌러 워치 알람에 띄울 이미지를 바꿔 보세요.</string>
+    <string name="alarmimage_unpaired_hint">워치가 연동되어 있지 않아요. 지금 설정한 이미지는 워치를 연동하면 전송돼요.</string>
+    <string name="alarmimage_slot_up">상승</string>
+    <string name="alarmimage_slot_flat">보합</string>
+    <string name="alarmimage_slot_down">하락</string>
+    <string name="alarmimage_slot_image_desc">%1$s 알람 이미지</string>
+    <string name="alarmimage_change_action">이미지 변경</string>
+    <string name="alarmimage_reset_button">기본 이미지로 되돌리기</string>
+    <string name="alarmimage_crop_hint">이미지를 끌거나 두 손가락으로 확대해 워치에 보일 영역을 맞춰 주세요.</string>
+    <string name="alarmimage_crop_apply">적용</string>
+    <string name="alarmimage_crop_cancel">취소</string>
+    <string name="alarmimage_error_load">이미지를 불러오지 못했어요. 다른 이미지를 선택해 주세요.</string>
+    <string name="alarmimage_error_save">이미지를 저장하지 못했어요. 다시 시도해 주세요.</string>
+
     <string name="setting_logout_button">로그아웃</string>
     <string name="setting_login_button">로그인하기</string>
 

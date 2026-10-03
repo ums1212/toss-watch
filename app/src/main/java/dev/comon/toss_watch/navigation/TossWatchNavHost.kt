@@ -25,6 +25,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import dev.comon.toss_watch.core.model.navigation.AlarmDetailRoute
+import dev.comon.toss_watch.core.model.navigation.AlarmImageRoute
 import dev.comon.toss_watch.core.model.navigation.AuthRoute
 import dev.comon.toss_watch.core.model.navigation.BottomMenuRoute
 import dev.comon.toss_watch.core.model.navigation.SettingRoute
@@ -32,6 +33,7 @@ import dev.comon.toss_watch.core.model.navigation.TossKeyRoute
 import dev.comon.toss_watch.core.model.navigation.WatchPairRoute
 import dev.comon.toss_watch.feature.alarm.presentation.alarmdetail.AlarmDetailScreen
 import dev.comon.toss_watch.feature.auth.presentation.login.LoginScreen
+import dev.comon.toss_watch.feature.setting.presentation.alarmimage.AlarmImageScreen
 import dev.comon.toss_watch.feature.setting.presentation.setting.SettingScreen
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairScreen
 import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
@@ -195,6 +197,15 @@ fun TossWatchNavHost(
                     onNavigateBack = { navigator.goBack() },
                     onNavigateToTossKey = { navigator.goTo(TossKeyRoute) },
                     onNavigateToWatchPair = { navigator.goTo(WatchPairRoute) },
+                    onNavigateToAlarmImage = { navigator.goTo(AlarmImageRoute) },
+                )
+            }
+
+            entry<AlarmImageRoute>(
+                metadata = slideOverlayTransitions(),
+            ) {
+                AlarmImageScreen(
+                    onNavigateBack = { navigator.goBack() },
                 )
             }
 

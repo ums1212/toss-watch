@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.watch_app.domain.usecase.FetchStockQuoteUseCase
+import dev.comon.watch_app.domain.usecase.GetCustomAlarmImagePathsUseCase
 import dev.comon.watch_app.service.StockAlarmNotifications
 import javax.inject.Inject
 import kotlinx.coroutines.Job
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class StockAlarmViewModel @Inject constructor(
     private val fetchStockQuote: FetchStockQuoteUseCase,
+    private val getCustomAlarmImagePaths: GetCustomAlarmImagePathsUseCase,
     savedState: SavedStateHandle,
 ) : BaseMviViewModel<StockAlarmUiState, StockAlarmIntent, StockAlarmEffect>(
     StockAlarmUiState(
@@ -29,6 +31,7 @@ class StockAlarmViewModel @Inject constructor(
 
     init {
         fetch()
+        loadCustomImages()
     }
 
     override fun handleIntent(intent: StockAlarmIntent) {
@@ -39,9 +42,12 @@ class StockAlarmViewModel @Inject constructor(
                         stockCode = intent.stockCode,
                         stockName = intent.stockName,
                         alarmVersion = alarmVersion + 1,
+                        customImagePaths = customImagePaths,
                     )
                 }
                 fetch()
+                // 화면이 떠 있는 사이 폰에서 이미지를 바꿨을 수 있다.
+                loadCustomImages()
             }
             StockAlarmIntent.Open -> {
                 updateState { copy(opened = true) }
@@ -49,6 +55,13 @@ class StockAlarmViewModel @Inject constructor(
             }
             StockAlarmIntent.Retry -> if (uiState.value.quote is StockQuoteState.Error) fetch()
             StockAlarmIntent.Dismiss -> sendSideEffect(StockAlarmEffect.Finish)
+        }
+    }
+
+    private fun loadCustomImages() {
+        viewModelScope.launch {
+            val paths = getCustomAlarmImagePaths()
+            updateState { copy(customImagePaths = paths) }
         }
     }
 

@@ -18,6 +18,9 @@ sealed interface SettingUiIntent : UiIntent {
     /** "QR로 워치 연동" 버튼 — WatchPairRoute로 이동해 QR 스캔을 시작한다. */
     data object OnPairWatchClicked : SettingUiIntent
 
+    /** "알람 이미지 설정" 버튼 — AlarmImageRoute로 이동한다. */
+    data object OnAlarmImageClicked : SettingUiIntent
+
     /** 상단 앱바의 뒤로가기. */
     data object OnBackClicked : SettingUiIntent
 
@@ -38,4 +41,7 @@ sealed interface SettingUiSideEffect : UiSideEffect {
 
     /** :app 라우터가 수신해 Wear OS QR 페어링 화면으로 이동한다. */
     data object NavigateToWatchPair : SettingUiSideEffect
+
+    /** :app 라우터가 수신해 워치 알람 이미지 설정 화면으로 이동한다. */
+    data object NavigateToAlarmImage : SettingUiSideEffect
 }

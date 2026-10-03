@@ -62,12 +62,14 @@ import java.time.format.FormatStyle
  * @param onNavigateBack [SettingUiSideEffect.NavigateBack] 수신 시 호출.
  * @param onNavigateToTossKey [SettingUiSideEffect.NavigateToTossKey] 수신 시 호출.
  * @param onNavigateToWatchPair [SettingUiSideEffect.NavigateToWatchPair] 수신 시 호출.
+ * @param onNavigateToAlarmImage [SettingUiSideEffect.NavigateToAlarmImage] 수신 시 호출.
  */
 @Composable
 fun SettingScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTossKey: () -> Unit,
     onNavigateToWatchPair: () -> Unit,
+    onNavigateToAlarmImage: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -80,6 +82,7 @@ fun SettingScreen(
                     SettingUiSideEffect.NavigateBack -> onNavigateBack()
                     SettingUiSideEffect.NavigateToTossKey -> onNavigateToTossKey()
                     SettingUiSideEffect.NavigateToWatchPair -> onNavigateToWatchPair()
+                    SettingUiSideEffect.NavigateToAlarmImage -> onNavigateToAlarmImage()
                 }
             }
         }
@@ -263,6 +266,13 @@ private fun WatchTokenSection(
                 id = if (pairedWatch != null) R.string.setting_watch_repair_button else R.string.setting_watch_pair_button,
             ),
             onClick = { onIntent(SettingUiIntent.OnPairWatchClicked) },
+        )
+
+        Spacer(modifier = Modifier.height(TossSpacing.stackSm))
+
+        TossWatchButton(
+            text = stringResource(id = R.string.setting_alarm_image_button),
+            onClick = { onIntent(SettingUiIntent.OnAlarmImageClicked) },
         )
     }
 }
