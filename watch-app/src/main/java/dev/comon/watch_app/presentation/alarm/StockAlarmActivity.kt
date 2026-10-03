@@ -6,8 +6,6 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -25,14 +23,12 @@ import dev.comon.watch_app.service.StockAlarmNotifications
 
 /**
  * 로컬 알람이 울릴 때 전체 화면 알림(fullScreenIntent)으로 뜨는 알람 화면.
- * “정보가 도착했습니다” 화면에서 진동을 울리다가, 사용자가 누르면 시세 화면으로 전환한다.
+ * “정보가 도착했습니다” 화면에서 진동을 두 번 울리고, 사용자가 누르면 시세 화면으로 전환한다.
  */
 @AndroidEntryPoint
 class StockAlarmActivity : ComponentActivity() {
 
     private val viewModel: StockAlarmViewModel by viewModels()
-    private val handler = Handler(Looper.getMainLooper())
-    private val stopRingingRunnable = Runnable { vibrator.cancel() }
     private var alarmId = 0L
 
     private val vibrator: Vibrator by lazy {
@@ -100,26 +96,22 @@ class StockAlarmActivity : ComponentActivity() {
     // Wear OS 플랫폼이 fullScreenIntent가 있는 알림은 채널에 진동이 설정돼 있어도
     // shouldVibrate=false로 억제하는 것을 실기기 로그로 확인했다(WearServices
     // StreamManagerCollectorListener). 그래서 채널 진동에 기대지 않고 알람 화면이
-    // 직접 진동을 반복 재생하고, 사용자가 반응하지 않으면 일정 시간 뒤 멈춘다.
+    // 직접 진동을 재생한다. 계속 울리지 않도록 패턴(두 번 진동)을 반복 없이 한 번만 재생한다.
     private fun startRinging() {
-        handler.removeCallbacks(stopRingingRunnable)
         @Suppress("DEPRECATION")
         vibrator.vibrate(
-            VibrationEffect.createWaveform(RINGING_PATTERN, 0),
+            VibrationEffect.createWaveform(StockAlarmNotifications.VIBRATION_PATTERN, NO_REPEAT),
             AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build(),
         )
-        handler.postDelayed(stopRingingRunnable, RINGING_TIMEOUT_MS)
     }
 
     private fun stopRinging() {
-        handler.removeCallbacks(stopRingingRunnable)
         vibrator.cancel()
         StockAlarmNotifications.cancel(this, alarmId)
     }
 
     private companion object {
-        val RINGING_PATTERN = StockAlarmNotifications.VIBRATION_PATTERN + longArrayOf(1000)
-        const val RINGING_TIMEOUT_MS = 60_000L
+        const val NO_REPEAT = -1
     }
 }
 

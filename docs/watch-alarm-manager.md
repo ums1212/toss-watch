@@ -33,7 +33,7 @@
           └─ 같은 알람의 다음 회차 재예약
                  │
         StockAlarmActivity
-          ├─ "오늘의 OO 주 정보가 도착했습니다." + 반복 진동(최대 1분)
+          ├─ "오늘의 OO 주 정보가 도착했습니다." + 진동 두 번(반복 없음)
           ├─ 즉시 시세 prefetch(POST /watch/stock-quote/)
           └─ 사용자가 누르면 시세 화면(응답 전이면 로딩, 실패 시 재시도)
 ```
@@ -121,8 +121,8 @@ E ActivityTaskManager: Background activity launch blocked! goo.gle/android-bal
 ### 진동
 
 `fullScreenIntent`가 붙은 알림은 Wear OS 플랫폼이 채널에 진동을 설정해도 억제한다(로그: `WearServices StreamManagerCollectorListener`가
-`shouldVibrate=false`로 덮어씀). 그래서 채널 진동에 기대지 않고 `StockAlarmActivity`가 직접 `Vibrator`를 반복 재생하고,
-사용자가 반응하지 않으면 1분 뒤 멈춘다. 알림 채널 설정은 생성 후 불변이라 설정을 바꿀 때는 채널 ID를 올린다(현재 `stock_alarm_channel_v3`).
+`shouldVibrate=false`로 덮어씀). 그래서 채널 진동에 기대지 않고 `StockAlarmActivity`가 직접 `Vibrator`를 호출한다.
+진동이 계속 울리지 않도록 `VIBRATION_PATTERN`(500ms 진동 두 번)을 반복 없이(`repeat = -1`) 한 번만 재생하며, 그 전에 사용자가 화면을 누르면 즉시 멈춘다. 알림 채널 설정은 생성 후 불변이라 설정을 바꿀 때는 채널 ID를 올린다(현재 `stock_alarm_channel_v3`).
 
 ---
 
