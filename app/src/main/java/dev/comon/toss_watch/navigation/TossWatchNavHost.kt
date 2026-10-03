@@ -38,6 +38,7 @@ import dev.comon.toss_watch.feature.setting.presentation.setting.SettingScreen
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairScreen
 import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
 import dev.comon.toss_watch.navigation.component.rememberAdMobBannerState
+import dev.comon.toss_watch.navigation.component.rememberExitNativeAdState
 
 private val SLIDE_OVERLAY_ANIMATION_SPEC = tween<IntOffset>(durationMillis = 300)
 
@@ -93,6 +94,7 @@ fun TossWatchNavHost(
     // 광고 뷰는 NavDisplay 바깥에서 소유한다 — NavDisplay는 백스택 최상단이 아닌 엔트리를 컴포지션에서
     // 빼므로, BottomMenuScreen 안에서 만들면 설정/상세 화면에 다녀올 때마다 광고를 다시 로드한다.
     val adBannerState = rememberAdMobBannerState()
+    val exitAdState = rememberExitNativeAdState()
 
     LaunchedEffect(sessionState) {
         when (sessionState) {
@@ -138,13 +140,25 @@ fun TossWatchNavHost(
         }
     }
 
+    // 종료 다이얼로그의 네이티브 광고는 다이얼로그가 뜰 수 있는 루트 화면에 들어올 때 미리 받아 둔다 —
+    // 다이얼로그가 뜬 뒤에 로드하면 광고가 도착하기 전에 사용자가 종료해 버린다.
+    val showsExitDialogOnBack = topRoute != null && topRoute != TossKeyRoute
+    LaunchedEffect(showsExitDialogOnBack) {
+        if (showsExitDialogOnBack) exitAdState.preload()
+    }
+
     if (showExitDialog) {
         ExitAppDialog(
+            nativeAd = exitAdState.nativeAd,
             onConfirm = {
                 showExitDialog = false
                 context.findActivity()?.finish()
             },
-            onDismiss = { showExitDialog = false },
+            onDismiss = {
+                showExitDialog = false
+                // 한 번 보여 준 광고는 버리고, 다음에 다이얼로그가 뜰 때를 위해 새 광고를 받아 둔다.
+                exitAdState.discardAndReload()
+            },
         )
     }
 
