@@ -6,6 +6,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.foundation.pager.HorizontalPager
 import androidx.wear.compose.foundation.pager.rememberPagerState
+import androidx.wear.compose.foundation.rotary.RotaryScrollableDefaults
 import androidx.wear.compose.material3.AnimatedPage
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.HorizontalPagerScaffold
@@ -38,7 +39,9 @@ fun WatchStockListScreen(state: WatchAlarmUiState, onIntent: (WatchAlarmIntent) 
         HorizontalPagerScaffold(pagerState = pagerState) {
             HorizontalPager(
                 state = pagerState,
-                key = { page -> if (page == 0) "overview" else latestPages.getOrNull(page - 1)?.stock?.code ?: "page_$page" },
+                // HorizontalPager는 기본적으로 베젤 입력을 받지 않으므로, 한 칸에 한 장씩 넘기도록 켠다.
+                rotaryScrollableBehavior = RotaryScrollableDefaults.snapBehavior(pagerState),
+                key ={ page -> if (page == 0) "overview" else latestPages.getOrNull(page - 1)?.stock?.code ?: "page_$page" },
             ) { page ->
                 AnimatedPage(pageIndex = page, pagerState = pagerState) {
                     val stockPage = stockPages.getOrNull(page - 1)
@@ -59,7 +62,6 @@ private fun OverviewPage(state: WatchAlarmUiState, hasStocks: Boolean,
     val snapshot = state.sync.snapshot
     AlarmSettingsList(stringResource(R.string.alarm_settings_title)) {
         item { SyncStatus(state) }
-        item { SettingsText(stringResource(R.string.alarm_sync_phone_account)) }
         if (hasStocks) {
             item { SettingsText(stringResource(R.string.alarm_swipe_hint)) }
         } else if (snapshot?.available == true) {

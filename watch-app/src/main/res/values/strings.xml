@@ -39,7 +39,6 @@
     <string name="alarm_sync_failed">Could not complete the request. Check the phone and refresh.</string>
     <string name="alarm_sync_loading">Waiting for phone sync. The phone needs a network connection.</string>
     <string name="alarm_sync_pending">Waiting for server save via phone. Changes are not confirmed yet.</string>
-    <string name="alarm_sync_phone_account">Holdings last loaded on the phone. Times are in Korea Standard Time.</string>
     <string name="alarm_sync_refresh">Refresh / retry sync</string>
     <string name="alarm_no_stocks">No holdings synced. Refresh your portfolio in the phone app.</string>
     <string name="alarm_stock_count">%1$d alarms</string>
