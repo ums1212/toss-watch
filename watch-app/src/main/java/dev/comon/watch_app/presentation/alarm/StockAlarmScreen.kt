@@ -110,18 +110,19 @@ private fun ImageScene(
             Image(
                 painter = painterResource(direction.imageRes),
                 contentDescription = stringResource(R.string.stock_alarm_image_desc),
-                // 원형 워치 화면 특성상 Crop 시 가장자리가 많이 잘려 Fit으로 잘림 없이 표시한다.
-                // fillMaxSize(0.8f)로 상하좌우 10%씩 여백을 준다.
-                modifier = Modifier.fillMaxSize(0.8f),
-                contentScale = ContentScale.Fit,
+                // 이미지 영역은 이미지 종류와 무관하게 항상 화면 전체다 — 원형 디스플레이가 그대로
+                // 원형으로 잘라 보여준다. 이미지별 보정은 두지 않으며, 원 안에 어떻게 보일지는
+                // 이미지 쪽에서 원형 화면에 맞게 편집해 맞춘다.
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
             )
         }
     }
 }
 
 /**
- * 실제 워치 단말들(원형 소/대, 사각형)에서 [ImageScene]의 합성 이미지가
- * 화면 밖으로 잘리지 않는지 한 번에 점검하기 위한 멀티 디바이스 프리뷰.
+ * 실제 워치 단말들(원형 소/대, 사각형)에서 [ImageScene]의 이미지가 화면을 꽉 채우는지,
+ * 자막이 화면 밖으로 잘리지 않는지 한 번에 점검하기 위한 멀티 디바이스 프리뷰.
  */
 @Preview(name = "Small Round", device = WearDevices.SMALL_ROUND, showBackground = true)
 @Preview(name = "Large Round", device = WearDevices.LARGE_ROUND, showBackground = true)
