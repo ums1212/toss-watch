@@ -37,6 +37,7 @@ import dev.comon.toss_watch.feature.setting.presentation.alarmimage.AlarmImageSc
 import dev.comon.toss_watch.feature.setting.presentation.setting.SettingScreen
 import dev.comon.toss_watch.feature.setting.presentation.watchpair.WatchPairScreen
 import dev.comon.toss_watch.feature.tosskey.presentation.tosskey.TossKeyScreen
+import dev.comon.toss_watch.navigation.component.rememberAdMobBannerState
 
 private val SLIDE_OVERLAY_ANIMATION_SPEC = tween<IntOffset>(durationMillis = 300)
 
@@ -88,6 +89,10 @@ fun TossWatchNavHost(
     mainViewModel: MainViewModel = hiltViewModel(),
 ) {
     val sessionState by mainViewModel.sessionState.collectAsStateWithLifecycle()
+
+    // 광고 뷰는 NavDisplay 바깥에서 소유한다 — NavDisplay는 백스택 최상단이 아닌 엔트리를 컴포지션에서
+    // 빼므로, BottomMenuScreen 안에서 만들면 설정/상세 화면에 다녀올 때마다 광고를 다시 로드한다.
+    val adBannerState = rememberAdMobBannerState()
 
     LaunchedEffect(sessionState) {
         when (sessionState) {
@@ -173,6 +178,7 @@ fun TossWatchNavHost(
                 // 등, BottomMenuScreen이 직접 처리하지 않기로 판단한 경우에만 호출되어 라우트를 push한다.
                 BottomMenuScreen(
                     isGuest = sessionState == SessionState.GUEST,
+                    adBannerState = adBannerState,
                     onNavigateToSetting = { navigator.goTo(SettingRoute) },
                     onNavigateToAlarmDetail = { stockCode, stockName ->
                         navigator.goTo(AlarmDetailRoute(stockCode, stockName))

@@ -46,6 +46,7 @@ import dev.comon.toss_watch.feature.alarm.presentation.alarmdetail.AlarmDetailSc
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.DashboardScreen
 import dev.comon.toss_watch.feature.dashboard.presentation.dashboard.component.DashboardTopBar
 import dev.comon.toss_watch.navigation.component.AdMobBanner
+import dev.comon.toss_watch.navigation.component.AdMobBannerState
 import dev.comon.toss_watch.navigation.component.FloatingBottomNavigationBar
 import dev.comon.toss_watch.navigation.component.TossNavigationRail
 import java.io.Serializable
@@ -111,6 +112,8 @@ private data class SelectedStock(val stockCode: String, val stockName: String?) 
  * 그 아래에 놓인다.
  *
  * @param isGuest 게스트(더미 데이터 체험) 모드 여부 — true면 공통 탑바 위에 [GuestModeBanner]를 노출한다.
+ * @param adBannerState 탑바 아래 [AdMobBanner]가 보여 줄 광고 뷰의 소유자 — 이 화면이 컴포지션에서
+ *   빠져도(설정/상세 화면 이동) 광고가 유지되도록 `NavDisplay` 바깥에서 만들어 전달받는다.
  * @param onNavigateToSetting 공통 탑바(`DashboardTopBar`)의 설정 아이콘 탭 시 호출 — SettingRoute로 이동.
  * @param onNavigateToAlarmDetail 종목 항목(보유종목 카드 또는 알림 탭 항목) 탭 시, COMPACT/MEDIUM에서
  *   호출되어 해당 종목의 AlarmDetailRoute로 이동한다(전체화면 오버레이). EXPANDED에서는 대신
@@ -119,6 +122,7 @@ private data class SelectedStock(val stockCode: String, val stockName: String?) 
 @Composable
 fun BottomMenuScreen(
     isGuest: Boolean,
+    adBannerState: AdMobBannerState,
     onNavigateToSetting: () -> Unit,
     onNavigateToAlarmDetail: (stockCode: String, stockName: String) -> Unit,
     modifier: Modifier = Modifier,
@@ -203,7 +207,7 @@ fun BottomMenuScreen(
                 )
                 // 탑바 바로 아래의 AdMob 배너 — topBar 슬롯에 포함되므로 탭을 전환해도 고정되고,
                 // 본문은 innerPadding의 top(이 슬롯의 실측 높이)만큼 자동으로 밀린다.
-                AdMobBanner()
+                AdMobBanner(state = adBannerState)
             }
         },
         bottomBar = {
