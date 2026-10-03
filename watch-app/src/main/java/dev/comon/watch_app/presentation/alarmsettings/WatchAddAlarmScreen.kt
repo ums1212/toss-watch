@@ -14,6 +14,7 @@ import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
+import dev.comon.toss_watch.core.model.MAX_ALARM_COUNT
 import dev.comon.watch_app.R
 import java.util.Locale
 
@@ -21,6 +22,7 @@ import java.util.Locale
 fun WatchAddAlarmScreen(code: String, name: String, state: WatchAlarmUiState,
     onIntent: (WatchAlarmIntent) -> Unit, onBack: () -> Unit, onPickTime: () -> Unit) {
     val labels = stringArrayResource(R.array.alarm_weekdays)
+    val limitReached = state.sync.snapshot?.alarms.orEmpty().size >= MAX_ALARM_COUNT
     AlarmSettingsScaffold(stringResource(R.string.alarm_add)) {
         item { SettingsText(name) }
         item {
@@ -46,8 +48,9 @@ fun WatchAddAlarmScreen(code: String, name: String, state: WatchAlarmUiState,
         }
         if (state.days.isEmpty()) item { SettingsText(stringResource(R.string.alarm_select_day)) }
         item { SyncStatus(state) }
+        if (limitReached) item { SettingsText(stringResource(R.string.alarm_sync_limit)) }
         item {
-            SettingsButton(stringResource(R.string.alarm_save), !state.busy && state.days.isNotEmpty() &&
+            SettingsButton(stringResource(R.string.alarm_save), !state.busy && state.days.isNotEmpty() && !limitReached &&
                 state.sync.snapshot?.available == true && state.sync.snapshot.stocks.any { it.code == code }) {
                 onIntent(WatchAlarmIntent.Add(code, name))
             }

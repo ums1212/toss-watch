@@ -2,12 +2,14 @@ package dev.comon.toss_watch.feature.alarm.presentation.alarmdetail
 
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.alarm.R
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.DeleteAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ObserveAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.SetAlarmEnabledInCacheUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ToggleAlarmProfileUseCase
+import dev.comon.toss_watch.feature.alarm.domain.usecase.ValidateAlarmAddUseCase
 import dev.comon.toss_watch.feature.alarm.util.FakeAlarmRepository
 import dev.comon.toss_watch.feature.alarm.util.FakeStringProvider
 import dev.comon.toss_watch.feature.alarm.util.MainDispatcherRule
@@ -39,6 +41,7 @@ class AlarmDetailViewModelTest {
         AlarmDetailViewModel(
             fetchAlarmProfilesUseCase = FetchAlarmProfilesUseCase(fakeRepository),
             observeAlarmProfilesUseCase = ObserveAlarmProfilesUseCase(fakeRepository),
+            validateAlarmAddUseCase = ValidateAlarmAddUseCase(fakeRepository),
             addAlarmProfileUseCase = AddAlarmProfileUseCase(fakeRepository),
             toggleAlarmProfileUseCase = ToggleAlarmProfileUseCase(fakeRepository),
             setAlarmEnabledInCacheUseCase = SetAlarmEnabledInCacheUseCase(fakeRepository),
@@ -65,6 +68,7 @@ class AlarmDetailViewModelTest {
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
+            assertFalse(state.isAlarmLimitReached)
             assertEquals(FakeAlarmRepository.DEFAULT_ALARMS, state.alarms)
         }
 
@@ -95,6 +99,57 @@ class AlarmDetailViewModelTest {
                     AlarmDetailUiSideEffect.ShowToast(fakeStringProvider.getString(R.string.alarm_toast_added)),
                 ),
                 effects,
+            )
+        }
+
+    @Test
+    fun `OnAddAlarm은 같은 종목·시각에 요일이 겹치면 API를 호출하지 않고 에러를 표시한다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+            val effects = collectSideEffects(viewModel)
+
+            // 기존: 삼성전자 09:00 매일 — 수요일(2)만 겹쳐도 차단된다.
+            viewModel.handleIntent(AlarmDetailUiIntent.OnAddAlarm("005930", "삼성전자", 9, 0, listOf(2)))
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(null, fakeRepository.lastAddedStockCode)
+            assertFalse(state.isSaving)
+            assertEquals(FakeAlarmRepository.DEFAULT_ALARMS, state.alarms)
+            assertEquals(fakeStringProvider.getString(R.string.alarm_detail_error_duplicate), state.errorMessage)
+            assertTrue(effects.isEmpty())
+        }
+
+    @Test
+    fun `OnAddAlarm은 알림이 이미 최대 개수면 API를 호출하지 않고 에러를 표시한다`() =
+        runTest(mainDispatcherRule.testDispatcher.scheduler) {
+            fakeRepository.seedAlarms = List(AlarmProfile.MAX_COUNT) { index ->
+                AlarmProfile(
+                    id = index + 1L,
+                    stockCode = "005930",
+                    stockName = "삼성전자",
+                    hour = index / 60,
+                    minute = index % 60,
+                    daysOfWeek = listOf(0),
+                    isEnabled = true,
+                )
+            }
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.handleIntent(
+                AlarmDetailUiIntent.OnAddAlarm("000660", "SK하이닉스", 10, 15, listOf(0, 1, 2, 3, 4, 5)),
+            )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(null, fakeRepository.lastAddedStockCode)
+            assertEquals(AlarmProfile.MAX_COUNT, state.alarms.size)
+            assertTrue(state.isAlarmLimitReached)
+            assertEquals(
+                fakeStringProvider.getString(R.string.alarm_detail_error_limit, AlarmProfile.MAX_COUNT),
+                state.errorMessage,
             )
         }
 

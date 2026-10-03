@@ -9,6 +9,7 @@ import dev.comon.toss_watch.core.datastore.GuestModeStore
 import dev.comon.toss_watch.core.datastore.TokenStore
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.core.model.watch.*
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmAddViolation
 import dev.comon.toss_watch.feature.alarm.domain.usecase.*
 import dev.comon.toss_watch.feature.setting.domain.usecase.SyncPairedWatchUseCase
 import java.io.IOException
@@ -32,6 +33,7 @@ class PhoneAlarmSyncBridge @Inject constructor(
     private val observeStocks: ObservePortfolioStocksUseCase,
     private val observeAlarms: ObserveAlarmProfilesUseCase,
     private val fetchAlarms: FetchAlarmProfilesUseCase,
+    private val validateAlarmAdd: ValidateAlarmAddUseCase,
     private val addAlarm: AddAlarmProfileUseCase,
     private val toggleAlarm: ToggleAlarmProfileUseCase,
     private val deleteAlarm: DeleteAlarmProfileUseCase,
@@ -146,6 +148,19 @@ class PhoneAlarmSyncBridge @Inject constructor(
         if (identity() != identity) return@withLock
         if (!validTarget) {
             val receipt = WatchAlarmReceipt(request.id, WatchAlarmOutcome.FAILED, "STALE_DATA")
+            store.saveReceipt(receipt)
+            publish(identity, receipt = receipt)
+            return@withLock
+        }
+        // Same add rules as the phone screen; rejected here so no POST is submitted.
+        val violation = if (request.operation == WatchAlarmOperation.ADD) {
+            validateAlarmAdd(requireNotNull(stock).stockCode, request.hour, request.minute, request.days)
+        } else null
+        if (violation != null) {
+            val receipt = WatchAlarmReceipt(request.id, WatchAlarmOutcome.FAILED, when (violation) {
+                AlarmAddViolation.LIMIT_REACHED -> "ALARM_LIMIT"
+                AlarmAddViolation.DUPLICATE -> "ALARM_DUPLICATE"
+            })
             store.saveReceipt(receipt)
             publish(identity, receipt = receipt)
             return@withLock

@@ -7,12 +7,15 @@ import dev.comon.toss_watch.core.common.mvi.BaseMviViewModel
 import dev.comon.toss_watch.core.common.resources.StringProvider
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.toss_watch.feature.alarm.R
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmAddViolation
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.domain.usecase.AddAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.DeleteAlarmProfileUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.FetchAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ObserveAlarmProfilesUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.SetAlarmEnabledInCacheUseCase
 import dev.comon.toss_watch.feature.alarm.domain.usecase.ToggleAlarmProfileUseCase
+import dev.comon.toss_watch.feature.alarm.domain.usecase.ValidateAlarmAddUseCase
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,6 +25,7 @@ import kotlinx.coroutines.launch
 class AlarmDetailViewModel @Inject constructor(
     private val fetchAlarmProfilesUseCase: FetchAlarmProfilesUseCase,
     private val observeAlarmProfilesUseCase: ObserveAlarmProfilesUseCase,
+    private val validateAlarmAddUseCase: ValidateAlarmAddUseCase,
     private val addAlarmProfileUseCase: AddAlarmProfileUseCase,
     private val toggleAlarmProfileUseCase: ToggleAlarmProfileUseCase,
     private val setAlarmEnabledInCacheUseCase: SetAlarmEnabledInCacheUseCase,
@@ -86,6 +90,11 @@ class AlarmDetailViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcherProvider.io) {
             updateState { copy(isSaving = true, errorMessage = null) }
+
+            validateAlarmAddUseCase(stockCode, hour, minute, daysOfWeek)?.let { violation ->
+                updateState { copy(isSaving = false, errorMessage = violation.toErrorMessage()) }
+                return@launch
+            }
 
             when (val result = addAlarmProfileUseCase(stockCode, stockName, hour, minute, daysOfWeek)) {
                 is NetworkResult.Success -> {
@@ -181,6 +190,12 @@ class AlarmDetailViewModel @Inject constructor(
         is NetworkResult.Success -> null
         is NetworkResult.ApiError -> message ?: stringProvider.getString(R.string.alarm_detail_error_api)
         is NetworkResult.NetworkError -> stringProvider.getString(R.string.alarm_error_network)
+    }
+
+    private fun AlarmAddViolation.toErrorMessage(): String = when (this) {
+        AlarmAddViolation.LIMIT_REACHED ->
+            stringProvider.getString(R.string.alarm_detail_error_limit, AlarmProfile.MAX_COUNT)
+        AlarmAddViolation.DUPLICATE -> stringProvider.getString(R.string.alarm_detail_error_duplicate)
     }
 
     companion object {
