@@ -33,6 +33,8 @@ fun StockQuoteLoadingScreen(onDismissClick: () -> Unit) {
 fun StockQuoteErrorScreen(
     onRetryClick: () -> Unit,
     onDismissClick: () -> Unit,
+    // null이 아니면 이어서 보여줄 종목이 남아 있다 — 이 종목 시세를 못 받아도 다음으로 넘어갈 수 있게 한다.
+    onNextClick: (() -> Unit)? = null,
 ) {
     SwipeToDismissBox(onDismissed = onDismissClick) { isBackground ->
         if (isBackground) return@SwipeToDismissBox
@@ -46,6 +48,14 @@ fun StockQuoteErrorScreen(
                 modifier = Modifier.padding(top = 12.dp),
             ) {
                 Text(stringResource(R.string.stock_alarm_retry))
+            }
+            if (onNextClick != null) {
+                Button(
+                    onClick = onNextClick,
+                    modifier = Modifier.padding(top = 6.dp),
+                ) {
+                    Text(stringResource(R.string.stock_alarm_next))
+                }
             }
             Button(
                 onClick = onDismissClick,

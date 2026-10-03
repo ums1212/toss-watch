@@ -21,8 +21,10 @@
     <string name="stock_alarm_change_rate">%1$s</string>
     <string name="stock_alarm_current_price">%1$s</string>
     <string name="stock_alarm_dismiss">Dismiss</string>
+    <string name="stock_alarm_next">Next</string>
     <string name="stock_alarm_image_desc">Price alert</string>
     <string name="stock_alarm_arrived">Today\'s %1$s stock update has arrived.</string>
+    <string name="stock_alarm_arrived_many">Today\'s stock updates for %1$s and %2$d more have arrived.</string>
     <string name="stock_alarm_open">View</string>
     <string name="stock_alarm_quote_error">Couldn\'t load the price.</string>
     <string name="stock_alarm_retry">Retry</string>

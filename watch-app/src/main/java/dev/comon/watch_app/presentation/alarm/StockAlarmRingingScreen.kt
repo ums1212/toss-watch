@@ -26,12 +26,18 @@ fun StockAlarmRingingScreen(
     stockName: String,
     onOpenClick: () -> Unit,
     onDismissClick: () -> Unit,
+    // 이 종목 뒤에 이어서 보여줄 알람 수. 0보다 크면 “A 외 N개”로 안내한다.
+    pendingCount: Int = 0,
 ) {
     SwipeToDismissBox(onDismissed = onDismissClick) { isBackground ->
         if (isBackground) return@SwipeToDismissBox
         WatchScrollColumn(modifier = Modifier.clickable(onClick = onOpenClick)) {
             Text(
-                text = stringResource(R.string.stock_alarm_arrived, stockName),
+                text = if (pendingCount > 0) {
+                    stringResource(R.string.stock_alarm_arrived_many, stockName, pendingCount)
+                } else {
+                    stringResource(R.string.stock_alarm_arrived, stockName)
+                },
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,

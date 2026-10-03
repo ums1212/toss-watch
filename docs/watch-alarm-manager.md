@@ -124,6 +124,28 @@ E ActivityTaskManager: Background activity launch blocked! goo.gle/android-bal
 `shouldVibrate=false`로 덮어씀). 그래서 채널 진동에 기대지 않고 `StockAlarmActivity`가 직접 `Vibrator`를 호출한다.
 진동이 계속 울리지 않도록 `VIBRATION_PATTERN`(500ms 진동 두 번)을 반복 없이(`repeat = -1`) 한 번만 재생하며, 그 전에 사용자가 화면을 누르면 즉시 멈춘다. 알림 채널 설정은 생성 후 불변이라 설정을 바꿀 때는 채널 ID를 올린다(현재 `stock_alarm_channel_v3`).
 
+### 같은 시각에 여러 종목이 울릴 때
+
+알람마다 `PendingIntent`가 달라 `StockAlarmReceiver`는 종목 수만큼 호출되고, 알림도 알람 id별로 따로 쌓인다.
+`StockAlarmActivity`는 `singleInstance`라 두 번째 알람부터는 `onNewIntent`로 들어오며, `StockAlarmViewModel`이 이를
+화면을 바꾸지 않고 **대기열(`StockAlarmUiState.pending`)에 이어 붙인다.**
+
+```
+A “도착했습니다” → A 이미지 → A 시세 ─[다음]→ B 이미지 → B 시세 ─[다음]→ … → 마지막 종목 시세 ─[닫기]
+```
+
+- 대기 중인 종목이 있으면 시세 화면의 닫기 버튼이 **다음** 버튼으로 바뀐다(시세 조회 실패 화면에도 다음 버튼이 추가된다).
+  다음 종목은 “도착했습니다” 화면을 건너뛰고 바로 이미지 → 시세로 이어진다.
+- 대기 중인 종목의 시세도 대기열에 들어오는 즉시 미리 조회한다.
+- 어느 종목이 먼저 뜰지는 리시버 처리 순서에 달려 있어 정해져 있지 않다.
+- “도착했습니다” 화면은 대기 중인 종목이 있으면 “오늘의 A 외 N개 주 정보가 도착했습니다.”로 안내한다.
+- 같은 분이 아니어도 된다. 사용자가 A를 아직 확인하지 않은 동안 나중 시각의 알람이 울리면 똑같이 뒤에 이어 붙는다.
+- 알림은 그 종목 차례가 됐을 때 지운다. 스와이프·닫기로 화면을 닫으면 보고 있던 종목의 알림만 지우고,
+  **대기 중이던 종목의 알림은 남긴다** — 사용자가 그 알림을 누르면 해당 종목의 알람 화면이 새로 뜬다.
+- 같은 알람이 알림의 전체 화면 인텐트와 리시버의 직접 실행으로 두 번 전달되면 무시한다(다시 울리지 않음).
+- 사용자가 이미 다 확인한 화면(시세 화면, 대기 없음)이 남아 있는 상태에서 새 알람이 울리면, 이어 붙이지 않고
+  새 알람의 “도착했습니다” 화면으로 처음부터 다시 시작한다.
+
 ---
 
 ## 6. 권한
@@ -192,7 +214,7 @@ Android 14+에서 `SCHEDULE_EXACT_ALARM`은 기본 거부라 사용자가 설정
 |---|---|
 | `NextAlarmTimeTest` | 오늘 미래/과거 시각, 다음 선택 요일, 일→월 경계, 기기 시간대 무관, 꺼진 알람 |
 | `RescheduleStockAlarmsUseCaseTest` | 켜진 알람 예약, 삭제·비활성 알람 해제, 미연동 시 전체 해제 |
-| `StockAlarmViewModelTest` | 울리는 동안 prefetch, 응답 전 열면 로딩→시세, 에러 후 재시도, 새 알람 수신 |
+| `StockAlarmViewModelTest` | 울리는 동안 prefetch, 응답 전 열면 로딩→시세, 에러 후 재시도, 새 알람 수신, 동시 알람 대기열·중복 전달 무시 |
 | `WatchSnapshotSizeLimitTest` (`:app`) | 한도 초과 시 종목만 제거하고 알람 유지 |
 
 ```bash
