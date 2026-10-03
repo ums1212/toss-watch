@@ -84,12 +84,64 @@ class StockAlarmViewModelTest {
         val vm = viewModel()
         runCurrent()
         vm.handleIntent(StockAlarmIntent.Open)
-        vm.handleIntent(StockAlarmIntent.NewAlarm("000660", "SK하이닉스"))
+        vm.handleIntent(StockAlarmIntent.NewAlarm(2L, "000660", "SK하이닉스"))
         runCurrent()
         val state = vm.uiState.value
         assertFalse(state.opened)
+        assertFalse(state.hasNext)
         assertEquals("SK하이닉스", state.stockName)
         assertEquals(1, state.alarmVersion)
+        assertEquals(listOf("005930", "000660"), repository.requests)
+    }
+
+    @Test fun `an alarm ringing at the same time queues behind the current one`() = runTest(dispatcher) {
+        repository.response.complete(NetworkResult.Success(quote))
+        val vm = viewModel()
+        vm.handleIntent(StockAlarmIntent.NewAlarm(2L, "000660", "SK하이닉스"))
+        runCurrent()
+        // 아직 첫 종목이 울리는 중이고, 두 번째 종목 시세도 미리 받아 둔다.
+        assertFalse(vm.uiState.value.opened)
+        assertEquals("삼성전자", vm.uiState.value.stockName)
+        assertEquals(listOf("005930", "000660"), repository.requests)
+        assertEquals(StockQuoteState.Loaded(quote), vm.uiState.value.pending.single().quote)
+
+        vm.handleIntent(StockAlarmIntent.Open)
+        assertTrue(vm.uiState.value.hasNext)
+        vm.handleIntent(StockAlarmIntent.Next)
+        val state = vm.uiState.value
+        // 다음 종목은 “도착했습니다” 화면 없이 바로 이미지 → 시세로 이어진다.
+        assertTrue(state.opened)
+        assertFalse(state.hasNext)
+        assertEquals(2L, state.alarmId)
+        assertEquals("SK하이닉스", state.stockName)
+        assertEquals(1, state.alarmVersion)
+        assertEquals(StockQuoteState.Loaded(quote), state.quote)
+        assertEquals(2, repository.requests.size)
+    }
+
+    @Test fun `a later alarm queues while the current one is still unopened`() = runTest(dispatcher) {
+        repository.response.complete(NetworkResult.Success(quote))
+        val vm = viewModel()
+        runCurrent()
+        // 첫 알람이 울린 뒤 한참 지나(시세 응답까지 끝난 뒤) 다른 시각의 알람이 울린 경우.
+        vm.handleIntent(StockAlarmIntent.NewAlarm(2L, "000660", "SK하이닉스"))
+        vm.handleIntent(StockAlarmIntent.NewAlarm(3L, "035420", "NAVER"))
+        runCurrent()
+        val state = vm.uiState.value
+        assertFalse(state.opened)
+        assertEquals("삼성전자", state.stockName)
+        assertEquals(listOf(2L, 3L), state.pending.map { it.alarmId })
+    }
+
+    @Test fun `a duplicate delivery of a queued alarm is ignored`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.handleIntent(StockAlarmIntent.NewAlarm(2L, "000660", "SK하이닉스"))
+        runCurrent()
+        val before = vm.uiState.value
+        vm.handleIntent(StockAlarmIntent.NewAlarm(2L, "000660", "SK하이닉스"))
+        vm.handleIntent(StockAlarmIntent.NewAlarm(0L, "005930", "삼성전자"))
+        runCurrent()
+        assertEquals(before, vm.uiState.value)
         assertEquals(listOf("005930", "000660"), repository.requests)
     }
 

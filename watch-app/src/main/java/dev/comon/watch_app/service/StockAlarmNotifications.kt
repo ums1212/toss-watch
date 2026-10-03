@@ -94,6 +94,7 @@ object StockAlarmNotifications {
             Log.w(TAG, "Full-screen intent not allowed; falling back to heads-up notification")
         }
         // 알람별 고유 ID로 발행 — 같은 알람은 갱신되고, 같은 시각의 다른 종목 알람은 각각 쌓인다.
+        // 각 알림은 알람 화면에서 그 종목 차례가 됐을 때 지워진다. 차례가 오기 전에 화면을 닫으면 남는다.
         manager.notify(notificationId(alarm.id), builder.build())
     }
 

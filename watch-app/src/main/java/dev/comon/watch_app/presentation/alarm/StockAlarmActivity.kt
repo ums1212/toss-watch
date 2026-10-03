@@ -29,7 +29,6 @@ import dev.comon.watch_app.service.StockAlarmNotifications
 class StockAlarmActivity : ComponentActivity() {
 
     private val viewModel: StockAlarmViewModel by viewModels()
-    private var alarmId = 0L
 
     private val vibrator: Vibrator by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -49,7 +48,6 @@ class StockAlarmActivity : ComponentActivity() {
         // 사용자가 닫기 전까지 화면이 꺼지지 않도록 유지 — 워치는 화면 자동 꺼짐 시간이 짧다.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        alarmId = intent.getLongExtra(StockAlarmNotifications.EXTRA_ALARM_ID, 0L)
         // 구성 변경으로 재생성된 경우엔 이미 울렸거나 사용자가 확인한 상태이므로 다시 울리지 않는다.
         if (savedInstanceState == null) startRinging()
 
@@ -58,9 +56,9 @@ class StockAlarmActivity : ComponentActivity() {
                 LaunchedEffect(Unit) {
                     viewModel.sideEffect.collect { effect ->
                         when (effect) {
-                            StockAlarmEffect.StopRinging -> stopRinging()
+                            is StockAlarmEffect.StopRinging -> stopRinging(effect.alarmId)
                             StockAlarmEffect.Finish -> {
-                                stopRinging()
+                                stopCurrent()
                                 finish()
                             }
                         }
@@ -75,21 +73,22 @@ class StockAlarmActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // launchMode="singleInstance"라 화면이 떠 있는 동안 다른 알람이 울리면 onCreate가 아닌
-        // 여기로 전달된다. 이전 알람 알림은 정리하고 새 알람으로 처음부터 다시 울린다.
+        // 여기로 전달된다. 같은 시각의 다른 종목 알람이면 지금 종목 뒤에 이어 붙는다(StockAlarmViewModel).
         setIntent(intent)
-        StockAlarmNotifications.cancel(this, alarmId)
-        alarmId = intent.getLongExtra(StockAlarmNotifications.EXTRA_ALARM_ID, 0L)
+        val before = viewModel.uiState.value
         viewModel.handleIntent(
             StockAlarmIntent.NewAlarm(
+                alarmId = intent.getLongExtra(StockAlarmNotifications.EXTRA_ALARM_ID, 0L),
                 stockCode = intent.getStringExtra(StockAlarmNotifications.EXTRA_STOCK_CODE).orEmpty(),
                 stockName = intent.getStringExtra(StockAlarmNotifications.EXTRA_STOCK_NAME).orEmpty(),
             ),
         )
-        startRinging()
+        // 이미 맡고 있는 알람이 중복 전달된 것이면 상태가 그대로다 — 다시 울리지 않는다.
+        if (viewModel.uiState.value != before) startRinging()
     }
 
     override fun onDestroy() {
-        if (isFinishing) stopRinging()
+        if (isFinishing) stopCurrent()
         super.onDestroy()
     }
 
@@ -105,9 +104,15 @@ class StockAlarmActivity : ComponentActivity() {
         )
     }
 
-    private fun stopRinging() {
+    private fun stopRinging(alarmId: Long) {
         vibrator.cancel()
         StockAlarmNotifications.cancel(this, alarmId)
+    }
+
+    // 화면을 닫을 때는 보고 있던 알람만 정리한다. 아직 차례가 오지 않은 알람은 알림으로 남아,
+    // 사용자가 나중에 눌러서 볼 수 있다.
+    private fun stopCurrent() {
+        stopRinging(viewModel.uiState.value.alarmId)
     }
 
     private companion object {
@@ -121,9 +126,12 @@ private fun StockAlarmContent(
     onIntent: (StockAlarmIntent) -> Unit,
 ) {
     val onDismiss = { onIntent(StockAlarmIntent.Dismiss) }
+    // 이어서 보여줄 종목이 남아 있을 때만 “다음” 버튼을 띄운다.
+    val onNext = if (state.hasNext) ({ onIntent(StockAlarmIntent.Next) }) else null
     if (!state.opened) {
         StockAlarmRingingScreen(
             stockName = state.stockName,
+            pendingCount = state.pending.size,
             onOpenClick = { onIntent(StockAlarmIntent.Open) },
             onDismissClick = onDismiss,
         )
@@ -134,6 +142,7 @@ private fun StockAlarmContent(
         StockQuoteState.Error -> StockQuoteErrorScreen(
             onRetryClick = { onIntent(StockAlarmIntent.Retry) },
             onDismissClick = onDismiss,
+            onNextClick = onNext,
         )
         is StockQuoteState.Loaded -> StockAlarmScreen(
             stockName = quote.quote.stockName.ifBlank { state.stockName },
@@ -141,6 +150,7 @@ private fun StockAlarmContent(
             changeRate = quote.quote.changeRate,
             alarmVersion = state.alarmVersion,
             onDismissClick = onDismiss,
+            onNextClick = onNext,
             customImagePaths = state.customImagePaths,
         )
     }

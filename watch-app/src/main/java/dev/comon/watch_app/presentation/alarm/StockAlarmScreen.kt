@@ -56,6 +56,8 @@ fun StockAlarmScreen(
     changeRate: String,
     alarmVersion: Int,
     onDismissClick: () -> Unit,
+    // null이 아니면 이어서 보여줄 종목이 남아 있다 — 닫기 대신 “다음” 버튼을 보여준다.
+    onNextClick: (() -> Unit)? = null,
     customImagePaths: Map<WatchAlarmImageSlot, String> = emptyMap(),
 ) {
     val direction = remember(changeRate) { changeRate.toPriceDirection() }
@@ -94,6 +96,7 @@ fun StockAlarmScreen(
                     changeRate = changeRate,
                     badgeColor = badgeColor,
                     onDismissClick = onDismissClick,
+                    onNextClick = onNextClick,
                 )
             } else {
                 ImageScene(
@@ -192,6 +195,7 @@ private fun InfoScene(
     changeRate: String,
     badgeColor: Color,
     onDismissClick: () -> Unit,
+    onNextClick: (() -> Unit)?,
 ) {
     WatchScrollColumn {
         Text(
@@ -221,15 +225,24 @@ private fun InfoScene(
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         )
 
-        Button(
-            onClick = onDismissClick,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
-            modifier = Modifier.padding(top = 16.dp),
-        ) {
-            Text(stringResource(R.string.stock_alarm_dismiss))
+        if (onNextClick != null) {
+            Button(
+                onClick = onNextClick,
+                modifier = Modifier.padding(top = 16.dp),
+            ) {
+                Text(stringResource(R.string.stock_alarm_next))
+            }
+        } else {
+            Button(
+                onClick = onDismissClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
+                modifier = Modifier.padding(top = 16.dp),
+            ) {
+                Text(stringResource(R.string.stock_alarm_dismiss))
+            }
         }
     }
 }

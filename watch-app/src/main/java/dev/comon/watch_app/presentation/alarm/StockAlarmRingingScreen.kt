@@ -1,8 +1,11 @@
 package dev.comon.watch_app.presentation.alarm
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,31 +29,46 @@ fun StockAlarmRingingScreen(
     stockName: String,
     onOpenClick: () -> Unit,
     onDismissClick: () -> Unit,
+    // 이 종목 뒤에 이어서 보여줄 알람 수. 0보다 크면 “A 외 N개”로 안내한다.
+    pendingCount: Int = 0,
 ) {
     SwipeToDismissBox(onDismissed = onDismissClick) { isBackground ->
         if (isBackground) return@SwipeToDismissBox
         WatchScrollColumn(modifier = Modifier.clickable(onClick = onOpenClick)) {
+            // 한 줄 문장은 원형 화면 가장자리에서 양옆이 잘려, 종목 줄과 안내 줄로 나눈다.
             Text(
-                text = stringResource(R.string.stock_alarm_arrived, stockName),
+                text = if (pendingCount > 0) {
+                    stringResource(R.string.stock_alarm_stock_and_more, stockName, pendingCount)
+                } else {
+                    stockName
+                },
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
-            Button(
-                onClick = onOpenClick,
+            Text(
+                text = stringResource(R.string.stock_alarm_arrived_message),
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 12.dp),
             ) {
-                Text(stringResource(R.string.stock_alarm_open))
-            }
-            Button(
-                onClick = onDismissClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
-                modifier = Modifier.padding(top = 6.dp),
-            ) {
-                Text(stringResource(R.string.stock_alarm_dismiss))
+                Button(
+                    onClick = onDismissClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ),
+                ) {
+                    Text(stringResource(R.string.stock_alarm_dismiss))
+                }
+                Button(onClick = onOpenClick) {
+                    Text(stringResource(R.string.stock_alarm_open))
+                }
             }
         }
     }
@@ -60,6 +78,6 @@ fun StockAlarmRingingScreen(
 @Composable
 private fun StockAlarmRingingScreenPreview() {
     TosswatchTheme {
-        StockAlarmRingingScreen(stockName = "삼성전자", onOpenClick = {}, onDismissClick = {})
+        StockAlarmRingingScreen(stockName = "삼성전자", onOpenClick = {}, onDismissClick = {}, pendingCount = 1)
     }
 }
