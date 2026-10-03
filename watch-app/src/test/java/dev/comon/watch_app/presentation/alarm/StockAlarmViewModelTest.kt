@@ -3,8 +3,11 @@ package dev.comon.watch_app.presentation.alarm
 import androidx.lifecycle.SavedStateHandle
 import dev.comon.toss_watch.core.model.NetworkResult
 import dev.comon.watch_app.domain.model.StockQuote
+import dev.comon.toss_watch.core.model.watch.WatchAlarmImageSlot
+import dev.comon.watch_app.domain.repository.AlarmImageRepository
 import dev.comon.watch_app.domain.repository.WatchStockQuoteRepository
 import dev.comon.watch_app.domain.usecase.FetchStockQuoteUseCase
+import dev.comon.watch_app.domain.usecase.GetCustomAlarmImagePathsUseCase
 import dev.comon.watch_app.service.StockAlarmNotifications
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
@@ -33,6 +36,9 @@ class StockAlarmViewModelTest {
 
     private fun viewModel() = StockAlarmViewModel(
         FetchStockQuoteUseCase(repository),
+        GetCustomAlarmImagePathsUseCase(object : AlarmImageRepository {
+            override suspend fun customImagePaths() = emptyMap<WatchAlarmImageSlot, String>()
+        }),
         SavedStateHandle(mapOf(
             StockAlarmNotifications.EXTRA_STOCK_CODE to "005930",
             StockAlarmNotifications.EXTRA_STOCK_NAME to "삼성전자",

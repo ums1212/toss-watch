@@ -1,5 +1,6 @@
 package dev.comon.watch_app.presentation.alarm
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -14,11 +15,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,12 +37,15 @@ import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SwipeToDismissBox
 import androidx.wear.compose.material3.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import dev.comon.toss_watch.core.model.watch.WatchAlarmImageSlot
 import dev.comon.watch_app.R
 import dev.comon.watch_app.presentation.component.WatchScrollColumn
 import androidx.compose.ui.text.style.TextAlign
 import dev.comon.watch_app.presentation.theme.TosswatchTheme
 import dev.comon.watch_app.presentation.theme.WatchColors
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 private const val IMAGE_SCENE_DURATION_MS = 2000L
 
@@ -48,6 +56,7 @@ fun StockAlarmScreen(
     changeRate: String,
     alarmVersion: Int,
     onDismissClick: () -> Unit,
+    customImagePaths: Map<WatchAlarmImageSlot, String> = emptyMap(),
 ) {
     val direction = remember(changeRate) { changeRate.toPriceDirection() }
 
@@ -87,17 +96,37 @@ fun StockAlarmScreen(
                     onDismissClick = onDismissClick,
                 )
             } else {
-                ImageScene(direction = direction, visible = imageVisible)
+                ImageScene(
+                    direction = direction,
+                    visible = imageVisible,
+                    customImagePath = customImagePaths[direction.slot],
+                )
             }
         }
     }
 }
 
+// 디버그 전용 알람 이미지 미리보기(WatchAlarmImagePreviewScreen)도 같은 모습으로 그리도록 공유한다.
 @Composable
-private fun ImageScene(
+internal fun ImageScene(
     direction: PriceDirection,
     visible: Boolean,
+    customImagePath: String? = null,
 ) {
+    val defaultPainter = painterResource(direction.imageRes)
+    // 사용자 지정 이미지는 메인 스레드 밖에서 디코딩한다. null = 아직 디코딩 중(슬라이드 인 초반 몇 ms).
+    // 파일이 깨졌거나 읽지 못하면 기본 이미지로 대체한다.
+    val painter by produceState<Painter?>(
+        initialValue = if (customImagePath == null) defaultPainter else null,
+        customImagePath,
+        defaultPainter,
+    ) {
+        value = customImagePath
+            ?.let { path -> withContext(Dispatchers.IO) { BitmapFactory.decodeFile(path) } }
+            ?.let { BitmapPainter(it.asImageBitmap()) }
+            ?: defaultPainter
+    }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
@@ -107,15 +136,17 @@ private fun ImageScene(
             enter = slideInVertically(initialOffsetY = { fullHeight -> fullHeight }) + fadeIn(),
             modifier = Modifier.fillMaxSize(),
         ) {
-            Image(
-                painter = painterResource(direction.imageRes),
-                contentDescription = stringResource(R.string.stock_alarm_image_desc),
-                // 이미지 영역은 이미지 종류와 무관하게 항상 화면 전체다 — 원형 디스플레이가 그대로
-                // 원형으로 잘라 보여준다. 이미지별 보정은 두지 않으며, 원 안에 어떻게 보일지는
-                // 이미지 쪽에서 원형 화면에 맞게 편집해 맞춘다.
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
+            painter?.let {
+                Image(
+                    painter = it,
+                    contentDescription = stringResource(R.string.stock_alarm_image_desc),
+                    // 이미지 영역은 이미지 종류와 무관하게 항상 화면 전체다 — 원형 디스플레이가 그대로
+                    // 원형으로 잘라 보여준다. 이미지별 보정은 두지 않으며, 원 안에 어떻게 보일지는
+                    // 이미지 쪽에서 원형 화면에 맞게 편집해 맞춘다(사용자 지정 이미지는 폰의 크롭 편집).
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
         }
     }
 }

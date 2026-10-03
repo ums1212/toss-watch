@@ -69,6 +69,7 @@
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/alarm-sync/v1/snapshot/" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/alarm-image/v1/" />
             </intent-filter>
         </service>
         <receiver

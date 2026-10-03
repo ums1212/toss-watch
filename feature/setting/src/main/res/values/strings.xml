@@ -20,6 +20,25 @@
     <string name="setting_watch_repair_button">Re-pair</string>
     <string name="setting_watch_pair_button">Pair via QR code</string>
 
+    <string name="setting_alarm_image_button">Alarm image settings</string>
+
+    <string name="alarmimage_top_bar_title">Alarm image settings</string>
+    <string name="alarmimage_edit_top_bar_title">Adjust image</string>
+    <string name="alarmimage_back_desc">Back</string>
+    <string name="alarmimage_hint">Tap a circle to change the image shown on your watch alarm.</string>
+    <string name="alarmimage_unpaired_hint">No watch is paired. Images you set now will be sent once you pair a watch.</string>
+    <string name="alarmimage_slot_up">Price up</string>
+    <string name="alarmimage_slot_flat">Unchanged</string>
+    <string name="alarmimage_slot_down">Price down</string>
+    <string name="alarmimage_slot_image_desc">%1$s alarm image</string>
+    <string name="alarmimage_change_action">Change image</string>
+    <string name="alarmimage_reset_button">Restore default image</string>
+    <string name="alarmimage_crop_hint">Drag or pinch to choose the area shown on your watch.</string>
+    <string name="alarmimage_crop_apply">Apply</string>
+    <string name="alarmimage_crop_cancel">Cancel</string>
+    <string name="alarmimage_error_load">Couldn\'t load the image. Please choose another one.</string>
+    <string name="alarmimage_error_save">Couldn\'t save the image. Please try again.</string>
+
     <string name="setting_logout_button">Log out</string>
     <string name="setting_login_button">Log in</string>
 

@@ -1,6 +1,10 @@
 <resources>
     <string name="watch_settings_title">Settings</string>
     <string name="watch_pairing_info">Pairing info</string>
+    <string name="alarm_image_preview">Alarm images</string>
+    <string name="alarm_image_preview_up">Up</string>
+    <string name="alarm_image_preview_flat">Flat</string>
+    <string name="alarm_image_preview_down">Down</string>
     <string name="app_name">toss-watch</string>
     <string name="hello_world">Hello, %1$s!</string>
 

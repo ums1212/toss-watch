@@ -1,16 +1,21 @@
 package dev.comon.watch_app.presentation.alarm
 
 import androidx.annotation.DrawableRes
+import dev.comon.toss_watch.core.model.watch.WatchAlarmImageSlot
 import dev.comon.watch_app.R
 
 /**
  * 등락률(changeRate) 문자열로부터 판정한 시세 방향.
  * 알람 이미지 Scene에서 보여줄 이미지와, 정보 Scene의 배지 색상 판정에 공통으로 쓰인다.
  */
-enum class PriceDirection(@param:DrawableRes val imageRes: Int) {
-    UP(R.drawable.stock_alarm_up),
-    DOWN(R.drawable.stock_alarm_down),
-    FLAT(R.drawable.stock_alarm_flat),
+enum class PriceDirection(
+    /** 기본 이미지. 사용자가 폰에서 [slot]에 이미지를 설정했다면 그 이미지가 대신 쓰인다. */
+    @param:DrawableRes val imageRes: Int,
+    val slot: WatchAlarmImageSlot,
+) {
+    UP(R.drawable.stock_alarm_up, WatchAlarmImageSlot.UP),
+    DOWN(R.drawable.stock_alarm_down, WatchAlarmImageSlot.DOWN),
+    FLAT(R.drawable.stock_alarm_flat, WatchAlarmImageSlot.FLAT),
 }
 
 /**

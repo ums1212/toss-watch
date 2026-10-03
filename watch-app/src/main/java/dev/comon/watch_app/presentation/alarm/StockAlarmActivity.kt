@@ -141,6 +141,7 @@ private fun StockAlarmContent(
             changeRate = quote.quote.changeRate,
             alarmVersion = state.alarmVersion,
             onDismissClick = onDismiss,
+            customImagePaths = state.customImagePaths,
         )
     }
 }

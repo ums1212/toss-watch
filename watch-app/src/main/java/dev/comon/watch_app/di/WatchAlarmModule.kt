@@ -5,7 +5,9 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.comon.watch_app.data.alarm.AndroidStockAlarmScheduler
+import dev.comon.watch_app.data.repository.AlarmImageRepositoryImpl
 import dev.comon.watch_app.data.repository.WatchAlarmRepositoryImpl
+import dev.comon.watch_app.domain.repository.AlarmImageRepository
 import dev.comon.watch_app.domain.repository.StockAlarmScheduler
 import dev.comon.watch_app.domain.repository.WatchAlarmRepository
 
@@ -13,5 +15,6 @@ import dev.comon.watch_app.domain.repository.WatchAlarmRepository
 @InstallIn(SingletonComponent::class)
 abstract class WatchAlarmModule {
     @Binds abstract fun bindAlarmRepository(impl: WatchAlarmRepositoryImpl): WatchAlarmRepository
+    @Binds abstract fun bindAlarmImageRepository(impl: AlarmImageRepositoryImpl): AlarmImageRepository
     @Binds abstract fun bindStockAlarmScheduler(impl: AndroidStockAlarmScheduler): StockAlarmScheduler
 }

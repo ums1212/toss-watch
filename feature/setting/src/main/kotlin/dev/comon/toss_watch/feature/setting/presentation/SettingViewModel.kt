@@ -31,6 +31,9 @@ class SettingViewModel @Inject constructor(
             SettingUiIntent.OnPairWatchClicked ->
                 sendSideEffect(SettingUiSideEffect.NavigateToWatchPair)
 
+            SettingUiIntent.OnAlarmImageClicked ->
+                sendSideEffect(SettingUiSideEffect.NavigateToAlarmImage)
+
             SettingUiIntent.OnBackClicked ->
                 sendSideEffect(SettingUiSideEffect.NavigateBack)
 

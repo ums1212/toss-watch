@@ -49,3 +49,10 @@ data object TossKeyRoute : AppRoute
  */
 @Serializable
 data object WatchPairRoute : AppRoute
+
+/**
+ * 워치 알람 이미지 설정 — 상승/보합/하락 알람 이미지를 사용자가 고른 이미지로 교체한다.
+ * 설정 화면에서 진입하는 목적지.
+ */
+@Serializable
+data object AlarmImageRoute : AppRoute
