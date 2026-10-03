@@ -23,9 +23,10 @@
     <string name="stock_alarm_dismiss">닫기</string>
     <string name="stock_alarm_next">다음</string>
     <string name="stock_alarm_image_desc">시세 알림</string>
-    <string name="stock_alarm_arrived">오늘의 %1$s 주 정보가 도착했습니다.</string>
-    <string name="stock_alarm_arrived_many">오늘의 %1$s 외 %2$d개 주 정보가 도착했습니다.</string>
-    <string name="stock_alarm_open">확인하기</string>
+    <string name="stock_alarm_arrived">%1$s 주 정보가 도착했습니다</string>
+    <string name="stock_alarm_stock_and_more">%1$s 외 %2$d개</string>
+    <string name="stock_alarm_arrived_message">정보가 도착했습니다.</string>
+    <string name="stock_alarm_open">확인</string>
     <string name="stock_alarm_quote_error">시세를 불러오지 못했어요.</string>
     <string name="stock_alarm_retry">다시 시도</string>
 
