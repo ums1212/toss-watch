@@ -25,6 +25,20 @@
                 <data android:scheme="wear" android:host="*" android:pathPrefix="/alarm-sync/v1/request/" />
             </intent-filter>
         </service>
+        <!-- Android 8~10에서도 PickVisualMedia가 문서 선택 UI 대신 Photo Picker를 띄우도록
+             Google Play 서비스가 백포트 피커 모듈을 미리 설치하게 한다. -->
+        <service
+            android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false"
+            tools:ignore="MissingClass">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+            <meta-data
+                android:name="photopicker_activity:0:required"
+                android:value="" />
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"
