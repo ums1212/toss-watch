@@ -1,5 +1,7 @@
 package dev.comon.toss_watch.feature.alarm.domain.model
 
+import dev.comon.toss_watch.core.model.MAX_ALARM_COUNT
+
 /**
  * 알림 스케줄 1건.
  *
@@ -28,6 +30,6 @@ data class AlarmProfile(
 
     companion object {
         /** 계정당 등록할 수 있는 알림 총 개수 상한. */
-        const val MAX_COUNT = 100
+        const val MAX_COUNT = MAX_ALARM_COUNT
     }
 }

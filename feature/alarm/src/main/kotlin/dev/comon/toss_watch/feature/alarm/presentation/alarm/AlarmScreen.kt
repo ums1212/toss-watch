@@ -19,10 +19,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -51,6 +55,7 @@ import dev.comon.toss_watch.core.designsystem.theme.TossWatchTheme
 import dev.comon.toss_watch.core.designsystem.theme.adaptiveContentWidth
 import dev.comon.toss_watch.core.model.CachedStock
 import dev.comon.toss_watch.feature.alarm.R
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 import dev.comon.toss_watch.feature.alarm.presentation.alarm.component.StockAlarmSummaryItem
 import dev.comon.toss_watch.feature.alarm.presentation.alarm.component.StockSelectDialog
 
@@ -122,13 +127,37 @@ private fun AlarmContent(
             // 알림이 하나도 없을 때는 빈 상태 안내 아래에 이미 추가 버튼이 있으므로 FAB를 숨겨
             // 진입점이 중복되지 않게 한다.
             if (uiState.stockAlarms.isNotEmpty()) {
+                // M3 FAB에는 enabled 파라미터가 없다 — 상한에 도달하면 비활성 색으로 바꾸고
+                // 클릭을 무시하며, 접근성 서비스에도 비활성으로 알린다.
+                val limitReached = uiState.isAlarmLimitReached
                 FloatingActionButton(
-                    onClick = { showStockSelectDialog = true },
-                    modifier = Modifier.padding(bottom = bottomContentPadding),
+                    onClick = { if (!limitReached) showStockSelectDialog = true },
+                    modifier = Modifier
+                        .padding(bottom = bottomContentPadding)
+                        .then(if (limitReached) Modifier.semantics { disabled() } else Modifier),
+                    containerColor = if (limitReached) {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    } else {
+                        FloatingActionButtonDefaults.containerColor
+                    },
+                    contentColor = if (limitReached) {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    } else {
+                        contentColorFor(FloatingActionButtonDefaults.containerColor)
+                    },
+                    elevation = if (limitReached) {
+                        FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
+                    } else {
+                        FloatingActionButtonDefaults.elevation()
+                    },
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
-                        contentDescription = stringResource(id = R.string.alarm_add_button),
+                        contentDescription = if (limitReached) {
+                            stringResource(id = R.string.alarm_detail_add_button_limit, AlarmProfile.MAX_COUNT)
+                        } else {
+                            stringResource(id = R.string.alarm_add_button)
+                        },
                     )
                 }
             }

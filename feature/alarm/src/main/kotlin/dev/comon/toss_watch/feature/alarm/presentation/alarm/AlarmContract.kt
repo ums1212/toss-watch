@@ -4,6 +4,7 @@ import dev.comon.toss_watch.core.common.mvi.UiIntent
 import dev.comon.toss_watch.core.common.mvi.UiSideEffect
 import dev.comon.toss_watch.core.common.mvi.UiState
 import dev.comon.toss_watch.core.model.CachedStock
+import dev.comon.toss_watch.feature.alarm.domain.model.AlarmProfile
 
 /** 알림이 등록된 종목 1건 — 해당 종목에 등록된 알림 개수를 함께 보여준다. */
 data class StockAlarmSummary(
@@ -18,7 +19,11 @@ data class AlarmUiState(
     val portfolioStocks: List<CachedStock> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-) : UiState
+) : UiState {
+    /** 전체 알림이 상한([AlarmProfile.MAX_COUNT])에 도달했는지 — 종목별 개수의 합 기준. */
+    val isAlarmLimitReached: Boolean
+        get() = stockAlarms.sumOf { it.alarmCount } >= AlarmProfile.MAX_COUNT
+}
 
 sealed interface AlarmUiIntent : UiIntent {
 
