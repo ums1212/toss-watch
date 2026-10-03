@@ -106,8 +106,9 @@ fun StockAlarmScreen(
     }
 }
 
+// 디버그 전용 알람 이미지 미리보기(WatchAlarmImagePreviewScreen)도 같은 모습으로 그리도록 공유한다.
 @Composable
-private fun ImageScene(
+internal fun ImageScene(
     direction: PriceDirection,
     visible: Boolean,
     customImagePath: String? = null,

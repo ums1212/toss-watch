@@ -16,7 +16,9 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import androidx.wear.compose.material3.TimePicker
+import dev.comon.watch_app.BuildConfig
 import dev.comon.watch_app.presentation.alarmsettings.*
+import dev.comon.watch_app.presentation.setting.WatchAlarmImagePreviewScreen
 import dev.comon.watch_app.presentation.onboarding.OnboardingRoute
 import dev.comon.watch_app.presentation.onboarding.WatchOnboardingViewModel
 import dev.comon.watch_app.presentation.setting.WatchSettingsScreen
@@ -30,6 +32,8 @@ sealed interface WatchRoute : NavKey {
     @Serializable data object AppSettings : WatchRoute
     @Serializable data object PairingInfo : WatchRoute
     @Serializable data object Qr : WatchRoute
+    /** 디버그 빌드 전용 알람 이미지 미리보기. */
+    @Serializable data object AlarmImagePreview : WatchRoute
     @Serializable data class Detail(val code: String, val name: String) : WatchRoute
     @Serializable data class Add(val code: String, val name: String) : WatchRoute
     @Serializable data object Time : WatchRoute
@@ -79,7 +83,16 @@ fun WatchNavHost(
                 WatchSettingsScreen(
                     onPairingInfo = { backStack.add(WatchRoute.PairingInfo) },
                     onGenerateQr = { backStack.add(WatchRoute.Qr) },
+                    // 알람을 기다리지 않고 이미지를 확인하는 테스트 기능이라 디버그 빌드에서만 노출한다.
+                    onAlarmImagePreview = if (BuildConfig.DEBUG) {
+                        { backStack.add(WatchRoute.AlarmImagePreview) }
+                    } else {
+                        null
+                    },
                 )
+            }
+            entry<WatchRoute.AlarmImagePreview> {
+                WatchAlarmImagePreviewScreen()
             }
             entry<WatchRoute.PairingInfo> {
                 OnboardingRoute(

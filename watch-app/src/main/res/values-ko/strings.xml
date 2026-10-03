@@ -1,6 +1,10 @@
 <resources>
     <string name="watch_settings_title">설정</string>
     <string name="watch_pairing_info">연동 정보</string>
+    <string name="alarm_image_preview">알람 이미지</string>
+    <string name="alarm_image_preview_up">상승</string>
+    <string name="alarm_image_preview_flat">보합</string>
+    <string name="alarm_image_preview_down">하락</string>
     <string name="app_name">toss-watch</string>
     <string name="hello_world">Hello, %1$s!</string>
 
