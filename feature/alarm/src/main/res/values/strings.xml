@@ -8,6 +8,7 @@
 
     <string name="alarm_detail_back_desc">Back</string>
     <string name="alarm_detail_add_button">Add alert</string>
+    <string name="alarm_detail_add_button_limit">Alert limit reached (%1$d)</string>
     <string name="alarm_detail_empty">No alerts yet. Use the button below to add one.</string>
     <string name="alarm_detail_error_dialog_title">Couldn\'t save your alert</string>
     <string name="alarm_detail_error_api">Couldn\'t save your alert. Please try again in a moment.</string>

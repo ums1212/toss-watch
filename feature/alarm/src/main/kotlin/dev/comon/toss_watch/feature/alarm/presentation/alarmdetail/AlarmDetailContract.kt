@@ -14,7 +14,11 @@ data class AlarmDetailUiState(
     val isSaving: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-) : UiState
+) : UiState {
+    /** 전체 알림이 상한([AlarmProfile.MAX_COUNT])에 도달했는지 — 종목과 무관한 총 개수 기준. */
+    val isAlarmLimitReached: Boolean
+        get() = alarms.size >= AlarmProfile.MAX_COUNT
+}
 
 sealed interface AlarmDetailUiIntent : UiIntent {
 

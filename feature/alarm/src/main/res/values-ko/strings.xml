@@ -8,6 +8,7 @@
 
     <string name="alarm_detail_back_desc">뒤로가기</string>
     <string name="alarm_detail_add_button">알림 추가</string>
+    <string name="alarm_detail_add_button_limit">알림을 최대 %1$d개까지 등록했어요</string>
     <string name="alarm_detail_empty">등록된 알림이 없어요. 아래 버튼으로 추가해 보세요.</string>
     <string name="alarm_detail_error_dialog_title">설정을 저장하지 못했어요</string>
     <string name="alarm_detail_error_api">설정을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.</string>

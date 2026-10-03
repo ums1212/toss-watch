@@ -68,6 +68,7 @@ class AlarmDetailViewModelTest {
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
+            assertFalse(state.isAlarmLimitReached)
             assertEquals(FakeAlarmRepository.DEFAULT_ALARMS, state.alarms)
         }
 
@@ -145,6 +146,7 @@ class AlarmDetailViewModelTest {
             val state = viewModel.uiState.value
             assertEquals(null, fakeRepository.lastAddedStockCode)
             assertEquals(AlarmProfile.MAX_COUNT, state.alarms.size)
+            assertTrue(state.isAlarmLimitReached)
             assertEquals(
                 fakeStringProvider.getString(R.string.alarm_detail_error_limit, AlarmProfile.MAX_COUNT),
                 state.errorMessage,

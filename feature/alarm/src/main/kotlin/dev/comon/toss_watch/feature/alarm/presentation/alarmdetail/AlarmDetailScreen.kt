@@ -204,11 +204,17 @@ private fun AlarmDetailContent(
             } else {
                 OutlinedButton(
                     onClick = { showAddAlarmDialog = true },
-                    enabled = !uiState.isSaving,
+                    enabled = !uiState.isSaving && !uiState.isAlarmLimitReached,
                     modifier = bottomButtonModifier,
                 ) {
                     Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                    Text(text = stringResource(id = R.string.alarm_detail_add_button))
+                    Text(
+                        text = if (uiState.isAlarmLimitReached) {
+                            stringResource(id = R.string.alarm_detail_add_button_limit, AlarmProfile.MAX_COUNT)
+                        } else {
+                            stringResource(id = R.string.alarm_detail_add_button)
+                        },
+                    )
                 }
             }
         },
