@@ -8,6 +8,7 @@
     <string name="exit_dialog_title">Exit the app?</string>
     <string name="exit_dialog_confirm">Exit</string>
     <string name="exit_dialog_cancel">Cancel</string>
+    <string name="exit_dialog_ad_badge">Ad</string>
 
     <string name="bottom_nav_dashboard">Dashboard</string>
     <string name="bottom_nav_alarm">Alerts</string>
